@@ -12,6 +12,110 @@ function loadCustomBlocks(response) {
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
 
+    Blockly.Blocks['send_api_request'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "send_api_request",
+                "message0": "Send API Request %1 Method %2 URL %3 Body %4",
+                "args0": [
+                    {
+                        "type": "input_dummy"
+                    },
+                    {
+                        "type": "field_dropdown",
+                        "name": "METHOD",
+                        "options": [
+                            ["GET", "GET"],
+                            ["POST", "POST"],
+                            ["PUT", "PUT"],
+                            ["DELETE", "DELETE"]
+                        ]
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "URL",
+                        "check": "String",
+                        "text": "https://catfact.ninja/fact"
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "BODY",
+                        "check": "String"
+                    }
+                ],
+                "output": "String",
+                "colour": '#6665DD',
+                "tooltip": "Send an API request and return the response",
+                "helpUrl": ""
+            });
+        }
+    };
+
+    Blockly.Blocks['get_dict_property'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "get_dict_property",
+                "message0": "Get value for key %1 in dictionary %2",
+                "args0": [
+                    {
+                        "type": "input_value",
+                        "name": "KEY",
+                        "check": "String"
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "DICT",
+                        "check": "Dictionary"
+                    }
+                ],
+                "output": null,
+                "colour": '#000500',
+                "tooltip": "Get the value for a key in a dictionary",
+                "helpUrl": ""
+            });
+        }
+    };
+
+    Blockly.Blocks['get_current_weather'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "get_current_weather",
+                "message0": "Get current weather for latitude %1, longitude %2",
+                "args0": [
+                    {
+                        "type": "field_input",
+                        "name": "latitude",
+                        "check": "String",
+                        "text": "40.7128"
+                    },
+                    {
+                        "type": "field_input",
+                        "name": "longitude",
+                        "check": "String",
+                        "text": "-74.006"
+                    }
+                ],
+                "output": null,
+                "colour": '#6665DD',
+                "tooltip": "Get current weather",
+                "helpUrl": ""
+            });
+        }
+    };
+
+    Blockly.Blocks['get_chuck_norris_joke'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "get_chuck_norris_joke",
+                "message0": "Get Random Chuck Norris Joke",
+                "output": null,
+                "colour": '#6665DD',
+                "tooltip": "Get Random Chuck Norris Joke",
+                "helpUrl": ""
+            });
+        }
+    };
+
     Blockly.Blocks['tactigon_shape_function'] = {
         init: function () {
             this.jsonInit({
@@ -175,11 +279,11 @@ function loadSpeechBlocks(speechs) {
     args = []
     message = "Voice command:"
 
-    for (var i=0; i<speechs.length; i++){
+    for (var i = 0; i < speechs.length; i++) {
 
         message += " %" + (i + 1);
 
-        if (i==0) {
+        if (i == 0) {
             args.push({
                 "type": "field_dropdown",
                 "name": "FIELD_0",
@@ -204,7 +308,7 @@ function loadSpeechBlocks(speechs) {
     }
 
     Blockly.Blocks['tskin_listen'] = {
-        init: function(){
+        init: function () {
             this.jsonInit({
                 "type": "tskin_listen",
                 "message0": message,
@@ -548,14 +652,26 @@ function defineCustomGenerators() {
 # Shapes by Next Industries
 
 import time
+import requests
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union`;
-        
+
         var libs = `
+def send_api_request(method: str, url: str, data :str = "", key: str = ""):
+    if not url:
+        return "please enter a valid URL"
+
+    response = requests.request(method=method,url=url, data=data).json()
+
+    if key in response:
+        return response[key]
+
+    return response
+
 def check_gesture(gesture: Optional[Gesture], gesture_to_find: str) -> bool:
     if not gesture:
         return False
@@ -675,7 +791,7 @@ def braccio_gripper(braccio: Optional[BraccioInterface], logging_queue: LoggingQ
         debug(logging_queue, "Braccio not configured")
 
 def debug(logging_queue: LoggingQueue, msg: str):
-    logging_queue.debug(msg)
+    logging_queue.debug(str(msg))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
@@ -694,7 +810,7 @@ def reset_touch(tskin: TSkin):
             return generator.INDENT + "global " + v.name;
         }).join('\n');
 
-        var code = libs + 'def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' + 
+        var code = libs + 'def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
             variables + '\n' + "\n" +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
@@ -713,9 +829,11 @@ def reset_touch(tskin: TSkin):
     defineSpeechGenerators();
     defineKeyboardGenerators();
     defineBraccioGenerators();
+    defineRestAPIGenerators();
+    defineDictionaryGenerators()
 }
 
-function defineTSkinGenerators(){
+function defineTSkinGenerators() {
     python.pythonGenerator.forBlock['tskin_gesture_list'] = function (block) {
         var gesture = block.getFieldValue('gesture');
         var code = `check_gesture(gesture, "${gesture}")`;
@@ -743,12 +861,12 @@ function defineTSkinGenerators(){
     };
 }
 
-function defineSpeechGenerators(){
+function defineSpeechGenerators() {
     python.pythonGenerator.forBlock['tskin_listen'] = function (block) {
         let args = block.inputList[0].fieldRow
             .filter((f) => f.selectedOption && f.selectedOption[1] != "")
             .map((f) => {
-                if (f.selectedOption[1] == "---"){
+                if (f.selectedOption[1] == "---") {
                     return `[${f.optionMapping.position.filter((o) => o[0] != "---").map((o) => `HotWord("${o[0]}")`).join(", ")}]`
                 }
                 return `HotWord("${f.selectedOption[1]}")`;
@@ -774,7 +892,7 @@ function defineSpeechGenerators(){
     };
 }
 
-function defineKeyboardGenerators(){
+function defineKeyboardGenerators() {
     python.pythonGenerator.forBlock['keyboard_press'] = function (block, generator) {
         var message = generator.valueToCode(block, 'NAME', python.Order.ATOMIC);
         var code = `keyboard_press(keyboard, HotKey.parse(${message}))\n`;
@@ -824,7 +942,7 @@ function defineKeyboardGenerators(){
     };
 }
 
-function defineBraccioGenerators(){
+function defineBraccioGenerators() {
     python.pythonGenerator.forBlock['braccio_move'] = function (block, generator) {
         var x = generator.valueToCode(block, 'x', python.Order.ATOMIC);
         var y = generator.valueToCode(block, 'y', python.Order.ATOMIC);
@@ -843,5 +961,43 @@ function defineBraccioGenerators(){
         var x = block.getFieldValue('gripper');
         var code = `braccio_gripper(braccio, logging_queue, Gripper['${x}'])\n`;
         return code;
+    };
+}
+
+function defineDictionaryGenerators() {
+    python.pythonGenerator.forBlock['get_dict_property'] = function (block, generator) {
+        var key = Blockly.Python.valueToCode(block, 'KEY', Blockly.Python.ORDER_ATOMIC) || "''";
+        var dict = Blockly.Python.valueToCode(block, 'DICT', Blockly.Python.ORDER_ATOMIC) || "{}";
+        var code = `${dict}.get(${key})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+}
+
+function defineRestAPIGenerators() {
+    python.pythonGenerator.forBlock['send_api_request'] = function (block, generator) {
+        var method = block.getFieldValue('METHOD');
+        var url = Blockly.Python.valueToCode(block, 'URL', Blockly.Python.ORDER_ATOMIC) || "''";
+        var body = Blockly.Python.valueToCode(block, 'BODY', Blockly.Python.ORDER_ATOMIC) || "''";
+
+        var code = `send_api_request('${method}', ${url}, ${body})`;
+
+        return [code, Blockly.Python.ORDER_NONE];
+    };
+
+    python.pythonGenerator.forBlock['get_current_weather'] = function (block, generator) {
+
+        var latitude = block.getFieldValue('latitude') || "''";
+        var longitude = block.getFieldValue('longitude') || "''";
+        var url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
+        var code = `send_api_request('GET', '${url}', '', 'current_weather')`;
+
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['get_chuck_norris_joke'] = function (block, generator) {
+        var url = `https://api.chucknorris.io/jokes/random`
+        var code = `send_api_request('GET', '${url}', '', 'value')`;
+
+        return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
