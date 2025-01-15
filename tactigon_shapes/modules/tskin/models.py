@@ -4,16 +4,17 @@ from os import path
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional, List, Tuple, Iterable
+from ...utility import has_voice
 
 from tactigon_gear import TSkinConfig, GestureConfig, Gesture, Hand, Angle, Touch, OneFingerGesture, TwoFingerGesture
 
-if sys.platform != "darwin":
+if has_voice():
     from tactigon_speech import TSkin_Speech as OldTSkin, VoiceConfig as OldVoiceConfig, Transcription, TSpeech, TSpeechObject, HotWord
 else:
     from tactigon_gear import TSkin as OldTSkin
     tactigon_speech_version = None
 
-if sys.platform != "darwin":
+if has_voice():
     HotWords = Tuple[HotWord, Optional[Iterable["HotWords"]]]
 
     @dataclass

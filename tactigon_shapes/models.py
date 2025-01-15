@@ -4,10 +4,11 @@ from os import getcwd
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional, List
+from .utility import has_voice
 
 from tactigon_gear import  __version__ as tactigon_gear_version
 
-if sys.platform != "darwin":
+if has_voice():
     from tactigon_speech import __version__ as tactigon_speech_version
 else:
     tactigon_speech_version = None
@@ -68,7 +69,7 @@ class AppConfig(object):
             json["SEND_FILE_MAX_AGE_DEFAULT"],
             [TSkinModel.FromJSON(f) for f in json["MODELS"]],
             TSkinConfig.FromJSON(json["TSKIN"]) if "TSKIN" in json and json["TSKIN"] is not None else None,
-            VoiceConfig.FromJSON(json["TSKIN_VOICE"]) if "TSKIN_VOICE" in json and json["TSKIN_VOICE"] is not None and sys.platform != "darwin" else None,
+            VoiceConfig.FromJSON(json["TSKIN_VOICE"]) if "TSKIN_VOICE" in json and json["TSKIN_VOICE"] is not None and has_voice() else None,
             file_path
             )
     
