@@ -5,7 +5,7 @@ function loadCustomBlocks(response) {
     const taps = response ? response.taps : []
     const wristOptions = response ? response.wristOptions : []
     const gripperOptions = response ? response.gripperOptions : []
-    const speechs = response ? response.speechs : []
+    const speechs = response && response.speechs ? response.speechs : []
 
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs);
@@ -551,7 +551,12 @@ import time
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
-from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
+from tactigon_shapes.utility import has_voice
+
+if has_voice():
+    from tactigon_shapes.modules.tskin.models import HotWord, TSpeechObject, TSpeech
+
+from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union`;
         
@@ -581,51 +586,52 @@ def check_touch(touch: Optional[Touch], finger_gesture: str, actions: List[Shape
         pass
     return False
 
-def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union[HotWord, List[HotWord]]]):
-    def build_tspeech(hws: List[Union[HotWord, List[HotWord]]]) -> Optional[TSpeechObject]:
-        if not hws:
-            return None
+if has_voice():
+    def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union[HotWord, List[HotWord]]]):
+        def build_tspeech(hws: List[Union[HotWord, List[HotWord]]]) -> Optional[TSpeechObject]:
+            if not hws:
+                return None
 
-        hw, *rest = hws
+            hw, *rest = hws
 
-        return TSpeechObject(
-            [
-                TSpeech(hw, build_tspeech(rest))
-            ]
-        )
+            return TSpeechObject(
+                [
+                    TSpeech(hw, build_tspeech(rest))
+                ]
+            )
 
-    tspeech = build_tspeech(hotwords)
+        tspeech = build_tspeech(hotwords)
 
-    if tspeech and tskin.can_listen:
-        debug(logging_queue, f"Waiting for command...")
-        r = tskin.listen(tspeech)
-        if r:
-            debug(logging_queue, "Listening....")
-            text_so_far = ""
-            t = None
-            while True:
-                t = tskin.transcription
+        if tspeech and tskin.can_listen:
+            debug(logging_queue, f"Waiting for command...")
+            r = tskin.listen(tspeech)
+            if r:
+                debug(logging_queue, "Listening....")
+                text_so_far = ""
+                t = None
+                while True:
+                    t = tskin.transcription
 
-                if t:
-                    break
+                    if t:
+                        break
 
-                if text_so_far != tskin.text_so_far:
-                    text_so_far = tskin.text_so_far
-                    debug(logging_queue, f"Listening: {text_so_far}")
-                time.sleep(tskin.TICK)
+                    if text_so_far != tskin.text_so_far:
+                        text_so_far = tskin.text_so_far
+                        debug(logging_queue, f"Listening: {text_so_far}")
+                    time.sleep(tskin.TICK)
 
-            if t and t.path is not None:
-                debug(logging_queue, f"Command found: {[hw.word for hw in t.path]}")
-                return [hw.word for hw in t.path]
+                if t and t.path is not None:
+                    debug(logging_queue, f"Command found: {[hw.word for hw in t.path]}")
+                    return [hw.word for hw in t.path]
 
-    debug(logging_queue, "Cannot listen...")
-    return []
+        debug(logging_queue, "Cannot listen...")
+        return []
 
-def record_audio(tskin: TSkin, filename: str, seconds: float):
-    tskin.record(filename, seconds)
+    def record_audio(tskin: TSkin, filename: str, seconds: float):
+        tskin.record(filename, seconds)
 
-    while tskin.is_recording:
-        time.sleep(tskin.TICK)
+        while tskin.is_recording:
+            time.sleep(tskin.TICK)
 
 def keyboard_press(keyboard: KeyboardController, commands: List[KeyCode]):
     for k in commands:

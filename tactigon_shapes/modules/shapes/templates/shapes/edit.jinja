@@ -349,6 +349,7 @@
                 <field name="gyro">x</field>
             </block>
         </category>
+        {% if has_voice %}
         <category name="Voice" colour="#EB6152">
             <block type="tskin_listen">
             </block>
@@ -372,6 +373,7 @@
                 </value>
             </block>
         </category> 
+        {% endif %}
         <sep></sep>
         {% if braccio_config %}
         <category name="Braccio" colour="#cb6434">

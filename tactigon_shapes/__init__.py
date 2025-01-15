@@ -15,6 +15,7 @@ from gevent.pywsgi import WSGIServer
 from typing import Optional
 
 from .config import app_config
+from .utility import has_voice
 from .models import BASE_PATH, TACTIGON_SPEECH, TACTIGON_GEAR
 
 from .modules.socketio import SocketApp
@@ -138,7 +139,8 @@ class Server(Process):
                     braccio_connected=braccio_connected,
                     tactigon_speech=TACTIGON_SPEECH,
                     tactigon_gear=TACTIGON_GEAR,
-                    has_braccio=has_braccio
+                    has_braccio=has_braccio,
+                    has_voice=has_voice()
                 )
 
         return flask_app
