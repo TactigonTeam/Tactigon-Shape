@@ -50,7 +50,7 @@ class Server(Process):
         while not self._ready_flag.is_set():
             time.sleep(0.5)
 
-        input("Type ant key to exit...\n")
+        input("Type any key to exit...\n")
     
         self.stop()
         self.terminate()
