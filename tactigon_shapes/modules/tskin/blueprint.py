@@ -5,9 +5,13 @@ from os import path
 from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from typing import Optional
+from ...utility import has_voice
 
 from .manager import get_tskin_default_config, get_voice_default_config, start_tskin, load_tskin, stop_tskin, get_tskin
-from .models import TSkinModel, VoiceConfig, TSkinConfig, Hand, GestureConfig, TSpeechObject, TSpeech, HotWord
+if has_voice():
+    from .models import TSpeechObject, TSpeech, HotWord
+
+from .models import TSkinModel, VoiceConfig, TSkinConfig, Hand, GestureConfig
 
 from ..socketio import get_socket_app
 from ...config import app_config
@@ -165,7 +169,7 @@ def save():
 
     return json.dumps(tskin_config.toJSON()), 200
 
-if sys.platform != "darwin":
+if has_voice():
     @bp.route("play", methods=["POST"])
     def play(base_path = ""):
         tskin = get_tskin()

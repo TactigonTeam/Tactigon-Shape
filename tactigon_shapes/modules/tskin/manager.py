@@ -2,12 +2,17 @@ import sys
 from os import path
 from flask import current_app
 from typing import Optional, Union
+from ...utility import has_voice
 
-from .models import TSkin, TSkinConfig, GestureConfig, TSkinModel, VoiceConfig, Hand, TSpeech, TSpeechObject, HotWord
+if has_voice():
+    from .models import TSpeech, TSpeechObject, HotWord
+
+from .models import TSkin, TSkinConfig, GestureConfig, TSkinModel, VoiceConfig, Hand
 
 TSKIN_EXTENSION = "tskin"
 
 def load_tskin(config: TSkinConfig, voice: Optional[VoiceConfig]):
+    print(voice)
     current_app.extensions[TSKIN_EXTENSION] = TSkin(config, voice)
 
 def start_tskin():
@@ -49,7 +54,7 @@ def get_tskin_default_config(address: str, hand: Hand, name: str, model: TSkinMo
         )
     )
 
-if sys.platform == "win32":
+if has_voice():
     def walk(args, s: TSpeech, level: int = 0, parent: str = "_init_"):
         if level > len(args) - 1:
             args.append(dict())
