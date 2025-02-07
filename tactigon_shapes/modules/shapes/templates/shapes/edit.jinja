@@ -13,10 +13,12 @@
         <p>{{ current_config.description| capitalize }}</p>
     </div>
     <div class="flex-fill border" id="blocklyDiv"></div>
-    <form class="d-flex justify-content-end gap-3" id="update-program-form" action="{{ url_for('shapes.save_program', program_id=current_config.id) }}" method="POST">
+    <form class="d-flex justify-content-end gap-3" id="update-program-form"
+        action="{{ url_for('shapes.save_program', program_id=current_config.id) }}" method="POST">
         <input id="generatedCode" type="hidden" name="generatedCode" />
         <input id="state" type="hidden" name="state" />
-        <a href="{{ url_for('shapes.index', program_id=current_config.id) }}" class="btn btn-outline-secondary">Cancel</a>
+        <a href="{{ url_for('shapes.index', program_id=current_config.id) }}"
+            class="btn btn-outline-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
 
@@ -333,6 +335,9 @@
         </category>
         <sep></sep>
         <category name="Variables" colour="#a55b80" custom="VARIABLE"></category>
+        <category name="Dictionaries" colour="#000500">
+            <block type="get_dict_property"></block>
+        </category>
         <category name="Functions" colour="#995ba5" custom="PROCEDURE"></category>
         <sep></sep>
         <category name="Gesture" colour="#EB6152">
@@ -371,7 +376,7 @@
                     </shadow>
                 </value>
             </block>
-        </category> 
+        </category>
         <sep></sep>
         {% if braccio_config %}
         <category name="Braccio" colour="#cb6434">
@@ -414,6 +419,17 @@
                     </shadow>
                 </value>
             </block>
+        </category>
+        <category name="Rest API" colour="#6665DD">
+            <block type="send_api_request">
+                <value name="URL">
+                    <shadow type="text">
+                        <field name="TEXT">https://catfact.ninja/fact</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="get_current_weather"></block>
+            <block type="get_chuck_norris_joke"></block>
         </category>
     </xml>
 </div>
@@ -469,11 +485,11 @@
         var workspace = Blockly.inject('blocklyDiv', options);
 
         {% if state %}
-            var initState = JSON.parse({{ state | tojson }});
-            Blockly.serialization.workspaces.load(initState, workspace);
-        {% endif %}
+        var initState = JSON.parse({{ state | tojson }});
+    Blockly.serialization.workspaces.load(initState, workspace);
+    {% endif %}
 
-        return workspace;
+    return workspace;
     }
 
     function setGeneratedCode(workspace) {
@@ -492,21 +508,21 @@
     $(document).ready(async function () {
 
         loadCustomBlocks({{ blocks_config | tojson | safe }});
-        defineCustomGenerators();
+    defineCustomGenerators();
 
-        const workspace = initializeBlockly();
+    const workspace = initializeBlockly();
 
-        $('#update-program-form').on('submit', (e) => {
-            try{
-                setGeneratedCode(workspace);
-                setState(workspace);
-            } catch(ex){
-                e.preventDefault();
-                console.log(ex);
-                return false;
-            }
-            return true;
-        });
+    $('#update-program-form').on('submit', (e) => {
+        try {
+            setGeneratedCode(workspace);
+            setState(workspace);
+        } catch (ex) {
+            e.preventDefault();
+            console.log(ex);
+            return false;
+        }
+        return true;
+    });
     });
 </script>
 {% endblock %}
