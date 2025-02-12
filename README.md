@@ -37,14 +37,12 @@ To set the required tools on your system, follow the steps below:
 
   - CPU with AVX/FMA support
     - To check if your Mac supports **AVX/FMA** you can go to **About This Mac**. Check the CPU model and verify its features online.
-  - Git [Download Git](https://git-scm.com/downloads)
   - Python 3.8.10 [Download Python 3.8.10](https://www.python.org/downloads/release/python-3810/)
 
 - **Windows:**
 To set up the required tools on your Windows 10 or Windows 11 operating system, follow the steps below:
   - CPU with AVX/FMA support
     - To check if your CPU supports AVX/FMA you can press **Win + R** then type **msinfo32** and press Enter. Check the CPU model and verify its features online.
-  - Git [Download Git](https://git-scm.com/downloads)
   - Python 3.8.10 [Download Python 3.8.10](https://www.python.org/downloads/release/python-3810/)
   - Microsoft C++ Build Tools and Windows 10/11 SDK. 
 
@@ -58,47 +56,23 @@ Open the Visual Studio Installer on your system. if you do not have one, [Downlo
 ![Screenshot 2024-11-21 162339](https://github.com/user-attachments/assets/5f6332f1-be2b-4fee-ad62-7feb734db710)
 
 ### Steps to Install:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/TactigonTeam/Tactigon-Shape.git
-   ```
-
-![image](https://github.com/user-attachments/assets/bc9664eb-ba03-4ad4-b11d-9f29fcdd2289)
-<br>
-<br>
-<br>
-<br>
-![image](https://github.com/user-attachments/assets/7027d8b3-9388-4f67-a7f9-fb967fa49b1d)
+1. Download the repository:
+![Immagine 2025-02-12 101837](https://github.com/user-attachments/assets/4065de26-cb74-453f-9c3f-32497c698408)
    
-3. Navigate to the project directory:
-   ```bash
-   cd Tactigon-Shape
-   ```
-4. Create a Python virtual environment:
-   ```bash
-   python -m venv venv
-   ```
-5. Activate the virtual environment:
-   - **Mac/Linux:**
-     ```bash
-     source venv/bin/activate
-     ```
-   - **Windows:**
-     ```bash
-     .\venv\Scripts\activate
-     ```
-6. Install dependencies:
-   ```bash
-   pip install flask==3.0.3 flask_socketio==5.3.6 gevent==24.2.1 tactigon_gear==5.2.0 PyAudio==0.2.13 pynput==1.7.7 sympy==1.13.2
-   pip install deepspeech-tflite==0.9.3 --no-deps
-   pip install tactigon_speech==5.0.8.post1 --no-deps
-   ```
+2. Pick a location and extract all the files. you will see a folder named **Tactigon-Shape-master**.
 
-![image](https://github.com/user-attachments/assets/94d27fbe-58fe-4519-9127-b97bac8677c5)
+2. Navigate to the project directory or open the project with your default code editor or IDE:
+   ```bash
+   cd Tactigon-Shape-master
+   ```
+3. Activate the virtual environment and Install dependencies:
+
+   We have created an install file (install.bat - windows / install.sh - Linux, macOS) to configure everything for you. Please execute that file; you will see the following output on your terminal.
+
+![image](https://github.com/user-attachments/assets/e2b37b37-2f24-44e6-bab1-22191465d591)
+
 <br>
 <br>
-<br>
----
 
 ## Running Tactigon Shapes 
 1. Run the main Python script:
@@ -111,7 +85,7 @@ Open the Visual Studio Installer on your system. if you do not have one, [Downlo
    ```
 3. Follow the prompts to connect to your Tactigon Skin device and start using the Shapes interface.
 
-![image](https://github.com/user-attachments/assets/e576893d-e499-4b2f-aeae-d825a4102087)
+![chrome_GBrADG4C6r](https://github.com/user-attachments/assets/30107a15-e4ca-424d-80c2-bca73e3c0370)
 ---
 
 ## Using Tactigon Shapes
@@ -120,7 +94,7 @@ Using Shapes is like building with LEGO bricks, you drag, drop, and connect piec
 
 Once you are on the Shape interface, you can see some of our example shapes, such as Powerpoint, Braccio voice, and so on. On the left side, you will see all your shapes, and on the right side, you can see the snapshot of your shape.
 
-![image](https://github.com/user-attachments/assets/4449bfb8-4473-467d-8231-e9a83dfc53fa)
+![chrome_0Pi7DpjX6l](https://github.com/user-attachments/assets/0bb63989-c89a-4e04-9067-00f585e86e09)
 
 
 ## How to use Shapes
@@ -133,7 +107,8 @@ Once you are on the Shape interface, you can see some of our example shapes, suc
 4. Drag blocks from the left pane to the workspace to build your logic.
 5. Click **Save** to save your shape.
 
-https://github.com/user-attachments/assets/65e7d149-e559-4a5b-a746-5a0868d2227e
+https://github.com/user-attachments/assets/236e746c-a9f9-4f51-833e-472dd02bc227
+
 
 ### Editing an Existing Shape:
 1. Select a shape from the homepage.
@@ -142,18 +117,19 @@ https://github.com/user-attachments/assets/65e7d149-e559-4a5b-a746-5a0868d2227e
 
 Think of blocks like puzzle pieces. This means you can now connect them by dragging one block and placing it under or inside another block. However, ensure that your shapes snap together; otherwise, the program will not execute.
 
-https://github.com/user-attachments/assets/d8b41a1d-e9d1-4bbe-afb6-de68e38764ab
+https://github.com/user-attachments/assets/f00c5e2a-0cc2-4bfc-b50b-51d4f147f755
 
 ### Run Your First Shape
 - When you are done building, click the toggle button to see what your program does.
 - You will see a page with both your shape and the terminal with the output.
 
-https://github.com/user-attachments/assets/6cc84398-4954-4650-b0ad-2eb0e861bfb6
+https://github.com/user-attachments/assets/a1450158-5b35-4e3e-aeb9-6cf5b2f47f26
 
 ### Deleting a Shape:
 - Click the **bin** icon next to the shape name to delete it.
   
-![image](https://github.com/user-attachments/assets/ccdb6c47-4b53-4894-a19b-7ac307c63a00)
+![image](https://github.com/user-attachments/assets/7105f02f-e345-4081-84d2-3ff5dff262bc)
+
 
 ## Creating Custom Blocks
 
@@ -202,7 +178,7 @@ We'll walk you through how to create the block and handle the Python code genera
    - Paste the JSON code into the [Custom blocks file](https://github.com/TactigonTeam/Tactigon-Shape/blob/master/tactigon_shapes/modules/shapes/static/js/custom_blocks.js) page in the **Shapes** module.  
    - After adding it, you will see both the new category (if created) and the new block in the Tactigon Shapes workspace.
 
-![image](https://github.com/user-attachments/assets/711d0e14-5972-4583-bb06-41b1fcb64ad7)
+![chrome_innQ8Zb8cg](https://github.com/user-attachments/assets/f993507d-b862-45f8-9bb3-c88f60cf46b7)
 
 4. **Write Custom Code for the Block**  
    - You can write custom Python code for your block in the [Custom blocks file](https://github.com/TactigonTeam/Tactigon-Shape/blob/master/tactigon_shapes/modules/shapes/static/js/custom_blocks.js) page in the **Shapes** module.
@@ -218,11 +194,11 @@ We'll walk you through how to create the block and handle the Python code genera
 5. **Run and Test**  
    - After creating your block, rerun the project and test your block by running your shape.
 
-![image](https://github.com/user-attachments/assets/f71ef35e-48df-4880-a7dd-e257b713105b)
+![chrome_32A8gvnK5J](https://github.com/user-attachments/assets/3af28103-b8f7-4981-96a6-72fb9a97ff3a)
 
 Here we have attached a demo video about how to create your own block in the Tactigon Shapes project.
 
-https://github.com/user-attachments/assets/f0057429-2cc8-4c83-92eb-250ed9f52483
+https://github.com/user-attachments/assets/d420dd2d-30e9-48e7-b07b-90c5ae0e3bd6
 
 ---
 
