@@ -1,7 +1,7 @@
 from platform import system
 
 platform_name = system()
-__version__ = f"5.2.0.0"
+__version__ = f"5.2.0.1"
 
 import sys
 import requests
