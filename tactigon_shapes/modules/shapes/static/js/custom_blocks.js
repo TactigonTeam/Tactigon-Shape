@@ -872,7 +872,7 @@ def braccio_gripper(braccio: Optional[BraccioInterface], logging_queue: LoggingQ
     else:
         debug(logging_queue, "Braccio not configured")
 
-def zion_device_last_telementry(zion: Optional[ZionInterface], device_id: str, keys: str) -> dict:
+def zion_device_last_telemetry(zion: Optional[ZionInterface], device_id: str, keys: str) -> dict:
     if not zion:
         return {}
     
@@ -904,6 +904,30 @@ def zion_device_alarm(zion: Optional[ZionInterface], device_id: str, severity: A
         return []
 
     return data
+
+def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: str, payload: dict) -> dict:
+    if not zion:
+        return {}
+
+    data = zion.send_device_last_telemetry(device_id, payload)
+
+    if not data:
+        return {}
+
+    return data
+
+
+def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, payload: dict) -> dict:
+    if not zion:
+        return {}
+
+    data = zion.send_device_attr(device_id, payload)
+
+    if not data:
+        return {}
+
+    return data
+    
 
 def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
     logging_queue.debug(str(msg))
@@ -1118,10 +1142,30 @@ function defineZionGenerators() {
         var device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
         var keys = generator.valueToCode(block, 'keys', python.Order.ATOMIC);
 
-        var code = `zion_device_last_telementry(zion, ${device}, ${keys})`
+        var code = `zion_device_last_telemetry(zion, ${device}, ${keys})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
+
+    python.pythonGenerator.forBlock['send_device_last_telemetry'] = function (block, generator) {
+        const device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
+        const payload = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+
+        const code = `zion_send_device_last_telemetry(zion, ${device}, ${payload})`
+
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['send_device_attr'] = function (block, generator) {
+        const device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
+        const payload = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+
+        const code = `zion_send_device_attr(zion, ${device}, ${payload})`
+
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    
 
     python.pythonGenerator.forBlock['device_attr'] = function (block, generator) {
         var device = generator.valueToCode(block, 'device', python.Order.ATOMIC);

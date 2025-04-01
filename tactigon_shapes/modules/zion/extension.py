@@ -7,6 +7,8 @@ from typing import Optional, List
 
 from .models import ZionConfig, Device, Scope, AlarmSearchStatus, AlarmSeverity
 
+APPLICATION_JSON = 'application/json'
+
 class ZionInterface:
     config_file_path: str
     config: Optional[ZionConfig]
@@ -67,21 +69,41 @@ class ZionInterface:
             "alarmSearchStatus": [(s.name, s.value) for s in AlarmSearchStatus],
         }
 
-    # def do_post(self, url: str, payload: object):
-    #     headers = {
-    #         "Content-Type": "application/json",
-    #     }
-    #     return requests.post(
-    #         url,
-    #         json=payload,
-    #         headers=headers
-    #         )
-
-    def do_get(self, url: str) -> Optional[dict]:
+    def do_post(self, url: str, payload: object):
         if not self.config:
             return None
         
-        if not self.token:
+        if not self.config.token:
+            token = self.refresh_token(self.config.url, self.config.username, self.config.password)
+            
+            if not token:
+                return None
+            
+            self.config.token = token
+
+        headers = {
+            "accept": APPLICATION_JSON,
+            "X-Authorization": f"Bearer {self.token}"
+        }
+
+        res = requests.post(
+            url,
+            json=payload,
+            headers=headers
+            )
+        
+        if res.status_code == 401:
+            token = self.refresh_token(self.config.url, self.config.username, self.config.password)
+            
+            if not token:
+                return None
+            
+            self.config.token = token            
+            return self.do_post(url, payload)
+
+    def do_get(self, url: str) -> Optional[dict]:
+
+        if not self.config.token:
             token = self.refresh_token(self.config.url, self.config.username, self.config.password)
             
             if not token:
@@ -90,8 +112,8 @@ class ZionInterface:
             self.config.token = token
         
         headers = {
-            "accept": "application/json",
-            "X-Authorization": f"Bearer {self.token}"
+            "accept": APPLICATION_JSON,
+            "X-Authorization": f"Bearer {self.config.token}"
         }
 
         res = requests.get(
@@ -112,8 +134,8 @@ class ZionInterface:
 
     def refresh_token(self, url, username: str, password: str) -> Optional[str]:
         headers = {
-            "Content-Type": "application/json",
-            "accept": "application/json",
+            "Content-Type": APPLICATION_JSON,
+            "accept": APPLICATION_JSON,
         }
 
         res = requests.post(
@@ -208,3 +230,31 @@ class ZionInterface:
                 ret.extend(others)
 
         return ret
+    
+    def send_device_attr(self, device_id: str, payload: dict, scope: Scope = Scope.SERVER) -> Optional[dict]:
+        if not self.config:
+            return None
+        
+        url = f"{self.config.url}api/plugins/telemetry/{device_id}/{scope}"
+
+        res = self.do_post(url, payload)
+
+        print(res)
+
+        if not res:
+            return None
+
+        return res
+    
+    def send_device_last_telemetry(self, device_id: str, payload: dict) -> Optional[dict]:
+        if not self.config:
+            return None
+        
+        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/timeseries/ANY?scope=ANY"
+
+        res = self.do_post(url, payload)
+
+        if not res:
+            return None
+
+        return res

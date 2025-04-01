@@ -334,9 +334,7 @@
         <category name="Dictionaries" colour="#000500">
             <block type="get_dict_property">
                 <value name="KEY">
-                    <shadow type="text">
-                        <field name="KEY"></field>
-                    </shadow>
+                    <shadow type="text"></shadow>
                 </value>
             </block>
         </category>
@@ -458,6 +456,30 @@
                 <value name="search_status">
                     <shadow type="alarm_search_status_list">
                         <field name="search_status"></field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="send_device_last_telemetry">
+                <value name="device">
+                    <shadow type="device_list">
+                        <field name="device"></field>
+                    </shadow>
+                </value>
+                <value name="payload">
+                    <shadow type="Dictionary">
+                        <field name="payload"></field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="send_device_attr">
+                <value name="device">
+                    <shadow type="device_list">
+                        <field name="device"></field>
+                    </shadow>
+                </value>
+                <value name="payload">
+                    <shadow type="Dictionary">
+                        <field name="payload"></field>
                     </shadow>
                 </value>
             </block>
