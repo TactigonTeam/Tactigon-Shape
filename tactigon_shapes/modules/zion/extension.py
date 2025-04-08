@@ -184,9 +184,9 @@ class ZionInterface:
         if not self.config:
             return None
         
-        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/values/timeseries"
+        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/values/timeseries?useStrictDataTypes=true"
         if keys:
-            url += f"?keys={keys}"
+            url += f"&keys={keys}"
 
         res = self.do_get(url)
 
