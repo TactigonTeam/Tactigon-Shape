@@ -4,13 +4,7 @@ Tactigon Shapes is an extension of [Blockly](https://developers.google.com/block
 
 ## Table of Contents
 1. [Do you want to know more ?](#do-you-want-to-know-more-)
-2. [More about Tactigon packages](#key-features)
-3. [Tactigon Ecosystem](#tactigon-ecosystem)
-4. [Installation](#installation)
-5. [Running Tactigon Shapes](#running-tactigon-shapes)
-6. [Using Tactigon Shapes](#using-tactigon-shapes)
-7. [Creating Custom Blocks](#creating-custom-blocks)
-8. [Contributing](#contributing)
+2. [More about Tactigon packages](#more-about-tactigon-packages)
 
 ## Do you want to know more ?
 
