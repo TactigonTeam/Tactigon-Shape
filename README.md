@@ -21,5 +21,5 @@ You can access our full documentation, including exercises and additional resour
 
 Below are our most useful Python packages available via pip. Feel free to download them, explore their features, and bring your own ideas to life!
 
-[Tactigon Gear](https://pypi.org/project/tactigon-gear/)
-[Tactigon Speech](https://pypi.org/project/tactigon-speech/)
+1. [Tactigon Gear](https://pypi.org/project/tactigon-gear/)
+2. [Tactigon Speech](https://pypi.org/project/tactigon-speech/)
