@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 from datetime import datetime
 from typing import List, Optional
 
-from flask import Blueprint, render_template, flash, redirect, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for,request
 
 from .extension import ShapeConfig, Program
 from .manager import get_shapes_app
@@ -364,5 +364,48 @@ def delete(program_id: str):
 
     _shapes.remove(UUID(program_id))
 
-    flash(f"Shape deleted.", category="success")
+    flash("Shape deleted.", category="success")
+    return redirect(url_for("shapes.index"))
+
+@bp.route("/import", methods=["POST"])
+@check_config
+def import_shape():
+    _shapes = get_shapes_app()
+    allowed_extensions = ["zip"]
+
+    if 'file' not in request.files or request.files['file'].filename == '':
+        flash("Shape file not found!", category="danger")
+        return redirect(url_for("shapes.index"))
+    
+    file = request.files['file']
+
+    is_valid_file = '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+    if not is_valid_file:
+        flash(f"Invalid file type. Allowed types: {', '.join(allowed_extensions)}", category="danger")
+        return redirect(url_for("shapes.index"))
+    
+    _shapes.import_shape(file)
+
+    flash("Shape imported successfully.", category="success")
+    return redirect(url_for("shapes.index"))
+
+@bp.route("/<string:program_id>/export")
+@check_config
+def export_shape(program_id: str):
+    _shapes = get_shapes_app()
+
+    if not _shapes:
+        flash("Shapes app not found!", category="danger")
+        return redirect(url_for("main.index"))
+
+    config = _shapes.find_shape_by_id(UUID(program_id))
+
+    if not config:
+        flash("Shape not found!", category="danger")
+        return redirect(url_for("shapes.index"))
+
+    _shapes.export(config)
+
+    flash("Shape exported to Downloads folder.", category="success")
     return redirect(url_for("shapes.index"))

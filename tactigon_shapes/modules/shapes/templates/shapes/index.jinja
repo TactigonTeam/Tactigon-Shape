@@ -59,7 +59,12 @@
 {% block body %}
 <div class="d-flex flex-grow-1">
     <div class="d-flex flex-column justify-content-between sidebar-container">
-        <div class="text-center pb-3 pt-5">
+        <div class="text-end pt-2 mx-2">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#import-shape" title="Import Shape">
+                    <i class="bi bi-upload"></i> 
+                </button>
+        </div>
+        <div class="text-center pb-3 pt-2">
             <h5>Shapes</h5>
         </div>
         <div class="list-group list-group-flush flex-grow-1 sidebar" style="max-height: 70vh;">
@@ -114,6 +119,30 @@
                     </div>
                 </div>
             </div>
+            <div class="modal fade" id="import-shape" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form action="{{ url_for('shapes.import_shape') }}" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5">Import Shape</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="formFile" class="form-label">Please select the file to import into the Shape app.</label>
+                                    <input class="form-control" name="file" type="file" accept=".zip" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">Close</button>
+                                <button class="btn btn-primary" type="submit">Import Shape</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="d-flex flex-column flex-fill m-3 gap-3">
@@ -146,6 +175,11 @@
                     title="Delete Shaoe" {% if is_running and current_config.id==current_running_program %} disabled {%
                     endif %}>
                     <i class="bi bi-trash text-danger"></i>
+                </button>
+                 <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#export-shape"
+                    title="Export Shape" {% if is_running and current_config.id==current_running_program %} disabled {%
+                    endif %}>
+                    <i class="bi bi-box-arrow-down text-success"></i>
                 </button>
                 {% endif %}
             </div>
@@ -194,6 +228,25 @@
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <a href="{{ url_for('shapes.delete', program_id=current_config.id)}}"
                                 class="btn btn-danger">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="modal fade" id="export-shape" tabindex="-1" aria-labelledby="export-shape" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="export-shape">Export {{current_config.name}}</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>This shape will be exported as a zip file into Downloads folder.</p>
+                            <p>Do you want to continue?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <a href="{{ url_for('shapes.export_shape', program_id=current_config.id)}}"
+                                class="btn btn-danger">Yes</a>
                         </div>
                     </div>
                 </div>
