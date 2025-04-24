@@ -176,6 +176,23 @@ def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: st
 
     return zion.send_device_last_telemetry(device_id, payload)
 
+def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> dict:
+
+
+    if not zion:
+        return {}
+
+
+
+
+    data = zion.delete_device_attr(device_id, scope.value, keys)
+
+    if not data:
+        return {}
+
+    return data
+
+
 def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, key: str, data) -> bool:
     if not zion:
         return False
@@ -210,3 +227,4 @@ def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInt
     debug(logging_queue, zion_device_alarm(zion, "fb906550-4f5a-11ef-850d-a7a8b5a94c63", AlarmSeverity("CRITICAL"), AlarmSearchStatus("ACTIVE")))
     debug(logging_queue, zion_send_device_last_telemetry(zion, "fb906550-4f5a-11ef-850d-a7a8b5a94c63", 'temperature_zion', 23.5))
     debug(logging_queue, zion_send_device_attr(zion, "fb906550-4f5a-11ef-850d-a7a8b5a94c63", Scope("SERVER_SCOPE"), 'automatic', True))
+    time.sleep(5)
