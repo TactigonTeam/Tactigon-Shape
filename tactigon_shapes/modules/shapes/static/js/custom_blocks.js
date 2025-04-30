@@ -1145,13 +1145,13 @@ function defineTSkinGenerators(){
 
     python.pythonGenerator.forBlock['tskin_take_angle'] = function (block, generator) {
         var angle = block.getFieldValue('angle');
-        var code = `tskin.angle and tskin.angle.${angle}`;
+        var code = `tskin.angle.${angle} if tskin.angle else 0`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['tskin_take_gyro'] = function (block, generator) {
         var gyro = block.getFieldValue('gyro');
-        var code = `tskin.gyro and tskin.gyro.${gyro}`;
+        var code = `tskin.gyro.${gyro} if tskin.gyro else 0`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
