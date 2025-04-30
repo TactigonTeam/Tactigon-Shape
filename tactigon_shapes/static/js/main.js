@@ -95,6 +95,52 @@ var last_battery_update_value = 0;
 var last_connection_status = undefined;
 var last_braccio_connection_status = undefined;
 
+const toast = (message, category) => {
+    // 1. Crea nuovo nodo toast inserendo la corretta category e il corretto message
+    // 2. Appende il nodo al container dei toast
+    // 3. Chiama la funzione di caricamento dei toast (load_toast)
+
+    let t = $(`<div class="toast ${category}" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary bg-${category} bg-opacity-50">
+            <strong class="me-auto">${category}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    </div>`);
+
+    /*let t = $("<div/>")
+    t.addClass(`toast ${category}`)
+    t.append([
+        $("<div/>", {class: `toast-header bg-primary bg-${category} bg-opacity-50`}).html(category).append(
+        $("<button/>", {
+            type: "button",
+            class: "btn-close",
+            "data-bs-dismiss":"toast",
+            "aria-label":"Close"
+        })),
+        $("<div/>", {class: "toast-body"}).html(message)
+    ])*/
+    $(".toast-container").append(t);
+
+    load_toast(t[0]);
+}
+
+const load_toast = (el) => {
+    let toast_option = {
+        animation: true,
+        autohide: true,
+        delay: 3000
+    };
+
+    if (el.classList.contains("danger")){
+        toast_option.autohide = false;
+    }
+
+    new bootstrap.Toast(el, toast_option).show();
+}
+
 $(()=>{
     /*
     sidebar_resize()

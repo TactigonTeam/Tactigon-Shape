@@ -1,3 +1,5 @@
+const blockly_python = require("./blockly_python")
+
 function loadCustomBlocks(response) {
     const gestures = response ? response.gestures : []
     const modKeys = response ? response.modKeys : []
@@ -17,53 +19,55 @@ function loadCustomBlocks(response) {
     Blockly.Blocks['wait'] = {
         init: function () {
             this.jsonInit({
-        "type": "wait",
-        "tooltip": "wait",
-        "helpUrl": "",
-        "message0": "wait %1 seconds %2",
-        "args0": [
-          {
-            "type": "field_number",
-            "name": "n",
-            "value": 0
-          },
-          {
-            "type": "input_end_row",
-            "name": "NAME"
-          }
-        ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 225,
-        "inputsInline": true
-    })}},
-                          
-
-    Blockly.Blocks['get_dict_property'] = {
-        init: function () {
-            this.jsonInit({
-                "type": "get_dict_property",
-                "message0": "In dictionary %1 Get value for key %2",
+                "type": "wait",
+                "tooltip": "wait",
+                "helpUrl": "",
+                "message0": "wait %1 seconds %2",
                 "args0": [
                     {
-                        "type": "input_value",
-                        "name": "DICT",
-                        "check": "Dictionary"
+                        "type": "field_number",
+                        "name": "n",
+                        "value": 0
                     },
                     {
-                        "type": "input_value",
-                        "name": "KEY",
-                        "check": "String"
+                        "type": "input_end_row",
+                        "name": "NAME"
                     }
                 ],
-                "output": null,
-                "colour": '#000500',
-                "tooltip": "Get the value for a key in a dictionary",
-                "helpUrl": "",
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 225,
                 "inputsInline": true
-            });
+            })
         }
-    };
+    },
+
+
+        Blockly.Blocks['get_dict_property'] = {
+            init: function () {
+                this.jsonInit({
+                    "type": "get_dict_property",
+                    "message0": "In dictionary %1 Get value for key %2",
+                    "args0": [
+                        {
+                            "type": "input_value",
+                            "name": "DICT",
+                            "check": "Dictionary"
+                        },
+                        {
+                            "type": "input_value",
+                            "name": "KEY",
+                            "check": "String"
+                        }
+                    ],
+                    "output": null,
+                    "colour": '#000500',
+                    "tooltip": "Get the value for a key in a dictionary",
+                    "helpUrl": "",
+                    "inputsInline": true
+                });
+            }
+        };
 
     Blockly.Blocks['tactigon_shape_function'] = {
         init: function () {
@@ -227,11 +231,11 @@ function loadSpeechBlocks(speechs) {
     args = []
     message = "Voice command:"
 
-    for (var i=0; i<speechs.length; i++){
+    for (var i = 0; i < speechs.length; i++) {
 
         message += " %" + (i + 1);
 
-        if (i==0) {
+        if (i == 0) {
             args.push({
                 "type": "field_dropdown",
                 "name": "FIELD_0",
@@ -256,7 +260,7 @@ function loadSpeechBlocks(speechs) {
     }
 
     Blockly.Blocks['tskin_listen'] = {
-        init: function(){
+        init: function () {
             this.jsonInit({
                 "type": "tskin_listen",
                 "message0": message,
@@ -592,7 +596,7 @@ function loadBraccioBlocks(wristOptions, gripperOptions) {
     };
 }
 
-function loadZionBlocks(zion){
+function loadZionBlocks(zion) {
     Blockly.Blocks['device_list'] = {
         init: function () {
             this.jsonInit({
@@ -681,7 +685,7 @@ function loadZionBlocks(zion){
                 "tooltip": "delete attribute from device",
                 "helpUrl": "",
                 "message0": "Delete Attribute from device: %1 Scope %2 Key %3",
-                "args0": [          
+                "args0": [
                     {
                         "type": "input_value",
                         "name": "device",
@@ -705,8 +709,8 @@ function loadZionBlocks(zion){
         }
     }
 
-                            
-                          
+
+
 
     Blockly.Blocks['device_last_telemetry'] = {
         init: function () {
@@ -855,7 +859,7 @@ function loadZionBlocks(zion){
             });
         }
     };
-    
+
     Blockly.Blocks['send_device_alarm'] = {
         init: function () {
             this.jsonInit({
@@ -899,7 +903,7 @@ from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSe
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any`;
-        
+
         var libs = `
 
 def check_gesture(gesture: Optional[Gesture], gesture_to_find: str) -> bool:
@@ -1103,6 +1107,7 @@ def reset_touch(tskin: TSkin):
 `;
 
         var statements_body = Blockly.Python.statementToCode(block, 'BODY');
+        
 
         if (!statements_body) {
             statements_body = "\tpass"
@@ -1111,12 +1116,13 @@ def reset_touch(tskin: TSkin):
         let variables = block.workspace.getAllVariables().map((v) => {
             return generator.INDENT + "global " + v.name;
         }).join('\n');
-
-        var code = libs + 'def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' + 
+//----------------------------------------------------------------------------
+        var code = libs + 'def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
             variables + '\n' + "\n" +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
             statements_body + '\n';
+            
         return code;
     };
 
@@ -1136,7 +1142,7 @@ def reset_touch(tskin: TSkin):
     defineZionGenerators();
 }
 
-function defineTSkinGenerators(){
+function defineTSkinGenerators() {
     python.pythonGenerator.forBlock['tskin_gesture_list'] = function (block) {
         var gesture = block.getFieldValue('gesture');
         var code = `check_gesture(gesture, "${gesture}")`;
@@ -1163,22 +1169,22 @@ function defineTSkinGenerators(){
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
-function definewaitGenerators(){
-    python.pythonGenerator.forBlock['wait'] = function(block) {
-    const n = block.getFieldValue('n');
+function definewaitGenerators() {
+    python.pythonGenerator.forBlock['wait'] = function (block) {
+        const n = block.getFieldValue('n');
 
-  const code = `time.sleep(${n}) `;
-  return code;
+        const code = `time.sleep(${n}) `;
+        return code;
+    }
 }
-}
 
 
-function defineSpeechGenerators(){
+function defineSpeechGenerators() {
     python.pythonGenerator.forBlock['tskin_listen'] = function (block) {
         let args = block.inputList[0].fieldRow
             .filter((f) => f.selectedOption && f.selectedOption[1] != "")
             .map((f) => {
-                if (f.selectedOption[1] == "---"){
+                if (f.selectedOption[1] == "---") {
                     return `[${f.optionMapping.position.filter((o) => o[0] != "---").map((o) => `HotWord("${o[0]}")`).join(", ")}]`
                 }
                 return `HotWord("${f.selectedOption[1]}")`;
@@ -1203,7 +1209,7 @@ function defineSpeechGenerators(){
     };
 }
 
-function defineKeyboardGenerators(){
+function defineKeyboardGenerators() {
     python.pythonGenerator.forBlock['keyboard_press'] = function (block, generator) {
         var message = generator.valueToCode(block, 'NAME', python.Order.ATOMIC);
         var code = `keyboard_press(keyboard, HotKey.parse(${message}))\n`;
@@ -1253,7 +1259,7 @@ function defineKeyboardGenerators(){
     };
 }
 
-function defineBraccioGenerators(){
+function defineBraccioGenerators() {
     python.pythonGenerator.forBlock['braccio_move'] = function (block, generator) {
         const x = generator.valueToCode(block, 'x', python.Order.ATOMIC);
         const y = generator.valueToCode(block, 'y', python.Order.ATOMIC);
@@ -1360,7 +1366,7 @@ function defineZionGenerators() {
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
-    
+
     python.pythonGenerator.forBlock['send_device_alarm'] = function (block, generator) {
         var device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
         var name = generator.valueToCode(block, 'name', python.Order.ATOMIC);
@@ -1381,5 +1387,5 @@ function defineZionGenerators() {
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    
+
 }

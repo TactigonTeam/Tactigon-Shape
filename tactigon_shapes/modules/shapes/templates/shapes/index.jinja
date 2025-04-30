@@ -88,7 +88,7 @@
             <div class="modal fade" id="add" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
-                        <form action="{{ url_for('shapes.add') }}" method="POST">
+                        <form action="{{ url_for('shapes.add') }}" method="POST" id="create-new-shape">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5">Add Shape</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
@@ -153,7 +153,7 @@
             <div class="modal fade" id="edit" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
-                        <form action="{{ url_for('shapes.save_config', program_id=current_config.id) }}" method="POST">
+                        <form action="{{ url_for('shapes.save_config', program_id=current_config.id) }}"  method="POST">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5">Edit Shape</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
@@ -312,6 +312,7 @@
     }
 
 
+
     $(document).ready(() => {
         const terminal = $("#terminal");
 
@@ -337,7 +338,9 @@
         loadCustomBlocks({{ blocks_config | tojson | safe }});
         defineCustomGenerators();
         const workspace = initializeBlockly();
-    });
+        
+        
+        });
 
 </script>
 {% endblock %}
