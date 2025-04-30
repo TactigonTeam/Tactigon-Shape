@@ -182,6 +182,12 @@ def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: st
 
     return zion.send_device_last_telemetry(device_id, payload)
 
+def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> bool:
+    if not zion:
+        return False
+
+    return zion.delete_device_attr(device_id, scope, keys)
+
 def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, key: str, data) -> bool:
     if not zion:
         return False
@@ -216,8 +222,8 @@ def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInt
     gesture = tskin.gesture
     touch = tskin.touch
     if check_touch(touch, "TAP_AND_HOLD", actions):
-        roll = tskin.angle and tskin.angle.roll
-        pitch = tskin.angle and tskin.angle.pitch
+        roll = tskin.angle.roll if tskin.angle else 0
+        pitch = tskin.angle.pitch if tskin.angle else 0
         if roll < -15:
             pos_x = (pos_x if isinstance(pos_x, Number) else 0) + -20
         elif roll > 15:

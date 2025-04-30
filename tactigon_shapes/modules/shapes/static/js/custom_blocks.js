@@ -14,6 +14,31 @@ function loadCustomBlocks(response) {
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
 
+    Blockly.Blocks['wait'] = {
+        init: function () {
+            this.jsonInit({
+        "type": "wait",
+        "tooltip": "wait",
+        "helpUrl": "",
+        "message0": "wait %1 seconds %2",
+        "args0": [
+          {
+            "type": "field_number",
+            "name": "n",
+            "value": 0
+          },
+          {
+            "type": "input_end_row",
+            "name": "NAME"
+          }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 225,
+        "inputsInline": true
+    })}},
+                          
+
     Blockly.Blocks['get_dict_property'] = {
         init: function () {
             this.jsonInit({
@@ -648,6 +673,40 @@ function loadZionBlocks(zion){
         }
     };
 
+    Blockly.Blocks['delete_device_attr'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "delete_device_attr",
+                "tooltip": "delete attribute from device",
+                "helpUrl": "",
+                "message0": "Delete Attribute from device: %1 Scope %2 Key %3",
+                "args0": [          
+                    {
+                        "type": "input_value",
+                        "name": "device",
+                        "check": "ZionDevice"
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "scope",
+                        "check": "ZionScope"
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "key",
+                        "check": "String"
+                    }
+                ],
+                "output": "Dictionary",
+                "colour": '#6665DD'
+
+            });
+        }
+    }
+
+                            
+                          
+
     Blockly.Blocks['device_last_telemetry'] = {
         init: function () {
             this.jsonInit({
@@ -737,7 +796,7 @@ function loadZionBlocks(zion){
         init: function () {
             this.jsonInit({
                 "type": "send_device_last_telemetry",
-                "message0": "Update %1 Key %2 Value %3",
+                "message0": "Update telemetry %1 Key %2 Value %3",
                 "args0": [
                     {
                         "type": "input_value",
@@ -1002,6 +1061,12 @@ def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: st
 
     return zion.send_device_last_telemetry(device_id, payload)
 
+def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> bool:
+    if not zion:
+        return False
+
+    return zion.delete_device_attr(device_id, scope, keys)
+
 def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, key: str, data) -> bool:
     if not zion:
         return False
@@ -1027,6 +1092,7 @@ def reset_touch(tskin: TSkin):
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 `;
+
         var statements_body = Blockly.Python.statementToCode(block, 'BODY');
 
         if (!statements_body) {
@@ -1054,6 +1120,7 @@ def reset_touch(tskin: TSkin):
 
     defineTSkinGenerators()
     defineSpeechGenerators();
+    definewaitGenerators();
     defineKeyboardGenerators();
     defineBraccioGenerators();
     defineDictionaryGenerators();
@@ -1087,6 +1154,15 @@ function defineTSkinGenerators(){
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
+function definewaitGenerators(){
+    python.pythonGenerator.forBlock['wait'] = function(block) {
+    const n = block.getFieldValue('n');
+
+  const code = `time.sleep(${n}) `;
+  return code;
+}
+}
+
 
 function defineSpeechGenerators(){
     python.pythonGenerator.forBlock['tskin_listen'] = function (block) {
@@ -1284,4 +1360,16 @@ function defineZionGenerators() {
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
+
+    python.pythonGenerator.forBlock['delete_device_attr'] = function (block, generator) {
+        var device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
+        var scope = generator.valueToCode(block, 'scope', python.Order.ATOMIC);
+        var key = generator.valueToCode(block, 'key', python.Order.ATOMIC);
+
+        var code = `zion_delete_device_attr(zion,${device},${scope},${key})`
+
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    
 }

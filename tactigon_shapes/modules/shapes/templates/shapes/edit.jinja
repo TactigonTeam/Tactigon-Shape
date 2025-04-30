@@ -512,6 +512,23 @@
                     </shadow>
                 </value>
             </block>
+            <block type="delete_device_attr">
+                <value name="device">
+                    <shadow type="device_list">
+                        <field name="device"></field>
+                    </shadow>
+                </value>
+                <value name="scope">
+                    <shadow type="scope_list">
+                        <field name="scope"></field>
+                    </shadow>
+                </value>
+                <value name="key">
+                    <shadow type="text">
+                        <field name="key"></field>
+                    </shadow>
+            </block>
+            
         </category>
         <sep></sep>
         <category name="Keyboard" colour="#c2c2c2">
@@ -532,6 +549,18 @@
                     </shadow>
                 </value>
             </block>
+        </category>
+        <category name="test" colour="aaaaaa">
+            <block type="wait">
+                <value name="seconds">
+                    <shadow type="text">
+                        <field name="NUM"></field>
+                    </shadow>
+                </value>
+            </block>
+            
+
+
         </category>
     </xml>
 </div>
