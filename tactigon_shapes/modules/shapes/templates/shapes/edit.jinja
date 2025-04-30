@@ -576,6 +576,9 @@
 <script src="{{url_for('shapes.static', filename='js/custom_blocks.js')}}"></script>
 
 <script>
+    const functionBlockNames = ["tactigon_shape_function", "procedures_defnoreturn", "variables_set", "procedures_defreturn"];
+    const reservedWords = ["zion", "__", "code", "logging_queue", "debug", "data", "main", "tskin", "tspeech", "gesture", "touch"];
+
     function initializeBlockly() {
         var options = {
             toolbox: document.getElementById("toolbox"),
@@ -625,16 +628,11 @@
 
     function isFunctionBlock(t){
         //checks main app, functions and used variables
-        let functionBlockNames=
-        ["tactigon_shape_function","procedures_defnoreturn",
-        "variables_set","procedures_defreturn"]
-
         return functionBlockNames.includes(t)
     }
 
     function checkFloatingBlocks(workspace){
         //if true, there are no floating blocks
-        let flag = true;
         let topBlocks = workspace.getTopBlocks(true);
 
         for (i in topBlocks){
@@ -645,15 +643,14 @@
         }
         return true;
     }
+
     function checkReservedNames(workspace){
         //if true there are no reserved names
 
         let allBlocks = workspace.getAllBlocks(true);
-        flag=true;
-        let reservedWords=["zion","__","code","logging_queue","debug","data",
-        "main","tskin","tspeech","gesture","touch"]
+        flag = true;
 
-        for(i in allBlocks){
+        for (i in allBlocks){
             //block
             b=allBlocks[i];
 
@@ -661,17 +658,18 @@
                 
                 //name
                 let n = b.getFieldValue("NAME");
-                if (n == null)
-                    n = b.getField('VAR').getText();
 
-                for(i in reservedWords){
-                    if(n.includes(reservedWords[i])){
+                if (n == null){
+                    n = b.getField('VAR').getText();
+                }
+
+                for (i in reservedWords){
+                    if (n.includes(reservedWords[i])){
                         flag=false;
                         toast(reservedWords[i]+" cannot be used in a name" , "danger");
                     }
-                    
                 }
-                if(n=="app" && b.type !== "tactigon_shape_function"){
+                if (n == "app" && b.type !== "tactigon_shape_function"){
                     flag=false;
                     toast("app cannot be used as a name" , "danger");
                 }
@@ -691,7 +689,6 @@
         const state = Blockly.serialization.workspaces.save(workspace);
         $('#state').val(JSON.stringify(state));
     }
-
 
     $(document).ready(async function () {
 

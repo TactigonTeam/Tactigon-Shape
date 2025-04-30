@@ -1,5 +1,3 @@
-const blockly_python = require("./blockly_python")
-
 function loadCustomBlocks(response) {
     const gestures = response ? response.gestures : []
     const modKeys = response ? response.modKeys : []
