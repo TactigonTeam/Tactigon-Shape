@@ -176,22 +176,11 @@ def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: st
 
     return zion.send_device_last_telemetry(device_id, payload)
 
-def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> dict:
-
-
+def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> bool:
     if not zion:
-        return {}
+        return False
 
-
-
-
-    data = zion.delete_device_attr(device_id, scope.value, keys)
-
-    if not data:
-        return {}
-
-    return data
-
+    return zion.delete_device_attr(device_id, scope, keys)
 
 def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, key: str, data) -> bool:
     if not zion:

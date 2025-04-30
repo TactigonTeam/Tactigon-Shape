@@ -224,7 +224,7 @@ class ZionInterface:
             self.token = token        
             return self.do_delete(url)
 
-        return res.status_code
+        return res.json()
         
     
     def refresh_token(self, url, username: str, password: str) -> Optional[str]:
@@ -447,7 +447,7 @@ class ZionInterface:
 
         return True
 
-    def delete_device_attr(self, device_id: str, scope: Scope = Scope.SERVER, key : str="") -> Optional[dict]:
+    def delete_device_attr(self, device_id: str, scope: Scope = Scope.SERVER, key : str="") -> bool:
         """delete device's attribute, 
         called by zion_delete_device_attr
 
@@ -457,7 +457,7 @@ class ZionInterface:
             key (str): specifies the key we want to delete. Defaults to "".
 
         Returns:
-            Optional[dict]: response JSON
+            bool: operation result
         """      
         if not self.config:
             return False
