@@ -1,18 +1,22 @@
-direction = None
+# Shapes by Next Industries
 
 import time
+import random
+from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
+from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 
 
 direction = True
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
+
 
 def check_gesture(gesture: Optional[Gesture], gesture_to_find: str) -> bool:
     if not gesture:
@@ -79,6 +83,12 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union
     debug(logging_queue, "Cannot listen...")
     return []
 
+def record_audio(tskin: TSkin, filename: str, seconds: float):
+    tskin.record(filename, seconds)
+
+    while tskin.is_recording:
+        time.sleep(tskin.TICK)
+
 def keyboard_press(keyboard: KeyboardController, commands: List[KeyCode]):
     for k in commands:
         _k = k.char if isinstance(k, KeyCode) and k.char else k
@@ -126,8 +136,65 @@ def braccio_gripper(braccio: Optional[BraccioInterface], logging_queue: LoggingQ
     else:
         debug(logging_queue, "Braccio not configured")
 
-def debug(logging_queue: LoggingQueue, msg: str):
-    logging_queue.debug(msg)
+def zion_device_last_telemetry(zion: Optional[ZionInterface], device_id: str, keys: str) -> dict:
+    if not zion:
+        return {}
+
+    data = zion.device_last_telemetry(device_id, keys)
+
+    if not data:
+        return {}
+
+    return data
+
+def zion_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> dict:
+    if not zion:
+        return {}
+
+    data = zion.device_attr(device_id, scope, keys)
+
+    if not data:
+        return {}
+
+    return data
+
+def zion_device_alarm(zion: Optional[ZionInterface], device_id: str, severity: AlarmSeverity, search_status: AlarmSearchStatus) -> List[dict]:
+    if not zion:
+        return []
+
+    data = zion.device_alarm(device_id, severity, search_status)
+
+    if not data:
+        return []
+
+    return data
+
+def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: str, key: str, data) -> bool:
+    if not zion:
+        return False
+
+    payload = {}
+    payload[key] = data
+
+    return zion.send_device_last_telemetry(device_id, payload)
+
+def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, key: str, data) -> bool:
+    if not zion:
+        return False
+
+    payload = {}
+    payload[key] = data
+
+    return zion.send_device_attr(device_id, payload, scope)
+
+def zion_send_device_alarm(zion: Optional[ZionInterface], device_id: str, name: str) -> bool:
+    if not zion:
+        return False
+
+    return zion.upsert_device_alarm(device_id, name, name)
+
+def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
+    logging_queue.debug(str(msg))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
@@ -135,7 +202,7 @@ def reset_touch(tskin: TSkin):
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
-def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):
+def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):
     global direction
 
     gesture = tskin.gesture
