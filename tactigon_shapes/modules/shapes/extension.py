@@ -27,6 +27,7 @@ from ...extensions.base import ExtensionThread, ExtensionApp
 
 EXPORT_FOLDER_NAME = 'export'
 IMPORT_FOLDER_NAME = 'import'
+IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
 
 class Severity(Enum):
     DEBUG = 0
@@ -309,6 +310,9 @@ class ShapesApp(ExtensionApp):
             json.dump([cfg.toJSON() for cfg in self.config], config_file, indent=2)
 
     def update(self, config: ShapeConfig, program: Program) -> bool:
+        if config.description == IMPORT_DESCRIPTION:
+            config.description = ""
+
         self.save_config(config)
         return self.__create_or_update_files(config.id, program)
 
@@ -388,27 +392,32 @@ class ShapesApp(ExtensionApp):
             return False, f"An error occurred during unzipping: {e}"
         
     
-    def import_shape(self, file: any) -> any:
+    def import_shape(self, file: any) -> str:
         import_file_path = path.join(self.shapes_file_path, IMPORT_FOLDER_NAME)
 
         if not path.exists(import_file_path):
             makedirs(import_file_path)
 
         zip_file_path = path.join(import_file_path, file.filename)
-        
+
         try:
             file.save(zip_file_path)
             extract_path = path.join(import_file_path, file.filename.replace('.zip', ''))
-            
+
             success, error_message = self.unzip_file(zip_file_path, extract_path)
 
             if not success:
-                print(error_message)
-                return False
-            
+                shutil.rmtree(import_file_path)
+                return error_message
+
             remove(zip_file_path)
 
             config_file_path = path.join(extract_path, "config.json")
+            state_file_path = path.join(extract_path, "state.json")
+
+            if not path.exists(config_file_path) or not path.exists(state_file_path):
+                shutil.rmtree(import_file_path)
+                return "Invalid shape format"
 
             with open(config_file_path, 'r') as cfg:
                 data = json.load(cfg)
@@ -419,22 +428,22 @@ class ShapesApp(ExtensionApp):
             if self.find_shape_by_name(config.name):
                 config.name = f"{config.name} - copy"
 
-            config.description = "Please click 'edit code' button and click save. otherwise you cannot run the program."
+            config.description = IMPORT_DESCRIPTION
 
             self.save_config(config)
 
-            source_state_file = path.join(extract_path, "state.json")
             destination = path.join(self.shapes_file_path, "programs", config.id.hex)
-
             if not path.exists(destination):
                 makedirs(destination)
 
-            shutil.move(source_state_file, path.join(self.shapes_file_path, "programs", config.id.hex))
+            shutil.move(state_file_path, destination)
 
-            shutil.rmtree(path.join(import_file_path))
+            shutil.rmtree(import_file_path)
+            return None
 
         except Exception as e:
-            print(f"Error saving file: {e}")
+            shutil.rmtree(import_file_path)
+            return f"Error saving file: {e}"
 
     def find_shape_by_id(self, config_id: UUID) -> Optional[ShapeConfig]:
         return next(filter(lambda x: x.id == config_id, self.config), None)

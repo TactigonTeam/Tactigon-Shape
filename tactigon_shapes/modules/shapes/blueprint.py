@@ -385,7 +385,11 @@ def import_shape():
         flash(f"Invalid file type. Allowed types: {', '.join(allowed_extensions)}", category="danger")
         return redirect(url_for("shapes.index"))
     
-    _shapes.import_shape(file)
+    error =_shapes.import_shape(file)
+
+    if error:
+        flash(error, category="danger")
+        return redirect(url_for("shapes.index"))
 
     flash("Shape imported successfully.", category="success")
     return redirect(url_for("shapes.index"))
