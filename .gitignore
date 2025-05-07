@@ -1,6 +1,10 @@
 .vscode/
+.idea
 
 *.whl
+
+/config/shapes/import
+/config/shapes/export
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

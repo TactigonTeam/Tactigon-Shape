@@ -4,12 +4,16 @@ import shutil
 import sys
 import time
 from queue import Queue
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
-from os import path, makedirs
+from os import path, makedirs, environ, walk, chmod, remove
 from typing import List, Optional, Tuple, Any
+from pathlib import Path
+import platform
+import zipfile
+from shutil import make_archive
 
 from flask import Flask
 from pynput.keyboard import Controller as KeyboardController
@@ -20,6 +24,12 @@ from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGestu
 from ..tskin.manager import walk
 
 from ...extensions.base import ExtensionThread, ExtensionApp
+
+import re
+
+EXPORT_FOLDER_NAME = 'export'
+IMPORT_FOLDER_NAME = 'import'
+IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
 
 class Severity(Enum):
     DEBUG = 0
@@ -302,6 +312,9 @@ class ShapesApp(ExtensionApp):
             json.dump([cfg.toJSON() for cfg in self.config], config_file, indent=2)
 
     def update(self, config: ShapeConfig, program: Program) -> bool:
+        if config.description == IMPORT_DESCRIPTION:
+            config.description = ""
+
         self.save_config(config)
         return self.__create_or_update_files(config.id, program)
 
@@ -315,6 +328,132 @@ class ShapesApp(ExtensionApp):
 
         folder_path = path.join(self.shapes_file_path, "programs", program_id.hex)
         shutil.rmtree(folder_path)
+        
+    def create_export_folder(self, config: ShapeConfig, export_file_path: str) -> bool:
+
+        try:
+
+            config_output_path = path.join(export_file_path, "config.json")
+            
+            if not path.exists(export_file_path):
+                makedirs(export_file_path)
+
+            # source_python_file = path.join(self.shapes_file_path, "programs", config.id.hex, "program.py")
+            source_state_file = path.join(self.shapes_file_path, "programs", config.id.hex, "state.json")
+
+            with open(config_output_path, "w") as config_file:
+                json.dump(config.toJSON(), config_file, indent=2)
+
+            # shutil.copy(source_python_file, temp_file_path)
+            shutil.copy(source_state_file, export_file_path)
+            return True
+        except Exception as e:
+            print(f"Error creating temp file for export: {e}")
+            return False
+
+    def get_downloads_path(self) -> str:
+        system = platform.system()
+
+        if system == "Windows":
+            return path.join(environ["USERPROFILE"], "Downloads")
+        elif system == "Darwin":
+            return str(Path.home() / "Downloads")
+        elif system == "Linux":
+            return str(Path.home() / "Downloads")
+        else:
+            raise Exception("Unsupported operating system")
+    
+    def export(self, config: ShapeConfig) -> bool:
+        unique_id = hex(int(time.time()))[2:]
+
+        export_file_path = path.join(self.shapes_file_path, EXPORT_FOLDER_NAME, unique_id)
+
+        if self.create_export_folder(config, export_file_path):
+
+            export_folder_path = path.join(self.get_downloads_path(), config.name)
+
+            try:
+                make_archive(export_folder_path, 'zip', root_dir=export_file_path)
+                shutil.rmtree(path.join(self.shapes_file_path, EXPORT_FOLDER_NAME))
+                return True
+            except Exception as e:
+                print(f"Error exporting: {e}")
+                return False
+
+    def unzip_file(self, zip_file_path, extract_to_path):
+        """Unzips a zip file to a specified directory."""
+        try:
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_to_path)
+            return True, None
+        except FileNotFoundError:
+            return False, f"Error: Zip file not found at '{zip_file_path}'"
+        except zipfile.BadZipFile:
+            return False, f"Error: '{zip_file_path}' is not a valid zip file"
+        except Exception as e:
+            return False, f"An error occurred during unzipping: {e}"
+        
+    
+    def import_shape(self, file: any) -> str:
+        import_file_path = path.join(self.shapes_file_path, IMPORT_FOLDER_NAME)
+
+        if not path.exists(import_file_path):
+            makedirs(import_file_path)
+
+        zip_file_path = path.join(import_file_path, file.filename)
+
+        try:
+            file.save(zip_file_path)
+            extract_path = path.join(import_file_path, file.filename.replace('.zip', ''))
+
+            success, error_message = self.unzip_file(zip_file_path, extract_path)
+
+            if not success:
+                shutil.rmtree(import_file_path)
+                return error_message
+
+            remove(zip_file_path)
+
+            config_file_path = path.join(extract_path, "config.json")
+            state_file_path = path.join(extract_path, "state.json")
+
+            if not path.exists(config_file_path) or not path.exists(state_file_path):
+                shutil.rmtree(import_file_path)
+                return "Invalid shape format"
+
+            with open(config_file_path, 'r') as cfg:
+                data = json.load(cfg)
+                config = ShapeConfig.FromJSON(data)
+
+            config.id = uuid4()
+
+
+            import_pattern = r" - imported(?: \(\d+\))?$"
+
+            count = 0
+
+            for cfg in self.config:
+                if re.search(import_pattern, cfg.name):
+                    count += 1
+
+            config.name = f"{config.name} - imported" if count == 0 else f"{config.name} - imported ({count})"
+
+            config.description = IMPORT_DESCRIPTION
+
+            self.save_config(config)
+
+            destination = path.join(self.shapes_file_path, "programs", config.id.hex)
+            if not path.exists(destination):
+                makedirs(destination)
+
+            shutil.move(state_file_path, destination)
+
+            shutil.rmtree(import_file_path)
+            return None
+
+        except Exception as e:
+            shutil.rmtree(import_file_path)
+            return f"Error saving file: {e}"
 
     def find_shape_by_id(self, config_id: UUID) -> Optional[ShapeConfig]:
         return next(filter(lambda x: x.id == config_id, self.config), None)
