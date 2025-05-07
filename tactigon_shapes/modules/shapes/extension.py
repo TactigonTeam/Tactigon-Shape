@@ -25,6 +25,8 @@ from ..tskin.manager import walk
 
 from ...extensions.base import ExtensionThread, ExtensionApp
 
+import re
+
 EXPORT_FOLDER_NAME = 'export'
 IMPORT_FOLDER_NAME = 'import'
 IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
@@ -368,7 +370,7 @@ class ShapesApp(ExtensionApp):
 
         if self.create_export_folder(config, export_file_path):
 
-            export_folder_path = path.join(self.get_downloads_path(), unique_id)
+            export_folder_path = path.join(self.get_downloads_path(), config.name)
 
             try:
                 make_archive(export_folder_path, 'zip', root_dir=export_file_path)
@@ -425,8 +427,16 @@ class ShapesApp(ExtensionApp):
 
             config.id = uuid4()
 
-            if self.find_shape_by_name(config.name):
-                config.name = f"{config.name} - copy"
+
+            import_pattern = r" - imported(?: \(\d+\))?$"
+
+            count = 0
+
+            for cfg in self.config:
+                if re.search(import_pattern, cfg.name):
+                    count += 1
+
+            config.name = f"{config.name} - imported" if count == 0 else f"{config.name} - imported ({count})"
 
             config.description = IMPORT_DESCRIPTION
 
