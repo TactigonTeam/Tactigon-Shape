@@ -5,6 +5,8 @@ from flask_socketio import SocketIO
 
 from typing import Optional
 
+from ..ironBoy.extension import IronBoyInterface
+
 from ..braccio.extension import BraccioInterface
 from ..shapes.extension import ShapesApp
 
@@ -17,6 +19,7 @@ class SocketApp(SocketIO):
     _stop_event: Event
     _shapes_app: Optional[ShapesApp] = None
     _braccio_interface: Optional[BraccioInterface] = None
+    _ironBoy_interface: Optional[IronBoyInterface] = None
     _last_connection_status: Optional[bool]
 
     def __init__(self, app: Optional[Flask] = None, **kwargs):
@@ -75,6 +78,16 @@ class SocketApp(SocketIO):
         :app: BraccioInterface
         """
         self._braccio_interface = app
+
+    @property
+    def ironBoy_interface(self) -> Optional[IronBoyInterface]:
+
+        return self._ironBoy_interface
+    
+    @ironBoy_interface.setter
+    def ironBoy_interface(self, app: IronBoyInterface) -> None:
+
+        self._ironBoy_interface = app
     
     def setTSkin(self, tskin: TSkin) -> None:
         """
@@ -97,9 +110,17 @@ class SocketApp(SocketIO):
             braccio_status = False
             braccio_connection = False
 
+            ironBoy_status = False
+            ironBoy_connection = False
+
             if self.braccio_interface:
                 braccio_status = self.braccio_interface.running
                 braccio_connection = self.braccio_interface.connected
+
+            if self.ironBoy_interface:
+                ironBoy_status = self.ironBoy_interface.running
+                ironBoy_connection = self.ironBoy_interface.connected
+
 
             payload = {
                 "selector": tskin.selector.value if tskin.selector else None,
@@ -107,6 +128,9 @@ class SocketApp(SocketIO):
                 "battery": tskin.battery,
                 "braccio_status": braccio_status,
                 "braccio_connection": braccio_connection,
+                "ironBoy_status": ironBoy_status,
+                "ironBoy_connection": ironBoy_connection
+
             }
 
             self.emit("state", payload)
