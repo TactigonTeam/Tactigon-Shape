@@ -693,7 +693,7 @@
         return errors;
     }
     
-    function validateShape(workspace){
+    function isWorkspaceValid(workspace){
 
         const errors = checkReservedNames(workspace);
 
@@ -731,21 +731,20 @@
         const workspace = initializeBlockly();
 
         $('#update-program-form').on('submit', (e) => {
+            if(!isWorkspaceValid(workspace)){
+                e.preventDefault();
+                return false;
+            }
+
             try{
                 setGeneratedCode(workspace);
                 setState(workspace);
                 console.log(workspace);
 
-                if(!checkFloatingBlocks(workspace)){
-                    toast("Make sure all blocks are inside Tacticon Main or functions", "danger");
-                    e.preventDefault();
-                    return false;
-                }
-                if(!checkReservedNames(workspace)){
-                    e.preventDefault();
-                    return false;
-                }
-            } catch(ex){
+                
+
+            }
+            catch(ex){
                 e.preventDefault();
                 console.log(ex);
                 return false;

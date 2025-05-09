@@ -88,6 +88,56 @@ const update_braccio_status = (braccio, data) => {
     }
 }
 
+
+const toast = (message, category) => {
+    // 1. Crea nuovo nodo toast inserendo la corretta category e il corretto message
+    // 2. Appende il nodo al container dei toast
+    // 3. Chiama la funzione di caricamento dei toast (show_toast)
+
+    // TODO: Correggere i titoli secondo questo schema
+
+    /*
+    
+                {% if category == 'success' %}
+                Success
+                {% elif category == 'warning' %}
+                Warning
+                {% elif category == 'danger' %}
+                Error
+                {% else %}
+                Info
+                {% endif %}
+    */
+
+    let t = $(`<div class="toast ${category}" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary bg-${category} bg-opacity-50">
+            <strong class="me-auto">${category}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    </div>`);
+
+    $(".toast-container").append(t);
+
+    show_toast(t[0]);
+};
+
+const show_toast = (el) => {
+    let toast_option = {
+        animation: true,
+        autohide: true,
+        delay: 3000
+    };
+
+    if (el.classList.contains("danger")) {
+        toast_option.autohide = false;
+    }
+
+    new bootstrap.Toast(el, toast_option).show();
+};
+
 const socket = io();
 const BATTERY_REFRESH_RATE = 1*2*1000;
 var last_battery_update_ts = 0;
@@ -104,22 +154,12 @@ $(()=>{
     });
     */
     
-    $('.toast').map((i, el) => {
-        let toast_option = {
-            animation: true,
-            autohide: true,
-            delay: 3000
-        };
-
-        if (el.classList.contains("danger")){
-            toast_option.autohide = false;
-        }
-
-        new bootstrap.Toast(el, toast_option).show();
-    });
-
     const tskin = $("#tskin-management");
     const braccio = $("#braccio-management");
+
+    $(".toast").each((i, el) => {
+        show_toast(el);
+    });
     
     $("a").click(function(){
         const loading_msg = $(this).attr("loading-msg");
