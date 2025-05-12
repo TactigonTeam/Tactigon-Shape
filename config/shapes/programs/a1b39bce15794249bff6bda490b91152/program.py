@@ -8,6 +8,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
+from tactigon_shapes.modules.ironBoy.extension import IronBoyInterface, IronBoyCommand
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
 
@@ -204,11 +205,25 @@ def zion_send_device_alarm(zion: Optional[ZionInterface], device_id: str, name: 
     return zion.upsert_device_alarm(device_id, name, name)
 
 def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
-    logging_queue.debug(str(msg))
+
+    if isinstance(msg,(float)):
+        rounded=round(msg,4)
+        logging_queue.debug(str(rounded))
+    else:
+        logging_queue.debug(str(msg))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
             _ = tskin.touch
+
+def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
+    if ironBoy:
+
+        cmd = ironBoy.command(cmd,reps)
+        if not cmd:
+            debug(logging_queue, "command error")
+    else:
+        debug(logging_queue, "ironboy not configured")
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.

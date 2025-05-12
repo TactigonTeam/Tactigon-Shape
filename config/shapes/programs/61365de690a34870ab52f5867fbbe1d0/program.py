@@ -4,28 +4,14 @@ import time
 import random
 from numbers import Number
 from datetime import datetime
-from tactigon_shapes.modules.ironBoy.extension import IronBoyInterface
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
+from tactigon_shapes.modules.ironBoy.extension import IronBoyInterface, IronBoyCommand
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
 
-def dai_carta():
-    global prima_mano, puo_giocare, nuova_carta, mazziere_vuole_carte, carte_mazziere, mie_carte
-    nuova_carta = random.randint(1, 13)
-    if nuova_carta > 10:
-        nuova_carta = 10
-    return nuova_carta
-
-
-prima_mano = True
-puo_giocare = False
-mazziere_vuole_carte = False
-mie_carte = 0
-nuova_carta = 0
-carte_mazziere = 0
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
@@ -213,59 +199,32 @@ def zion_send_device_alarm(zion: Optional[ZionInterface], device_id: str, name: 
     return zion.upsert_device_alarm(device_id, name, name)
 
 def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
-    logging_queue.debug(str(msg))
+
+    if isinstance(msg,(float)):
+        rounded=round(msg,4)
+        logging_queue.debug(str(rounded))
+    else:
+        logging_queue.debug(str(msg))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
             _ = tskin.touch
 
+def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
+    if ironBoy:
+
+        cmd = ironBoy.command(cmd,reps)
+        if not cmd:
+            debug(logging_queue, "command error")
+    else:
+        debug(logging_queue, "ironboy not configured")
+
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue,ironBoy:Optional[IronBoyInterface]):
-    global mie_carte
-    global nuova_carta
-    global puo_giocare
-    global mazziere_vuole_carte
-    global carte_mazziere
-    global prima_mano
+
 
     gesture = tskin.gesture
     touch = tskin.touch
-    if puo_giocare:
-        if check_gesture(gesture, "swipe_r"):
-            if prima_mano:
-                debug(logging_queue, 'Dammi le carte')
-                for count in range(2):
-                    mie_carte = (mie_carte if isinstance(mie_carte, Number) else 0) + dai_carta()
-                prima_mano = False
-                debug(logging_queue, ('Hai in mano:' + str(mie_carte)))
-            else:
-                mie_carte = (mie_carte if isinstance(mie_carte, Number) else 0) + dai_carta()
-                debug(logging_queue, ('Hai in mano:' + str(mie_carte)))
-        elif check_gesture(gesture, "swipe_l"):
-            debug(logging_queue, 'Ho finito')
-            puo_giocare = False
-            mazziere_vuole_carte = True
-    elif mazziere_vuole_carte:
-        for count2 in range(2):
-            carte_mazziere = (carte_mazziere if isinstance(carte_mazziere, Number) else 0) + dai_carta()
-        if carte_mazziere < 15:
-            carte_mazziere = (carte_mazziere if isinstance(carte_mazziere, Number) else 0) + dai_carta()
-        else:
-            debug(logging_queue, (''.join([str(x) for x in ['Le tue carte: ', mie_carte, ' carte del mazziere: ', carte_mazziere]])))
-            if mie_carte > 21:
-                debug(logging_queue, 'Ho perso....')
-            elif carte_mazziere > 21:
-                debug(logging_queue, 'Ho vinto io!')
-            else:
-                if carte_mazziere > mie_carte:
-                    debug(logging_queue, 'Vince il banco...')
-                else:
-                    debug(logging_queue, 'Ho vinto io!')
-            puo_giocare = False
-            mazziere_vuole_carte = False
-    else:
-        if check_gesture(gesture, "up"):
-            debug(logging_queue, 'Nuovo gioco!')
-            puo_giocare = True
-            mazziere_vuole_carte = False
+    iron_boy_command(ironBoy,logging_queue,IronBoyCommand.WAVE,2)
+    debug(logging_queue, 'abc')

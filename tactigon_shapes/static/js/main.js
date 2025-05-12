@@ -96,6 +96,20 @@ const toast = (message, category) => {
 
     // TODO: Correggere i titoli secondo questo schema
 
+    let title;
+        switch (category) {
+            case 'success':
+                title = 'Success';
+                break;
+            case 'warning':
+                title = 'Warning';
+                break;
+            case 'danger':
+                title = 'Error';
+                break;
+            default:
+                title = 'Info';
+        }
     /*
     
                 {% if category == 'success' %}
@@ -111,7 +125,7 @@ const toast = (message, category) => {
 
     let t = $(`<div class="toast ${category}" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header bg-primary bg-${category} bg-opacity-50">
-            <strong class="me-auto">${category}</strong>
+            <strong class="me-auto">${title}</strong>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body">

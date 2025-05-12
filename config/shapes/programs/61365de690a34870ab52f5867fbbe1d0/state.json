@@ -1,0 +1,71 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_function",
+        "id": "0!($UF`7TQyU:=g^AFaC",
+        "x": 130,
+        "y": 130,
+        "deletable": false,
+        "editable": false,
+        "icons": {
+          "comment": {
+            "text": "This is the main function that runs your code. Any code blocks you add to this section will be executed.",
+            "pinned": false,
+            "height": 80,
+            "width": 160
+          }
+        },
+        "fields": {
+          "NAME": "app"
+        },
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "ironBoy_command",
+              "id": "7XA1I^D`M2;^oQM~o7T7",
+              "inputs": {
+                "command": {
+                  "shadow": {
+                    "type": "command_list",
+                    "id": "Wa]$8:/8#[W*87Kw+tDE",
+                    "fields": {
+                      "command": "WAVE"
+                    }
+                  }
+                },
+                "reps": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "M2Jl2f7a7gkOScz%WMZs",
+                    "fields": {
+                      "NUM": 2
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "tactigon_shape_debug",
+                  "id": "_/3y#1];?yrxs$yuB(?*",
+                  "inputs": {
+                    "TEXT": {
+                      "shadow": {
+                        "type": "text",
+                        "id": "6?1=^PVp$xEu8O7/F~rx",
+                        "fields": {
+                          "TEXT": "abc"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_function",
+        "id": "0!($UF`7TQyU:=g^AFaC",
+        "x": 130,
+        "y": 130,
+        "deletable": false,
+        "editable": false,
+        "icons": {
+          "comment": {
+            "text": "This is the main function that runs your code. Any code blocks you add to this section will be executed.",
+            "pinned": false,
+            "height": 80,
+            "width": 160
+          }
+        },
+        "fields": {
+          "NAME": "app"
+        },
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "yCJNAp`?MO@J+RMucF)}",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "tskin_touch_list",
+                    "id": "W)gywDG)Z-Yf?P4}Pc}_",
+                    "fields": {
+                      "touch": "SINGLE_TAP"
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "ironBoy_command",
+                    "id": "S`?OZ5#@TE}kj!$1!)N8",
+                    "inputs": {
+                      "command": {
+                        "shadow": {
+                          "type": "command_list",
+                          "id": "L^OGoILSpj?*BB(GYy-l",
+                          "fields": {
+                            "command": "TIPTOE_FWD"
+                          }
+                        }
+                      },
+                      "reps": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "hkU:jzi8wFK-2chwK^HW",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "procedures_defnoreturn",
+        "id": ")eX{tr}X[Iwr{kJktO+[",
+        "x": 170,
+        "y": 30,
+        "fields": {
+          "NAME": "do something"
+        }
+      }
+    ]
+  }
+}
