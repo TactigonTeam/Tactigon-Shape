@@ -1152,8 +1152,9 @@ def reset_touch(tskin: TSkin):
 def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
     if ironBoy:
         
-        cmd = ironBoy.command(cmd,reps)
-        if not cmd:
+        command = ironBoy.command(cmd,reps)
+
+        if not command:
             debug(logging_queue, "command error")
     else:
         debug(logging_queue, "ironboy not configured")
