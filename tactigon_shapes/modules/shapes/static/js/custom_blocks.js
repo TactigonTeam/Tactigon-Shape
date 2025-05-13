@@ -1162,9 +1162,9 @@ def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optiona
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 `;
-
+        
         var statements_body = Blockly.Python.statementToCode(block, 'BODY');
-
+        
         if (!statements_body) {
             statements_body = "\tpass"
         }
@@ -1187,6 +1187,22 @@ def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optiona
         var code = `debug(logging_queue, ${message})\n`;
         return code;
     };
+    
+    python.pythonGenerator.forBlock['procedures_defnoreturn'] = function(block) {
+        var functionName = block.getFieldValue('NAME').replace(' ','_');
+        var body = Blockly.Python.statementToCode(block, 'STACK', python.Order.ATOMIC) || Blockly.Python.INDENT + "pass";
+        var customParams = "tskin, keyboard, braccio, zion, actions, logging_queue, ironBoy"
+        var code = `def ${functionName}(${customParams}):\n${body}`
+        return code;
+
+    };
+
+    python.pythonGenerator.forBlock['procedures_callnoreturn'] = function(block) {
+        var functionName = block.getFieldValue('NAME').replace(' ','_');
+        var customParams = "tskin, keyboard, braccio, zion, actions, logging_queue, ironBoy"
+        
+        return `${functionName}(${customParams})\n`;
+};
 
     defineTSkinGenerators()
     defineSpeechGenerators();
@@ -1232,7 +1248,7 @@ function definewaitGenerators(){
         const code = `time.sleep(${n})\n`;
         return code;
     }
-}
+    }
 
 
 function defineSpeechGenerators(){
