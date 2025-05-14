@@ -649,7 +649,7 @@
         let allBlocks = workspace.getAllBlocks(true);
         const errors = [];
         let reservedWords=["zion","__","code","logging_queue","debug","data",
-        "main","tskin","tspeech","gesture","touch"]
+        "main","tskin","tspeech","gesture","touch","ironBoy","touch","braccio"]
 
         for(i in allBlocks){
             //block
@@ -713,6 +713,11 @@
 
         $('#update-program-form').on('submit', (e) => {
             try{
+                if(!validateShape(workspace)){
+                    e.preventDefault();
+                    return false;
+                }
+                
                 setGeneratedCode(workspace);
                 setState(workspace);
             } catch(ex){
