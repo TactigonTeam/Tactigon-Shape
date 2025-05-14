@@ -88,6 +88,25 @@ const update_braccio_status = (braccio, data) => {
     }
 }
 
+const update_ironBoy_status = (ironBoy, data) => {
+    if (data === undefined){
+        show_tskin(tskin, false)
+        return;
+    }
+
+    if (last_ironBoy_connection_status != data.ironBoy_connection) {
+        last_ironBoy_connection_status = data.ironBoy_connection;
+
+        if (data.ironBoy_connection){
+            ironBoy.find(".connected").removeClass("d-none");
+            ironBoy.find(".disconnected").addClass("d-none");
+        } else {
+            ironBoy.find(".connected").addClass("d-none");
+            ironBoy.find(".disconnected").removeClass("d-none");
+        }
+    }
+}
+
 
 const toast = (message, category) => {
     // 1. Crea nuovo nodo toast inserendo la corretta category e il corretto message
@@ -170,6 +189,7 @@ $(()=>{
     
     const tskin = $("#tskin-management");
     const braccio = $("#braccio-management");
+    const ironBoy = $("#ironBoy-management")
 
     $(".toast").each((i, el) => {
         show_toast(el);
@@ -184,5 +204,6 @@ $(()=>{
     socket.on("state", function(data) {
         update_tskin_status(tskin, data);
         update_braccio_status(braccio, data);
+        update_ironBoy_status(ironBoy,data);
     })
 })

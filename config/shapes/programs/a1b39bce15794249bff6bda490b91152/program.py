@@ -219,15 +219,16 @@ def reset_touch(tskin: TSkin):
 def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
     if ironBoy:
 
-        cmd = ironBoy.command(cmd,reps)
-        if not cmd:
+        command = ironBoy.command(cmd,reps)
+
+        if not command:
             debug(logging_queue, "command error")
     else:
         debug(logging_queue, "ironboy not configured")
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
-def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):
+def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue,ironBoy:Optional[IronBoyInterface]):
     global pos_x
     global pos_y
     global pos_z

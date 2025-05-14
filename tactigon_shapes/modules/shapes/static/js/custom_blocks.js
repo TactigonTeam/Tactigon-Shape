@@ -1189,7 +1189,6 @@ def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optiona
     };
     
 
-    defineProceduresGenerators();
     defineTSkinGenerators();
     defineSpeechGenerators();
     definewaitGenerators();
@@ -1198,45 +1197,6 @@ def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optiona
     defineDictionaryGenerators();
     defineZionGenerators();
     defineIronBoyGenerators();
-}
-function defineProceduresGenerators(){
-        //adattamento funzioni per custom objects
-    //no return
-    python.pythonGenerator.forBlock['procedures_defnoreturn'] = function(block) {
-        var functionName = block.getFieldValue('NAME').replace(' ','_');
-        var body = Blockly.Python.statementToCode(block, 'STACK', python.Order.ATOMIC) || Blockly.Python.INDENT + "pass";
-        var customParams = "tskin, keyboard, braccio, zion, actions, logging_queue, ironBoy"
-        var code = `def ${functionName}(${customParams}):\n${body}`
-        return code;
-
-    };
-
-    python.pythonGenerator.forBlock['procedures_callnoreturn'] = function(block) {
-        var functionName = block.getFieldValue('NAME').replace(' ','_');
-        var customParams = "tskin, keyboard, braccio, zion, actions, logging_queue, ironBoy"
-        
-        return `${functionName}(${customParams})\n`;
-};
-
-    //con return
-    
-    python.pythonGenerator.forBlock['procedures_defreturn'] = function(block) {
-        var functionName = block.getFieldValue('NAME').replace(' ','_');
-        var body = Blockly.Python.statementToCode(block, 'STACK', python.Order.ATOMIC) || '';
-        var customParams = "tskin, keyboard, braccio, zion, actions, logging_queue, ironBoy"
-        var ret = Blockly.Python.valueToCode(block, 'RETURN', Blockly.Python.ORDER_NONE) || 'None';
-
-        var code = `def ${functionName}(${customParams}):\n${body}    return ${ret}`
-        return code
-        };
-    
-    python.pythonGenerator.forBlock['procedures_callreturn'] = function(block) {
-        var functionName = block.getFieldValue('NAME').replace(' ','_');
-        var customParams = "tskin, keyboard, braccio, zion, actions, logging_queue, ironBoy"
-        var code = `${functionName}(${customParams})`
-        return [code, Blockly.Python.ORDER_ATOMIC]
-        };
-
 
 }
 

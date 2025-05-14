@@ -91,7 +91,7 @@ class Server(Process):
 
             socket_app.shapes_app = shapes_app
             socket_app.braccio_interface = braccio_interface
-            #socket_app.ironBoy_interface = ironBoy_interface
+            socket_app.ironBoy_interface = ironBoy_interface
 
             flask_app.extensions[TSKIN_EXTENSION] = None
             tskin = None

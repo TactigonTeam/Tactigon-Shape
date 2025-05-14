@@ -40,7 +40,7 @@ if sys.platform == "darwin":
         
         async def find_devices():
             devices = await BleakScanner.discover(cb=dict(use_bdaddr=True))
-            return filter(lambda d: str(d.name).startswith("ADA"), devices)
+            return filter(lambda d: str(d.name).startswith("A"), devices)
 
         devices = [{"name": d.name, "id": d.address, "address": str(d.details[0].identifier())} for d in asyncio.run(find_devices())]
 
