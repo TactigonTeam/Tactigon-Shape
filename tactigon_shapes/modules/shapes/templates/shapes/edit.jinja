@@ -631,6 +631,8 @@
 
         return functionBlockNames.includes(t)
     }
+    let reservedWords=["zion","__","code","logging_queue","debug","data",
+        "main","tskin","tspeech","gesture","ironBoy","touch","braccio"]
 
     function checkFloatingBlocks(workspace){
 
@@ -647,9 +649,12 @@
     function checkReservedNames(workspace){
 
         let allBlocks = workspace.getAllBlocks(true);
+        let allVars = workspace.getAllVariables()
+
+       
+
         const errors = [];
-        let reservedWords=["zion","__","code","logging_queue","debug","data",
-        "main","tskin","tspeech","gesture","touch","ironBoy","touch","braccio"]
+
 
         for(i in allBlocks){
             //block
@@ -670,7 +675,21 @@
                     errors.push("app cannot be used as a name");
                 }
             }
+        } 
+        for (const variable of allVars) {
+        const n = variable.name;
+        
+            for(i in reservedWords){
+                if(n.includes(reservedWords[i])){
+                    errors.push(reservedWords[i]+" cannot be used in a name");
+                }
         }
+
+        if (n == "app") {
+            errors.push('"app" cannot be used as a variable name');
+        }
+    }
+
         return errors;
     }
     
