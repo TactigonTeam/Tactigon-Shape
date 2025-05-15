@@ -109,11 +109,7 @@ const update_ironBoy_status = (ironBoy, data) => {
 
 
 const toast = (message, category) => {
-    // 1. Crea nuovo nodo toast inserendo la corretta category e il corretto message
-    // 2. Appende il nodo al container dei toast
-    // 3. Chiama la funzione di caricamento dei toast (show_toast)
-
-    // TODO: Correggere i titoli secondo questo schema
+  
 
     let title;
         switch (category) {
@@ -129,19 +125,7 @@ const toast = (message, category) => {
             default:
                 title = 'Info';
         }
-    /*
     
-                {% if category == 'success' %}
-                Success
-                {% elif category == 'warning' %}
-                Warning
-                {% elif category == 'danger' %}
-                Error
-                {% else %}
-                Info
-                {% endif %}
-    */
-
     let t = $(`<div class="toast ${category}" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header bg-primary bg-${category} bg-opacity-50">
             <strong class="me-auto">${title}</strong>
@@ -177,6 +161,7 @@ var last_battery_update_ts = 0;
 var last_battery_update_value = 0;
 var last_connection_status = undefined;
 var last_braccio_connection_status = undefined;
+var last_ironBoy_connection_status = undefined;
 
 $(()=>{
     /*
@@ -204,6 +189,6 @@ $(()=>{
     socket.on("state", function(data) {
         update_tskin_status(tskin, data);
         update_braccio_status(braccio, data);
-        update_ironBoy_status(ironBoy,data);
+        update_ironBoy_status(ironBoy, data);
     })
 })
