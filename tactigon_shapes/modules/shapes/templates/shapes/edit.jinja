@@ -642,73 +642,6 @@
         return workspace;
     }
 
-    function isFunctionBlock(t){
-        //checks main app, functions and used variables
-        let functionBlockNames=
-        ["tactigon_shape_function","procedures_defnoreturn",
-        "variables_set","procedures_defreturn"]
-
-        return functionBlockNames.includes(t)
-    }
-
-    function checkFloatingBlocks(workspace){
-
-        let topBlocks = workspace.getTopBlocks(true);
-
-        for (i in topBlocks){
-            let t = topBlocks[i].type;
-            if (!isFunctionBlock(t)){ 
-                return "Make sure all blocks are inside Tacticon Main or functions"
-            }
-        }
-        return "";
-    }
-    function checkReservedNames(workspace){
-
-        let allBlocks = workspace.getAllBlocks(true);
-        const errors = [];
-        let reservedWords=["zion","__","code","logging_queue","debug","data",
-        "main","tskin","tspeech","gesture","touch"]
-
-        for(i in allBlocks){
-            //block
-            b=allBlocks[i];
-            if (isFunctionBlock(b.type)) {  
-                //name
-                let n = b.getFieldValue("NAME");
-
-                if (n == null)
-                    n = b.getField('VAR').getText();
-
-                for(i in reservedWords){
-                    if(n.includes(reservedWords[i])){
-                        errors.push(reservedWords[i]+" cannot be used in a name");
-                    }
-                }
-                if(n=="app" && b.type !== "tactigon_shape_function"){
-                    errors.push("app cannot be used as a name");
-                }
-            }
-        }
-        return errors;
-    }
-    
-    function isWorkspaceValid(workspace){
-
-        const errors = checkReservedNames(workspace);
-
-        const floatingBlocksError = checkFloatingBlocks(workspace);
-
-        if (floatingBlocksError.length > 0) {
-            errors.push(floatingBlocksError);
-        }
-
-        for (let i in errors){
-            toast(errors[i], "danger");
-        }
-
-        return errors.length == 0
-    }
 
     function setGeneratedCode(workspace) {
         Blockly.Python.addReservedWords('code');
@@ -731,10 +664,6 @@
         const workspace = initializeBlockly();
 
         $('#update-program-form').on('submit', (e) => {
-            if(!isWorkspaceValid(workspace)){
-                e.preventDefault();
-                return false;
-            }
 
             try{
                 setGeneratedCode(workspace);
