@@ -13,12 +13,6 @@ from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
 
 
-pos_x = 0
-pos_y = 100
-pos_z = 100
-roll = 0
-pitch = 0
-
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 
@@ -229,24 +223,15 @@ def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optiona
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue,ironBoy:Optional[IronBoyInterface]):
-    global pos_x
-    global pos_y
-    global pos_z
-    global roll
-    global pitch
+
 
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "TAP_AND_HOLD", actions):
-        roll = tskin.angle.roll if tskin.angle else 0
-        pitch = tskin.angle.pitch if tskin.angle else 0
-        if roll < -15:
-            pos_x = (pos_x if isinstance(pos_x, Number) else 0) + -20
-        elif roll > 15:
-            pos_x = (pos_x if isinstance(pos_x, Number) else 0) + 20
-        if pitch < -15:
-            pos_y = (pos_y if isinstance(pos_y, Number) else 0) + -20
-        elif pitch > 15:
-            pos_y = (pos_y if isinstance(pos_y, Number) else 0) + 20
-        debug(logging_queue, (''.join([str(x) for x in [pos_x, '|', pos_y, '|', pos_z]])))
-        braccio_move(braccio, logging_queue, pos_x, pos_y, pos_z)
+    if check_gesture(gesture, "twist"):
+        iron_boy_command(ironBoy,logging_queue,IronBoyCommand.WAVE,1)
+        debug(logging_queue, 'abc')
+    if check_touch(touch, "SINGLE_TAP", actions):
+        braccio_gripper(braccio, logging_queue, Gripper['OPEN'])
+        braccio_move(braccio, logging_queue, 0, 10, 5)
+        braccio_move(braccio, logging_queue, 100, 10, 30)
+        braccio_gripper(braccio, logging_queue, Gripper['CLOSE'])

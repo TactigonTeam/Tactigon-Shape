@@ -405,6 +405,25 @@
             <block type="braccio_wrist"></block>
         </category>
         {% endif %}
+        {% if ironBoy_config %}
+        <category name="IronBoy" colour="80ef80">
+            <block type="ironBoy_command">
+                <value name="command">
+                    <shadow type="command_list">
+                    </shadow>
+                </value>
+                <value name="reps">
+                    <shadow type="math_number">
+                        <field name="NUM">1</field>
+                    </shadow>
+                </value>
+            </block>
+
+
+            <block type="command_list"></block>
+        </category>
+        {% endif %}
+
         <sep></sep>
         <category name="Zion API" colour="#6665DD">
             <block type="device_list">
@@ -623,6 +642,7 @@
         return workspace;
     }
 
+
     function setGeneratedCode(workspace) {
         Blockly.Python.addReservedWords('code');
         const code = python.pythonGenerator.workspaceToCode(workspace);
@@ -644,10 +664,16 @@
         const workspace = initializeBlockly();
 
         $('#update-program-form').on('submit', (e) => {
+
             try{
                 setGeneratedCode(workspace);
                 setState(workspace);
-            } catch(ex){
+                console.log(workspace);
+
+                
+
+            }
+            catch(ex){
                 e.preventDefault();
                 console.log(ex);
                 return false;

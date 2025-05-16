@@ -271,6 +271,8 @@ class ZionInterface:
 
         if not res:
             return False
+        
+        self.devices = []
 
         for device in res["data"]:
             self.devices.append(

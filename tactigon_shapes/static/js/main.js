@@ -88,12 +88,80 @@ const update_braccio_status = (braccio, data) => {
     }
 }
 
+const update_ironBoy_status = (ironBoy, data) => {
+    if (data === undefined){
+        show_tskin(tskin, false)
+        return;
+    }
+
+    if (last_ironBoy_connection_status != data.ironBoy_connection) {
+        last_ironBoy_connection_status = data.ironBoy_connection;
+
+        if (data.ironBoy_connection){
+            ironBoy.find(".connected").removeClass("d-none");
+            ironBoy.find(".disconnected").addClass("d-none");
+        } else {
+            ironBoy.find(".connected").addClass("d-none");
+            ironBoy.find(".disconnected").removeClass("d-none");
+        }
+    }
+}
+
+
+const toast = (message, category) => {
+  
+
+    let title;
+        switch (category) {
+            case 'success':
+                title = 'Success';
+                break;
+            case 'warning':
+                title = 'Warning';
+                break;
+            case 'danger':
+                title = 'Error';
+                break;
+            default:
+                title = 'Info';
+        }
+    
+    let t = $(`<div class="toast ${category}" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary bg-${category} bg-opacity-50">
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    </div>`);
+
+    $(".toast-container").append(t);
+
+    show_toast(t[0]);
+};
+
+const show_toast = (el) => {
+    let toast_option = {
+        animation: true,
+        autohide: true,
+        delay: 3000
+    };
+
+    if (el.classList.contains("danger")) {
+        toast_option.autohide = false;
+    }
+
+    new bootstrap.Toast(el, toast_option).show();
+};
+
 const socket = io();
 const BATTERY_REFRESH_RATE = 1*2*1000;
 var last_battery_update_ts = 0;
 var last_battery_update_value = 0;
 var last_connection_status = undefined;
 var last_braccio_connection_status = undefined;
+var last_ironBoy_connection_status = undefined;
 
 $(()=>{
     /*
@@ -104,22 +172,13 @@ $(()=>{
     });
     */
     
-    $('.toast').map((i, el) => {
-        let toast_option = {
-            animation: true,
-            autohide: true,
-            delay: 3000
-        };
-
-        if (el.classList.contains("danger")){
-            toast_option.autohide = false;
-        }
-
-        new bootstrap.Toast(el, toast_option).show();
-    });
-
     const tskin = $("#tskin-management");
     const braccio = $("#braccio-management");
+    const ironBoy = $("#ironBoy-management")
+
+    $(".toast").each((i, el) => {
+        show_toast(el);
+    });
     
     $("a").click(function(){
         const loading_msg = $(this).attr("loading-msg");
@@ -130,5 +189,6 @@ $(()=>{
     socket.on("state", function(data) {
         update_tskin_status(tskin, data);
         update_braccio_status(braccio, data);
+        update_ironBoy_status(ironBoy, data);
     })
 })

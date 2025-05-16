@@ -13,12 +13,6 @@ from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
 
 
-pos_x = 0
-pos_y = 100
-pos_z = 100
-roll = 0
-pitch = 0
-
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 
@@ -183,11 +177,19 @@ def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: st
 
     return zion.send_device_last_telemetry(device_id, payload)
 
-def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> bool:
+def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> dict:
+
+
     if not zion:
         return False
 
-    return zion.delete_device_attr(device_id, scope, keys)
+    data = zion.delete_device_attr(device_id, scope.value, keys)
+
+    if not data:
+        return False
+
+    return data
+
 
 def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, key: str, data) -> bool:
     if not zion:
@@ -205,48 +207,26 @@ def zion_send_device_alarm(zion: Optional[ZionInterface], device_id: str, name: 
     return zion.upsert_device_alarm(device_id, name, name)
 
 def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
-
-    if isinstance(msg,(float)):
-        rounded=round(msg,4)
-        logging_queue.debug(str(rounded))
-    else:
-        logging_queue.debug(str(msg))
+    logging_queue.debug(str(msg))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
             _ = tskin.touch
 
-def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
+def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
     if ironBoy:
-
-        command = ironBoy.command(cmd,reps)
-
-        if not command:
+        cmd = ironBoy.command(cmd,reps)
+        if not cmd:
             debug(logging_queue, "command error")
     else:
         debug(logging_queue, "ironboy not configured")
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
-def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue,ironBoy:Optional[IronBoyInterface]):
-    global pos_x
-    global pos_y
-    global pos_z
-    global roll
-    global pitch
+def app(tskin: TSkin, keyboard: KeyboardController,ironBoy:Optional[IronBoyInterface], braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):
 
+    
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "TAP_AND_HOLD", actions):
-        roll = tskin.angle.roll if tskin.angle else 0
-        pitch = tskin.angle.pitch if tskin.angle else 0
-        if roll < -15:
-            pos_x = (pos_x if isinstance(pos_x, Number) else 0) + -20
-        elif roll > 15:
-            pos_x = (pos_x if isinstance(pos_x, Number) else 0) + 20
-        if pitch < -15:
-            pos_y = (pos_y if isinstance(pos_y, Number) else 0) + -20
-        elif pitch > 15:
-            pos_y = (pos_y if isinstance(pos_y, Number) else 0) + 20
-        debug(logging_queue, (''.join([str(x) for x in [pos_x, '|', pos_y, '|', pos_z]])))
-        braccio_move(braccio, logging_queue, pos_x, pos_y, pos_z)
+    iron_boy_command(ironBoy,logging_queue,IronBoyCommand.WAVE,1)
+#ERROR: 'NoneType' object has no attribute 'is_timeout'

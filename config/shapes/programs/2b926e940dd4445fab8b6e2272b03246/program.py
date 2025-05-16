@@ -4,6 +4,7 @@ import time
 import random
 from numbers import Number
 from datetime import datetime
+from tactigon_shapes.modules.ironBoy.extension import IronBoyInterface
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
@@ -206,7 +207,7 @@ def reset_touch(tskin: TSkin):
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
-def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):
+def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue, ironBoy:Optional[IronBoyInterface]):
 
 
     gesture = tskin.gesture
