@@ -213,8 +213,9 @@ def reset_touch(tskin: TSkin):
 def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
     if ironBoy:
 
-        cmd = ironBoy.command(cmd,reps)
-        if not cmd:
+        command = ironBoy.command(cmd,reps)
+
+        if not command:
             debug(logging_queue, "command error")
     else:
         debug(logging_queue, "ironboy not configured")
@@ -226,5 +227,11 @@ def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInt
 
     gesture = tskin.gesture
     touch = tskin.touch
-    iron_boy_command(ironBoy,logging_queue,IronBoyCommand.WAVE,2)
-    debug(logging_queue, 'abc')
+    if check_gesture(gesture, "twist"):
+        iron_boy_command(ironBoy,logging_queue,IronBoyCommand.WAVE,1)
+        debug(logging_queue, 'abc')
+    if check_touch(touch, "SINGLE_TAP", actions):
+        braccio_gripper(braccio, logging_queue, Gripper['OPEN'])
+        braccio_move(braccio, logging_queue, 0, 10, 5)
+        braccio_move(braccio, logging_queue, 100, 10, 30)
+        braccio_gripper(braccio, logging_queue, Gripper['CLOSE'])

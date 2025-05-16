@@ -23,39 +23,161 @@
         "inputs": {
           "BODY": {
             "block": {
-              "type": "ironBoy_command",
-              "id": "7XA1I^D`M2;^oQM~o7T7",
+              "type": "controls_if",
+              "id": "=:i729L3.k+]EjlaDO:U",
               "inputs": {
-                "command": {
-                  "shadow": {
-                    "type": "command_list",
-                    "id": "Wa]$8:/8#[W*87Kw+tDE",
+                "IF0": {
+                  "block": {
+                    "type": "tskin_gesture_list",
+                    "id": "qo0d+t;Gr]4SUH7.}HQ]",
                     "fields": {
-                      "command": "WAVE"
+                      "gesture": "twist"
                     }
                   }
                 },
-                "reps": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "M2Jl2f7a7gkOScz%WMZs",
-                    "fields": {
-                      "NUM": 2
+                "DO0": {
+                  "block": {
+                    "type": "ironBoy_command",
+                    "id": "7XA1I^D`M2;^oQM~o7T7",
+                    "inputs": {
+                      "command": {
+                        "shadow": {
+                          "type": "command_list",
+                          "id": "Wa]$8:/8#[W*87Kw+tDE",
+                          "fields": {
+                            "command": "WAVE"
+                          }
+                        }
+                      },
+                      "reps": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "M2Jl2f7a7gkOScz%WMZs",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "tactigon_shape_debug",
+                        "id": "_/3y#1];?yrxs$yuB(?*",
+                        "inputs": {
+                          "TEXT": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "6?1=^PVp$xEu8O7/F~rx",
+                              "fields": {
+                                "TEXT": "abc"
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
               },
               "next": {
                 "block": {
-                  "type": "tactigon_shape_debug",
-                  "id": "_/3y#1];?yrxs$yuB(?*",
+                  "type": "controls_if",
+                  "id": "lt[Pbra4_r(3#Mizqe0-",
                   "inputs": {
-                    "TEXT": {
-                      "shadow": {
-                        "type": "text",
-                        "id": "6?1=^PVp$xEu8O7/F~rx",
+                    "IF0": {
+                      "block": {
+                        "type": "tskin_touch_list",
+                        "id": "xWX1q-sG,Z)agu[gx%F%",
                         "fields": {
-                          "TEXT": "abc"
+                          "touch": "SINGLE_TAP"
+                        }
+                      }
+                    },
+                    "DO0": {
+                      "block": {
+                        "type": "braccio_gripper",
+                        "id": "B-l5ao:~1@6QG_=_(u2?",
+                        "fields": {
+                          "gripper": "OPEN"
+                        },
+                        "next": {
+                          "block": {
+                            "type": "braccio_move",
+                            "id": "GX|a1PmIDNyr.Qs.OJ^!",
+                            "inputs": {
+                              "x": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "(h?Z09JLGANKKv(=|1S@",
+                                  "fields": {
+                                    "NUM": 0
+                                  }
+                                }
+                              },
+                              "y": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "_-fpo3V9Ye?d}gi/Q{$5",
+                                  "fields": {
+                                    "NUM": 10
+                                  }
+                                }
+                              },
+                              "z": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "O$?:-)~0atI*R5Z`}:Jv",
+                                  "fields": {
+                                    "NUM": 5
+                                  }
+                                }
+                              }
+                            },
+                            "next": {
+                              "block": {
+                                "type": "braccio_move",
+                                "id": "eH+_$)4u?OBUL=yOGh/F",
+                                "inputs": {
+                                  "x": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": "*CBob^,j$nT3FJio1cP-",
+                                      "fields": {
+                                        "NUM": 100
+                                      }
+                                    }
+                                  },
+                                  "y": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": "2[?E1~yzM`E@muTP/CE}",
+                                      "fields": {
+                                        "NUM": 10
+                                      }
+                                    }
+                                  },
+                                  "z": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": "/8EPp,a~mL6^(kCe^(0J",
+                                      "fields": {
+                                        "NUM": 30
+                                      }
+                                    }
+                                  }
+                                },
+                                "next": {
+                                  "block": {
+                                    "type": "braccio_gripper",
+                                    "id": "~xZ4-~ASOg1!(!F8csct",
+                                    "fields": {
+                                      "gripper": "CLOSE"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
                         }
                       }
                     }
