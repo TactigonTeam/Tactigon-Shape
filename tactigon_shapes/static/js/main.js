@@ -88,6 +88,25 @@ const update_braccio_status = (braccio, data) => {
     }
 }
 
+const update_ironboy_status = (ironboy, data) => {
+    if (data === undefined){
+        show_tskin(tskin, false)
+        return;
+    }
+
+    if (last_ironboy_connection_status != data.ironboy_connection) {
+        last_ironboy_connection_status = data.ironboy_connection;
+
+        if (data.ironboy_connection){
+            ironboy.find(".connected").removeClass("d-none");
+            ironboy.find(".disconnected").addClass("d-none");
+        } else {
+            ironboy.find(".connected").addClass("d-none");
+            ironboy.find(".disconnected").removeClass("d-none");
+        }
+    }
+}
+ 
 const toast = (message, category) => {
 
     let title;
@@ -104,7 +123,7 @@ const toast = (message, category) => {
             default:
                 title = 'Info';
         }
-
+    
     let t = $(`<div class="toast ${category}" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header bg-primary bg-${category} bg-opacity-50">
             <strong class="me-auto">${title}</strong>
@@ -140,6 +159,7 @@ var last_battery_update_ts = 0;
 var last_battery_update_value = 0;
 var last_connection_status = undefined;
 var last_braccio_connection_status = undefined;
+var last_ironboy_connection_status = undefined;
 
 $(()=>{
     /*
@@ -150,22 +170,13 @@ $(()=>{
     });
     */
     
-    $('.toast').map((i, el) => {
-        let toast_option = {
-            animation: true,
-            autohide: true,
-            delay: 3000
-        };
-
-        if (el.classList.contains("danger")){
-            toast_option.autohide = false;
-        }
-
-        new bootstrap.Toast(el, toast_option).show();
-    });
-
     const tskin = $("#tskin-management");
     const braccio = $("#braccio-management");
+    const ironboy = $("#ironboy-management")
+
+    $(".toast").each((i, el) => {
+        show_toast(el);
+    });
     
     $("a").click(function(){
         const loading_msg = $(this).attr("loading-msg");
@@ -176,5 +187,6 @@ $(()=>{
     socket.on("state", function(data) {
         update_tskin_status(tskin, data);
         update_braccio_status(braccio, data);
-    })
-})
+        update_ironboy_status(ironboy, data);
+    });
+});

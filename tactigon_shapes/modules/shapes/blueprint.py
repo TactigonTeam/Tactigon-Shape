@@ -5,6 +5,8 @@ from typing import List, Optional
 
 from flask import Blueprint, render_template, flash, redirect, url_for
 
+from ..ironboy.manager import get_ironboy_interface
+
 from .extension import ShapeConfig, Program
 from .manager import get_shapes_app
 
@@ -59,6 +61,12 @@ def index(program_id: Optional[str] = None):
 
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
+
+    ironboy = get_ironboy_interface()
+
+    if ironboy:
+        blocks_config["ironboy"] = ironboy.get_shape_blocks()
+           
     
     state = _shapes.get_state(current_config.id) if current_config else None
 
@@ -144,13 +152,20 @@ def edit(program_id: str):
 
     zion = get_zion_interface()
 
+    ironboy = get_ironboy_interface()
+
+    if ironboy:
+        blocks_config["ironboy"] = ironboy.get_shape_blocks()
+           
+        
+
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
 
     return render_template("shapes/edit.jinja",
                            current_config=current_config,
                            state=json.dumps(state),
-                           blocks_config=blocks_config,
+                           blocks_config=blocks_config
                            )
 
 
@@ -251,6 +266,7 @@ def clone_config(program_id: str):
     return redirect(url_for("shapes.edit", program_id=new_config.id))
 
 
+#----------------------------------------------------------------------
 @bp.route("/<string:program_id>/save/program", methods=["POST"])
 @check_config
 def save_program(program_id: str):
@@ -262,6 +278,7 @@ def save_program(program_id: str):
 
     code = get_from_request('generatedCode')
     state = get_from_request('state')
+
 
     is_empty_input = check_empty_inputs(locals().items())
 
@@ -279,14 +296,16 @@ def save_program(program_id: str):
 
     is_success = _shapes.update(config, Program(code=code, state=json.loads(state)))
 
+    
     if not is_success:
         flash(f"Something went wrong!", category="danger")
         return redirect(url_for("shapes.edit", program_id=program_id))
 
+
     flash(f"Shape saved.", category="success")
     return redirect(url_for("shapes.index", program_id=program_id))
 
-
+#----------------------------------------------
 @bp.route("/<string:program_id>/start")
 @check_config
 def start(program_id: str):

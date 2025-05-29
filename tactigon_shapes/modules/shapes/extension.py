@@ -18,6 +18,7 @@ from ..braccio.extension import BraccioInterface, Wrist, Gripper
 from ..zion.extension import ZionInterface
 from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
 from ..tskin.manager import walk
+from ..ironboy.extension import IronBoyInterface
 
 from ...extensions.base import ExtensionThread, ExtensionApp
 
@@ -134,13 +135,26 @@ class ShapeThread(ExtensionThread):
     _logging_queue: LoggingQueue
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
+    _ironboy_interface: Optional[IronBoyInterface] = None
 
-    def __init__(self, base_path: str, app: ShapeConfig, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], logging_queue: LoggingQueue, tskin: TSkin):
+    
+    def __init__(
+            self, 
+            base_path: str, 
+            app: ShapeConfig, 
+            tskin: TSkin,
+            keyboard: KeyboardController, 
+            braccio: Optional[BraccioInterface], 
+            zion: Optional[ZionInterface], 
+            ironboy: Optional[IronBoyInterface],
+            logging_queue: LoggingQueue,
+        ):
         self._keyboard = keyboard
         self._tskin = tskin
         self._logging_queue = logging_queue
         self._braccio_interface = braccio
         self._zion_interface = zion
+        self._ironboy_interface = ironboy
 
         ExtensionThread.__init__(self)
 
@@ -161,6 +175,14 @@ class ShapeThread(ExtensionThread):
     @zion_interface.setter
     def zion_interface(self, zion_interface: Optional[ZionInterface]):
         self._zion_interface = zion_interface
+
+    @property
+    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+        return self.ironboy_interface
+
+    @ironboy_interface.setter
+    def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
+        self._ironboy_interface = ironboy_interface
 
     @staticmethod
     def debouce(tskin: Optional[TSkin]) -> bool:
@@ -183,7 +205,7 @@ class ShapeThread(ExtensionThread):
     def main(self):       
         actions: List[Tuple[ShapesPostAction, Any]] = []
         try:
-            self.module.tactigon_shape_function(self._tskin, self._keyboard, self.braccio_interface, self.zion_interface, actions, self._logging_queue)
+            self.module.tactigon_shape_function(self._tskin, self._keyboard, self.braccio_interface, self.zion_interface, actions, self._logging_queue, self._ironboy_interface)
         except Exception as e:
             self._logging_queue.error(str(e))
 
@@ -209,6 +231,7 @@ class ShapesApp(ExtensionApp):
     current_id: Optional[UUID] = None
     logging_queue: LoggingQueue
 
+    _ironboy_interface: Optional[IronBoyInterface] = None
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
 
@@ -217,7 +240,8 @@ class ShapesApp(ExtensionApp):
         self.shapes_file_path = config_path
         self.keyboard = KeyboardController()
         self.logging_queue = LoggingQueue()
-
+        
+        
         if sys.platform == "darwin":
             self.hotkey_list = [("<ctrl>+", "ctrl"), ("<cmd>+", "cmd"), ("<shift>+", "shift"), ("<alt>+", "alt"), ("<cmd>+<alt>+", "cmd+alt"), ("<cmd>+<shift>+", "cmd+shift")]
         elif sys.platform != "darwin":
@@ -241,6 +265,7 @@ class ShapesApp(ExtensionApp):
     @braccio_interface.setter
     def braccio_interface(self, braccio_interface: Optional[BraccioInterface]):
         self._braccio_interface = braccio_interface
+    
 
     @property
     def zion_interface(self) -> Optional[ZionInterface]:
@@ -249,6 +274,14 @@ class ShapesApp(ExtensionApp):
     @zion_interface.setter
     def zion_interface(self, zion_interface: Optional[ZionInterface]):
         self._zion_interface = zion_interface
+
+    @property
+    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+        return self._ironboy_interface
+
+    @ironboy_interface.setter
+    def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
+        self._ironboy_interface = ironboy_interface
 
     def get_log(self) -> Optional[DebugMessage]:
         try:
@@ -396,7 +429,7 @@ class ShapesApp(ExtensionApp):
 
                 self.current_id = _config.id
                 try:
-                    self.thread = ShapeThread(self.shapes_file_path, _config, self.keyboard, self.braccio_interface, self.zion_interface, self.logging_queue, tskin)
+                    self.thread = ShapeThread(self.shapes_file_path, _config, tskin, self.keyboard, self.braccio_interface, self.zion_interface, self.ironboy_interface, self.logging_queue) 
                     self.thread.start()
                 except Exception as e:
                     self.current_id = None
@@ -431,5 +464,6 @@ class ShapesApp(ExtensionApp):
 
         with open(state_file_path, "w") as state_json_file:
             json.dump(program.state, state_json_file, indent=2)
+        
 
         return True

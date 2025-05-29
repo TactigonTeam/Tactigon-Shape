@@ -160,6 +160,25 @@
 </div>
 {% endmacro %}
 
+{% macro ironboy(config) %}
+<div id="ironboy-management" class="d-flex gap-3 m-2">
+    <div class="gap-1">
+        <i class="mi-round mi-smart-toy" style="font-size: 20px;"></i>
+        {% if config %}
+            <small>{{ config.name }}</small>
+        {% else %}
+            <small style="color: gray;">Not configured</small>
+        {% endif %}
+    </div>
+    {% if config %}
+        <div>
+            <i class="mi-round mi-bluetooth-connected connected d-none" style="font-size: 20px; color: #fff;"></i>
+            <i class="mi-round mi-bluetooth disconnected" style="font-size: 20px; color: gray;"></i>
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -190,7 +209,7 @@
     <div class="sticky-top">
         <nav class="bg-dark text-light">
             <div class="container-fluid d-flex justify-content-end align-items-center gap-3">
-                | {{ braccio(braccio_config) }} | {{tskin(tskin_config)}}
+                {{ ironboy(ironboy_config) }} | {{ braccio(braccio_config) }} | {{tskin(tskin_config)}}
             </div>
         </nav>
         <!--- Navbar app -->
@@ -200,6 +219,11 @@
                     <i class="mi-round mi-extension" style="font-size: 24px"></i>
                 </a>
                 <div>
+                    {% if has_ironboy %}
+                        <a href="{{ url_for('ironboy.index') }}" class="btn btn-link text-decoration-none text-light" title="ironboy">
+                            <i class="mi-round mi-smart-toy" style="font-size: 24px"></i>
+                        </a>
+                    {% endif %}
                     <a href="{{ url_for('zion.index') }}" class="btn btn-link text-decoration-none text-light" title="Zion cloud">
                         <i class="mi-outlined mi-cloud" style="font-size: 24px"></i>
                     </a>

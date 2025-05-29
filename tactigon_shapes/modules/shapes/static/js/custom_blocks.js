@@ -7,12 +7,15 @@ function loadCustomBlocks(response) {
     const gripperOptions = response ? response.gripperOptions : []
     const speechs = response ? response.speechs : []
     const zion = response ? response.zion : []
-
+    const ironboy = response ? response.ironboy : []
+    
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
+    loadIronBoyBlocks(ironboy)
+    
 
     Blockly.Blocks['wait'] = {
         init: function () {
@@ -879,8 +882,59 @@ function loadZionBlocks(zion){
             });
         }
     };
-}
+} 
+//----------------------------------------
+function loadIronBoyBlocks(ironboy) {
+    Blockly.Blocks['ironboy_command'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "ironboy_command",
+                "tooltip": "Send Iron Boy command",
+                "helpUrl": "Send a move command to Iron Boy",
+                "message0": "Send command %1 execute for %2 times",
+                "args0": [
+                    {
+                    "type": "input_value",
+                    "name": "command",
+                    "check": "IronBoyCommand"
+                    },
+                    {
+                    "type": "input_value",
+                    "name": "reps",
+                    "check": "Number"
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": 30,
+                "inputsInline": true
+            });
+        }
+        
+    }
+    
 
+//-----------------------------------------------
+    Blockly.Blocks['command_list'] = {
+        init: function() {
+            this.jsonInit({
+            "type": "command_list",
+            "message0": "Command %1",
+            "args0": [
+                {
+                "type": "field_dropdown",
+                "name": "command",
+                "options": ironboy.commands
+                }
+            ],
+            "output": "IronBoyCommand",
+            "colour": "#EB6152",
+            "tooltip": "Select an Iron Boy movement command",
+            "helpUrl": ""
+            });
+        }
+        };
+}
 function defineCustomGenerators() {
     Blockly.Python.INDENT = '    ';
 
@@ -896,6 +950,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any`;
         
@@ -1083,18 +1138,32 @@ def zion_send_device_alarm(zion: Optional[ZionInterface], device_id: str, name: 
     return zion.upsert_device_alarm(device_id, name, name) 
 
 def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
-    logging_queue.debug(str(msg))
+
+    if isinstance(msg,(float)):
+        rounded=round(msg,4)
+        logging_queue.debug(str(rounded))
+    else:
+        logging_queue.debug(str(msg))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
             _ = tskin.touch
 
+def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
+    if ironboy:
+        command = ironboy.command(cmd,reps)
+
+        if not command:
+            debug(logging_queue, "command error")
+    else:
+        debug(logging_queue, "ironboy not configured")
+
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 `;
-
+        
         var statements_body = Blockly.Python.statementToCode(block, 'BODY');
-
+        
         if (!statements_body) {
             statements_body = "\tpass"
         }
@@ -1102,8 +1171,8 @@ def reset_touch(tskin: TSkin):
         let variables = block.workspace.getAllVariables().map((v) => {
             return generator.INDENT + "global " + v.name;
         }).join('\n');
-
-        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' + 
+//----------------------------------------------------------------------------
+        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue, ironboy: Optional[IronBoyInterface]):\n' +
             variables + '\n' + "\n" +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
@@ -1117,14 +1186,17 @@ def reset_touch(tskin: TSkin):
         var code = `debug(logging_queue, ${message})\n`;
         return code;
     };
+    
 
-    defineTSkinGenerators()
+    defineTSkinGenerators();
     defineSpeechGenerators();
     definewaitGenerators();
     defineKeyboardGenerators();
     defineBraccioGenerators();
     defineDictionaryGenerators();
     defineZionGenerators();
+    defineIronBoyGenerators();
+
 }
 
 function defineTSkinGenerators(){
@@ -1158,10 +1230,10 @@ function definewaitGenerators(){
     python.pythonGenerator.forBlock['wait'] = function(block) {
     const n = block.getFieldValue('n');
 
-  const code = `time.sleep(${n}) `;
-  return code;
-}
-}
+        const code = `time.sleep(${n})\n`;
+        return code;
+    }
+    }
 
 
 function defineSpeechGenerators(){
@@ -1370,6 +1442,20 @@ function defineZionGenerators() {
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
+}
+function defineIronBoyGenerators(){
+    python.pythonGenerator.forBlock['ironboy_command'] = function(block,generator) {
 
-    
+        const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
+        const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
+
+        const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
+        return code;
+    }
+        
+    python.pythonGenerator.forBlock['command_list'] = function(block) {
+        const command = block.getFieldValue('command');
+        return [`IronBoyCommand.${command}`, Blockly.Python.ORDER_ATOMIC];
+      };    
+
 }

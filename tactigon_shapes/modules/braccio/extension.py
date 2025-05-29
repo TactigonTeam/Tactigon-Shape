@@ -276,7 +276,7 @@ class BraccioInterface:
     def wrist(self, wrist: Wrist):
         if self._thread:
             return self._thread.wrist(wrist)
-        
+
         return None
     
     def gripper(self, gripper: Gripper):
@@ -284,7 +284,7 @@ class BraccioInterface:
             return self._thread.gripper(gripper)
         
         return None
-
+    
     def move(self, x: float, y: float, z: float, timeout: float = 10):
         if self._thread:
             return self._thread.move(x, y, z, self._thread.wrist_position, self._thread.gripper_position, timeout)
