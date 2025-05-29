@@ -57,7 +57,7 @@ else:
         
         async def find_devices():
             devices = await BleakScanner.discover()
-            return filter(lambda d: str(d.name).startswith("ADA") , devices)
+            return filter(lambda d: str(d.name).upper().startswith("ADA") , devices)
 
         devices = [{"name": d.name, "id": d.address, "address": d.address} for d in asyncio.run(find_devices())]
 

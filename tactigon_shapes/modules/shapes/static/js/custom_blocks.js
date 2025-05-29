@@ -1103,7 +1103,7 @@ def reset_touch(tskin: TSkin):
             return generator.INDENT + "global " + v.name;
         }).join('\n');
 
-        var code = libs + 'def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' + 
+        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' + 
             variables + '\n' + "\n" +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
