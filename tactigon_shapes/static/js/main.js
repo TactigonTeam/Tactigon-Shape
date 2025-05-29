@@ -88,28 +88,26 @@ const update_braccio_status = (braccio, data) => {
     }
 }
 
-const update_ironBoy_status = (ironBoy, data) => {
+const update_ironboy_status = (ironboy, data) => {
     if (data === undefined){
         show_tskin(tskin, false)
         return;
     }
 
-    if (last_ironBoy_connection_status != data.ironBoy_connection) {
-        last_ironBoy_connection_status = data.ironBoy_connection;
+    if (last_ironboy_connection_status != data.ironboy_connection) {
+        last_ironboy_connection_status = data.ironboy_connection;
 
-        if (data.ironBoy_connection){
-            ironBoy.find(".connected").removeClass("d-none");
-            ironBoy.find(".disconnected").addClass("d-none");
+        if (data.ironboy_connection){
+            ironboy.find(".connected").removeClass("d-none");
+            ironboy.find(".disconnected").addClass("d-none");
         } else {
-            ironBoy.find(".connected").addClass("d-none");
-            ironBoy.find(".disconnected").removeClass("d-none");
+            ironboy.find(".connected").addClass("d-none");
+            ironboy.find(".disconnected").removeClass("d-none");
         }
     }
 }
-
-
+ 
 const toast = (message, category) => {
-  
 
     let title;
         switch (category) {
@@ -161,7 +159,7 @@ var last_battery_update_ts = 0;
 var last_battery_update_value = 0;
 var last_connection_status = undefined;
 var last_braccio_connection_status = undefined;
-var last_ironBoy_connection_status = undefined;
+var last_ironboy_connection_status = undefined;
 
 $(()=>{
     /*
@@ -174,7 +172,7 @@ $(()=>{
     
     const tskin = $("#tskin-management");
     const braccio = $("#braccio-management");
-    const ironBoy = $("#ironBoy-management")
+    const ironboy = $("#ironboy-management")
 
     $(".toast").each((i, el) => {
         show_toast(el);
@@ -189,6 +187,6 @@ $(()=>{
     socket.on("state", function(data) {
         update_tskin_status(tskin, data);
         update_braccio_status(braccio, data);
-        update_ironBoy_status(ironBoy, data);
-    })
-})
+        update_ironboy_status(ironboy, data);
+    });
+});

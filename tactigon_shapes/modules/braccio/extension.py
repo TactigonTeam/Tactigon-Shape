@@ -274,42 +274,22 @@ class BraccioInterface:
             self.move(0, 100, 100)
             
     def wrist(self, wrist: Wrist):
-        if not self._thread:
-            return None
-        try:
-            time.sleep(0.1)
+        if self._thread:
             return self._thread.wrist(wrist)
-        except Exception as e:
-            return  e
-        
+
         return None
     
     def gripper(self, gripper: Gripper):
-        if not self._thread:
-            return None
-        try:
-            time.sleep(0.1)
+        if self._thread:
             return self._thread.gripper(gripper)
-        except Exception as e:
-            return  e
         
         return None
     
-    def move(self, x: float, y: float, z: float, timeout: float = 10):
-        if not self._thread:
-            return None
-        
-        try:
-            time.sleep(0.1)
-            return self._thread.move(x, y, z, self._thread.wrist_position, self._thread.gripper_position, timeout)
-        except Exception as e:
-            return  e
-        """
     def move(self, x: float, y: float, z: float, timeout: float = 10):
         if self._thread:
             return self._thread.move(x, y, z, self._thread.wrist_position, self._thread.gripper_position, timeout)
         
-        return None"""
+        return None
         
     def home(self):
         if self._thread:

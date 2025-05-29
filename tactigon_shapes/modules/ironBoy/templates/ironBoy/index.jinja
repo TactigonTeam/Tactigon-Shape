@@ -9,26 +9,26 @@
         <div class="card">
             <div class="card-header">
                 IronBoy configurations
-                {% if configured and not ironBoy_status %}
+                {% if configured and not ironboy_status %}
                     <div class="float-end">
-                        <button type="button" class="btn btn-link text-decoration-none p-0 text-danger" data-bs-toggle="modal" data-bs-target="#remove_ironBoy" title="Delete">
+                        <button type="button" class="btn btn-link text-decoration-none p-0 text-danger" data-bs-toggle="modal" data-bs-target="#remove_ironboy" title="Delete">
                             <i class="mi-round mi-delete-forever"></i>
                         </button>
                     </div>
-                    <div class="modal fade" id="remove_ironBoy" tabindex="-1">
+                    <div class="modal fade" id="remove_ironboy" tabindex="-1">
                         <div class="modal-dialog">
                             <div class="modal-content text-dark">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="staticBackdropLabel">ironBoy</h5>
+                                    <h5 class="modal-title" id="staticBackdropLabel">Iron Boy</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body d-flex flex-column gap-3">
                                     <h4>Warning!</h4>
-                                    You are about to remove ironBoy. Are you sure?
+                                    You are about to remove Iron Boy. Are you sure?
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                    <a href="{{ url_for('ironBoy.remove')}}" class="btn btn-primary">
+                                    <a href="{{ url_for('ironboy.remove')}}" class="btn btn-primary">
                                         Remove
                                     </a>
                                 </div>
@@ -41,27 +41,27 @@
                 <div class="d-flex flex-column align-items-center gap-3">
                       <div class="mi-outlined mi-memory" style="font-size: 124px;"></div>
                     {% if configured %}
-                        {% if not ironBoy_status %}
-                            <a href="{{ url_for('ironBoy.start') }}" class="btn btn-primary">Start ironBoy</a>
+                        {% if not ironboy_status %}
+                            <a href="{{ url_for('ironboy.start') }}" class="btn btn-primary">Start Iron Boy</a>
                         {% else %}
-                            <a href="{{ url_for('ironBoy.stop') }}" class="btn btn-outline-secondary">Stop ironBoy</a>
+                            <a href="{{ url_for('ironboy.stop') }}" class="btn btn-outline-secondary">Stop Iron Boy</a>
                         {% endif %}
                         <p>
-                            Status: {% if ironBoy_status %}Running{% else %}Stopped{% endif %} <br>
+                            Status: {% if ironboy_status %}Running{% else %}Stopped{% endif %} <br>
                             Name: {{ config.name }} <br>
                             Address: {{ config.address }}
                         </p>
-                        {% if not ironBoy_status %}
-                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#remove_ironBoy">Remove ironBoy</button>
+                        {% if not ironboy_status %}
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#remove_ironboy">Remove Iron Boy</button>
                         {% endif %}
                     {% else %}
                         <p class="mx-auto" id="searching">
-                            We are looking for your ironBoy...
+                            We are looking for your Iron Boy...
                         </p>
                         <div class="spinner-border text-primary mx-auto" id="loading" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                        <form action="{{ url_for('ironBoy.save') }}" class="d-none" id="add_form" method="POST">
+                        <form action="{{ url_for('ironboy.save') }}" class="d-none" id="add_form" method="POST">
                             <div class="mb-3">
                                 <label for="name" class="form-label">Name</label>
                                 <input type="text" class="form-control" id="name" aria-describedby="emailHelp" name="name">
@@ -77,10 +77,10 @@
                             <button type="submit" class="btn btn-primary btn-block">Save</button>
                         </form>
                         <div class="d-flex flex-column justify-content-center gap-3 d-none mb-3" id="refresh">
-                            <p class="mx-auto">Ops, we couldn't find any ironBoy.</p>
+                            <p class="mx-auto">Ops, we couldn't find any Iron Boy.</p>
                             <div class="d-flex flex-column">
                                 <small class="mx-auto text-muted">Check that the Bluetooth is enabled</small>
-                                <small class="mx-auto text-muted">and ironBoy is nearby</small>
+                                <small class="mx-auto text-muted">and Iron Boy is nearby</small>
                             </div>
                         </div>
                         <button type="button" class="mx-auto btn btn-outline-tskin d-none" id="refresh_button">
@@ -101,7 +101,7 @@
         $("#loading, #searching").removeClass("d-none");
         $("#add_form, #refresh, #refresh_button").addClass("d-none");
         
-        $.getJSON("{{ url_for('ironBoy.scan') }}")
+        $.getJSON("{{ url_for('ironboy.scan') }}")
             .then(function(data){
                 console.log(data)
                 if (data.length == 0){

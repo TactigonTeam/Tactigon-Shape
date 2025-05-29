@@ -24,8 +24,8 @@ from .modules.shapes.extension import ShapesApp
 from .modules.zion.extension import ZionInterface
 from .modules.zion.manager import get_zion_interface
 from .modules.tskin.manager import load_tskin, start_tskin, TSKIN_EXTENSION
-from .modules.ironBoy.extension import IronBoyInterface
-from .modules.ironBoy.manager import get_ironBoy_interface
+from .modules.ironboy.extension import IronBoyInterface
+from .modules.ironboy.manager import get_ironboy_interface
 
 class Server(Process):
     url: str
@@ -76,22 +76,22 @@ class Server(Process):
             shapes_app = ShapesApp(path.join(BASE_PATH, "config", "shapes"))
             braccio_interface = BraccioInterface(path.join(BASE_PATH, "config", "braccio"))
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
-            ironBoy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironBoy"))
+            ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
             zion_interface.init_app(flask_app)
             shapes_app.init_app(flask_app)
             socket_app.init_app(flask_app)
-            ironBoy_interface.init_app(flask_app)
+            ironboy_interface.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
             shapes_app.zion_interface = zion_interface
-            shapes_app.ironBoy_interface = ironBoy_interface
+            shapes_app.ironboy_interface = ironboy_interface
 
             socket_app.shapes_app = shapes_app
             socket_app.braccio_interface = braccio_interface
-            socket_app.ironBoy_interface = ironBoy_interface
+            socket_app.ironboy_interface = ironboy_interface
 
             flask_app.extensions[TSKIN_EXTENSION] = None
             tskin = None
@@ -107,14 +107,14 @@ class Server(Process):
             from .modules.shapes.blueprint import bp as shapes_bp
             from .modules.braccio.blueprint import bp as braccio_bp
             from .modules.zion.blueprint import bp as zion_bp
-            from .modules.ironBoy.blueprint import bp as ironBoy_bp
+            from .modules.ironboy.blueprint import bp as ironboy_bp
 
             flask_app.register_blueprint(main.bp)
             flask_app.register_blueprint(tskin_bp)
             flask_app.register_blueprint(shapes_bp)
             flask_app.register_blueprint(braccio_bp)
             flask_app.register_blueprint(zion_bp)
-            flask_app.register_blueprint(ironBoy_bp)
+            flask_app.register_blueprint(ironboy_bp)
 
             @flask_app.route('/favicon.ico')
             def favicon():
@@ -130,9 +130,8 @@ class Server(Process):
             def inject_data():
                 braccio_interface = get_braccio_interface()
                 zion_interface = get_zion_interface()
-                ironBoy_interface = get_ironBoy_interface()
+                ironboy_interface = get_ironboy_interface()
                 
-
                 if braccio_interface:
                     braccio_config = braccio_interface.config
                     braccio_status = braccio_interface.running
@@ -142,16 +141,14 @@ class Server(Process):
                     braccio_config = None
                     has_braccio = braccio_status = braccio_connected = False
 
-                if ironBoy_interface:
-                    ironBoy_config = ironBoy_interface.config
-                    ironBoy_status = ironBoy_interface.running
-                    ironBoy_connected = ironBoy_interface.connected
-                    has_ironBoy = True
+                if ironboy_interface:
+                    ironboy_config = ironboy_interface.config
+                    ironboy_status = ironboy_interface.running
+                    ironboy_connected = ironboy_interface.connected
+                    has_ironboy = True
                 else:
-                    ironBoy_config = None
-                    has_ironBoy = ironBoy_status = ironBoy_connected = False
-
-
+                    ironboy_config = None
+                    has_ironboy = ironboy_status = ironboy_connected = False
 
                 return dict(
                     DEBUG=app_config.DEBUG,
@@ -167,10 +164,10 @@ class Server(Process):
                     tactigon_gear=TACTIGON_GEAR,
                     has_braccio=has_braccio,
                     has_zion=True if zion_interface else False,
-                    ironBoy_config=ironBoy_config,
-                    has_ironBoy=has_ironBoy,
-                    ironBoy_status=ironBoy_status,
-                    ironBoy_connected=ironBoy_connected
+                    ironboy_config=ironboy_config,
+                    has_ironboy=has_ironboy,
+                    ironboy_status=ironboy_status,
+                    ironboy_connected=ironboy_connected
                 )
 
         return flask_app

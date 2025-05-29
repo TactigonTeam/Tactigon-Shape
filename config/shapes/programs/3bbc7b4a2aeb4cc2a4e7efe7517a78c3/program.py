@@ -8,7 +8,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
-from tactigon_shapes.modules.ironBoy.extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
 
@@ -213,18 +213,18 @@ def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
             _ = tskin.touch
 
-def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
-    if ironBoy:
+def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
+    if ironboy:
+        command = ironboy.command(cmd,reps)
 
-        cmd = ironBoy.command(cmd,reps)
-        if not cmd:
+        if not command:
             debug(logging_queue, "command error")
     else:
         debug(logging_queue, "ironboy not configured")
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
-def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):
+def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue, ironboy: Optional[IronBoyInterface]):
     global tap_hold
     global tap_hold_counter
 

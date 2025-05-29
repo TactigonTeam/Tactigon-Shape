@@ -5,8 +5,6 @@ from typing import Optional
 from flask import Flask
 from tactigon_ironboy import IronBoyConfig, IronBoy, IronBoyCommand
 
-
-
 class IronBoyInterface:
     config_file_path: str
     config: Optional[IronBoyConfig]
@@ -123,9 +121,6 @@ class IronBoyInterface:
         return {
             "commands": [(c.name.replace("_", " ").title(), c.name) for c in IronBoyCommand if c.value > 0]
         }
-    
-    def toString(self):
-        return str("ironBoy config= "+ self.config)
 
 
     

@@ -5,13 +5,13 @@ from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, flash
 
 from .extension import IronBoyConfig, IronBoyInterface
-from .manager import get_ironBoy_interface
+from .manager import get_ironboy_interface
 
 from ...config import check_config
 from ...utils.extensions import stop_apps
 from ...utils.request_utils import get_from_request
 
-bp = Blueprint("ironBoy", __name__, url_prefix="/ironBoy", template_folder="templates")
+bp = Blueprint("ironboy", __name__, url_prefix="/ironboy", template_folder="templates")
 
 @bp.before_request
 def manage():
@@ -20,22 +20,22 @@ def manage():
 @bp.route("/")
 @check_config
 def index():
-    app = get_ironBoy_interface()
+    app = get_ironboy_interface()
 
     if not app:
-        flash("IronBoy interface not running", category="danger")
+        flash("Iron Boy interface not running", category="danger")
         return redirect(url_for("main.index"))
 
-    return render_template("ironBoy/index.jinja", configured=app.configured, config=app.config)
+    return render_template("ironboy/index.jinja", configured=app.configured, config=app.config)
 
 if sys.platform == "darwin":
     @bp.route("scan")
     @check_config
     def scan():
-        app = get_ironBoy_interface()
+        app = get_ironboy_interface()
 
         if not app:
-            flash("ironboy interface not running", category="danger")
+            flash("Iron Boy interface not running", category="danger")
             return redirect(url_for("main.index"))
         
         async def find_devices():
@@ -49,10 +49,10 @@ else:
     @bp.route("/scan")
     @check_config
     def scan():
-        app = get_ironBoy_interface()
+        app = get_ironboy_interface()
 
         if not app:
-            flash("ironBoy interface not running", category="danger")
+            flash("Iron Boy interface not running", category="danger")
             return redirect(url_for("main.index"))
         
         async def find_devices():
@@ -66,10 +66,10 @@ else:
 @bp.route("/save", methods=["POST"])
 @check_config
 def save():
-    app = get_ironBoy_interface()
+    app = get_ironboy_interface()
 
     if not app:
-        flash("ironboy interface not running", category="danger")
+        flash("Iron Boy interface not running", category="danger")
         return redirect(url_for("main.index"))
     
     name = get_from_request("name")
@@ -77,57 +77,57 @@ def save():
 
     if name is None:
         flash("Cannot save ironboy configurations. Name missing", category="danger")
-        return redirect(url_for("ironBoy.index"))
+        return redirect(url_for("ironboy.index"))
     
     if address is None:
         flash("Cannot save ironboy configurations. Address missing", category="danger")
-        return redirect(url_for("ironBoy.index"))
+        return redirect(url_for("ironboy.index"))
     
     new_config = IronBoyConfig(name, address)
     app.save_config(new_config)
 
-    flash("ironboy configured succesfully", category="success")
-    return redirect(url_for("ironBoy.index"))
+    flash("Iron Boy configured succesfully", category="success")
+    return redirect(url_for("ironboy.index"))
 
 @bp.route("/remove")
 @check_config
 def remove():
-    app = get_ironBoy_interface()
+    app = get_ironboy_interface()
 
     if not app:
-        flash("ironboy interface not running", category="danger")
+        flash("Iron Boy interface not running", category="danger")
         return redirect(url_for("main.index"))
 
     app.reset_config()
 
-    flash("ironBoy configuration removed!", category="success")
-    return redirect(url_for("ironBoy.index"))
+    flash("Iron Boy configuration removed!", category="success")
+    return redirect(url_for("ironboy.index"))
 
 @bp.route("/start")
 @check_config
 def start():
-    app = get_ironBoy_interface()
+    app = get_ironboy_interface()
 
     if not app:
-        flash("ironBoy interface not running", category="danger")
+        flash("Iron Boy interface not running", category="danger")
         return redirect(url_for("main.index"))
     
     if app.config is None:
         flash("Invalid configuration", category="danger")
-        return redirect(url_for("ironBoy.index"))
+        return redirect(url_for("ironboy.index"))
     
     app.start()
-    flash("ironBoy started!", category="success")
-    return redirect(url_for("ironBoy.index"))
+    flash("Iron Boy started!", category="success")
+    return redirect(url_for("ironboy.index"))
 
 @bp.route("/stop")
 def stop():
-    app = get_ironBoy_interface()
+    app = get_ironboy_interface()
 
     if not app:
-        flash("ironBoy interface not running", category="danger")
+        flash("Iron Boy interface not running", category="danger")
         return redirect(url_for("main.index"))
     
     app.stop()
-    flash("ironBoy stopped", category="success")
-    return redirect(url_for("ironBoy.index"))
+    flash("Iron Boy stopped", category="success")
+    return redirect(url_for("ironboy.index"))

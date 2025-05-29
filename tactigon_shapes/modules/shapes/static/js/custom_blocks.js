@@ -7,14 +7,14 @@ function loadCustomBlocks(response) {
     const gripperOptions = response ? response.gripperOptions : []
     const speechs = response ? response.speechs : []
     const zion = response ? response.zion : []
-    const ironBoy = response ? response.ironBoy : []
+    const ironboy = response ? response.ironboy : []
     
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
-    loadIronBoyBlocks(ironBoy)
+    loadIronBoyBlocks(ironboy)
     
 
     Blockly.Blocks['wait'] = {
@@ -884,14 +884,14 @@ function loadZionBlocks(zion){
     };
 } 
 //----------------------------------------
-function loadIronBoyBlocks(ironBoy) {
-    Blockly.Blocks['ironBoy_command'] = {
+function loadIronBoyBlocks(ironboy) {
+    Blockly.Blocks['ironboy_command'] = {
         init: function () {
             this.jsonInit({
-                "type": "ironBoy_command",
-                "tooltip": "send ironBoy command",
-                "helpUrl": "send a move command to ironBoy",
-                "message0": "Send Command %1 execute for %2 times",
+                "type": "ironboy_command",
+                "tooltip": "Send Iron Boy command",
+                "helpUrl": "Send a move command to Iron Boy",
+                "message0": "Send command %1 execute for %2 times",
                 "args0": [
                     {
                     "type": "input_value",
@@ -924,12 +924,12 @@ function loadIronBoyBlocks(ironBoy) {
                 {
                 "type": "field_dropdown",
                 "name": "command",
-                "options": ironBoy.commands
+                "options": ironboy.commands
                 }
             ],
             "output": "IronBoyCommand",
             "colour": "#EB6152",
-            "tooltip": "Select an IronBoy movement command",
+            "tooltip": "Select an Iron Boy movement command",
             "helpUrl": ""
             });
         }
@@ -950,7 +950,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
-from tactigon_shapes.modules.ironBoy.extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any`;
         
@@ -1149,10 +1149,9 @@ def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
             _ = tskin.touch
 
-def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optional[LoggingQueue], cmd: IronBoyCommand, reps: int = 1):
-    if ironBoy:
-        
-        command = ironBoy.command(cmd,reps)
+def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
+    if ironboy:
+        command = ironboy.command(cmd,reps)
 
         if not command:
             debug(logging_queue, "command error")
@@ -1173,7 +1172,7 @@ def iron_boy_command(ironBoy: Optional[IronBoyInterface], logging_queue: Optiona
             return generator.INDENT + "global " + v.name;
         }).join('\n');
 //----------------------------------------------------------------------------
-        var code = libs + 'def app(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue,ironBoy:Optional[IronBoyInterface]):\n' +
+        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue, ironboy: Optional[IronBoyInterface]):\n' +
             variables + '\n' + "\n" +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
@@ -1445,13 +1444,12 @@ function defineZionGenerators() {
     };
 }
 function defineIronBoyGenerators(){
-
-    python.pythonGenerator.forBlock['ironBoy_command'] = function(block,generator) {
+    python.pythonGenerator.forBlock['ironboy_command'] = function(block,generator) {
 
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
         const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
 
-        const code = `iron_boy_command(ironBoy,logging_queue,${command},${reps})\n`;
+        const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
         return code;
     }
         

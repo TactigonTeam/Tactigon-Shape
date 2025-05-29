@@ -160,8 +160,8 @@
 </div>
 {% endmacro %}
 
-{% macro ironBoy(config) %}
-<div id="ironBoy-management" class="d-flex gap-3 m-2">
+{% macro ironboy(config) %}
+<div id="ironboy-management" class="d-flex gap-3 m-2">
     <div class="gap-1">
         <i class="mi-round mi-memory" style="font-size: 20px;"></i>
         {% if config %}
@@ -209,7 +209,7 @@
     <div class="sticky-top">
         <nav class="bg-dark text-light">
             <div class="container-fluid d-flex justify-content-end align-items-center gap-3">
-                {{ ironBoy(ironBoy_config) }} | {{ braccio(braccio_config) }} | {{tskin(tskin_config)}}
+                {{ ironboy(ironboy_config) }} | {{ braccio(braccio_config) }} | {{tskin(tskin_config)}}
             </div>
         </nav>
         <!--- Navbar app -->
@@ -219,8 +219,8 @@
                     <i class="mi-round mi-extension" style="font-size: 24px"></i>
                 </a>
                 <div>
-                    {% if has_ironBoy %}
-                        <a href="{{ url_for('ironBoy.index') }}" class="btn btn-link text-decoration-none text-light" title="ironBoy">
+                    {% if has_ironboy %}
+                        <a href="{{ url_for('ironboy.index') }}" class="btn btn-link text-decoration-none text-light" title="ironboy">
                             <i class="mi-round mi-memory" style="font-size: 24px"></i>
                         </a>
                     {% endif %}

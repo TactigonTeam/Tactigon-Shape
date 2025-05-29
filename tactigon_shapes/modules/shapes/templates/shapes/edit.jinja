@@ -405,9 +405,9 @@
             <block type="braccio_wrist"></block>
         </category>
         {% endif %}
-        {% if ironBoy_config %}
+        {% if ironboy_config %}
         <category name="IronBoy" colour="80ef80">
-            <block type="ironBoy_command">
+            <block type="ironboy_command">
                 <value name="command">
                     <shadow type="command_list">
                     </shadow>
@@ -642,6 +642,67 @@
         return workspace;
     }
 
+    function checkFloatingBlocks(workspace){
+        const topBlocks = workspace.getTopBlocks(true);
+
+        for (i in topBlocks){           
+            if (functionBlockNames.indexOf(topBlocks[i].type) == -1){ 
+                return "Make sure all blocks are inside Tactigon Main or another function";
+            }
+        }
+        return "";
+    }
+
+    function checkVariablesName(workspace){
+        const variables = workspace.getAllVariableNames();
+        const errors = [];
+
+        for (let i in variables){
+            if (reservedWords.indexOf(variables[i]) > -1){
+                errors.push(`You cannot name a variable <b>${variables[i]}</b>, please rename it.`)
+            }
+        }
+
+        return errors;
+    }
+
+    function checkFunctionsName(workspace){
+        const functions = workspace
+            .getBlocksByType("procedures_defnoreturn")
+            .concat(
+                workspace.getBlocksByType("procedures_defreturn")
+            );
+        const errors = [];
+
+        for (n in functions){
+            if (reservedWords.indexOf(functions[n]) > -1){
+                errors.push(functions[n])
+            }
+        }
+
+        return errors;
+    }
+    
+    function validateShape(workspace){
+
+        const errors_variables = checkVariablesName(workspace);
+        const errors = checkFunctionsName(workspace);
+        const floatingBlocksError = checkFloatingBlocks(workspace);
+
+        if (floatingBlocksError.length > 0) {
+            toast(floatingBlocksError, "danger");
+        }
+
+        for (let i in errors_variables){
+            toast(errors_variables[i], "danger");
+        }
+
+        for (let i in errors){
+            toast(errors[i], "danger");
+        }
+
+        return errors.length == 0 && errors_variables.length == 0 && floatingBlocksError.length == 0;
+    }
 
     function setGeneratedCode(workspace) {
         Blockly.Python.addReservedWords('code');
@@ -655,6 +716,8 @@
         $('#state').val(JSON.stringify(state));
     }
 
+    const reservedWords = ["tactigon_shape_function","zion","code","logging_queue","debug","data", "main","tskin","tspeech","gesture","ironboy","touch","braccio"];
+    const functionBlockNames = ["tactigon_shape_function", "procedures_defnoreturn", "variables_set", "procedures_defreturn"];
 
     $(document).ready(async function () {
 
@@ -666,6 +729,11 @@
         $('#update-program-form').on('submit', (e) => {
 
             try{
+                if(!validateShape(workspace)){
+                    e.preventDefault();
+                    return false;
+                }
+                
                 setGeneratedCode(workspace);
                 setState(workspace);
                 console.log(workspace);

@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from flask import Blueprint, render_template, flash, redirect, url_for
 
-from ..ironBoy.manager import get_ironBoy_interface
+from ..ironboy.manager import get_ironboy_interface
 
 from .extension import ShapeConfig, Program
 from .manager import get_shapes_app
@@ -62,10 +62,10 @@ def index(program_id: Optional[str] = None):
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
 
-    ironBoy = get_ironBoy_interface()
+    ironboy = get_ironboy_interface()
 
-    if ironBoy:
-        blocks_config["ironBoy"] = ironBoy.get_shape_blocks()
+    if ironboy:
+        blocks_config["ironboy"] = ironboy.get_shape_blocks()
            
     
     state = _shapes.get_state(current_config.id) if current_config else None
@@ -152,10 +152,10 @@ def edit(program_id: str):
 
     zion = get_zion_interface()
 
-    ironBoy = get_ironBoy_interface()
+    ironboy = get_ironboy_interface()
 
-    if ironBoy:
-        blocks_config["ironBoy"] = ironBoy.get_shape_blocks()
+    if ironboy:
+        blocks_config["ironboy"] = ironboy.get_shape_blocks()
            
         
 
