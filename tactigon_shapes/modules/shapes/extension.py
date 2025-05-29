@@ -183,7 +183,7 @@ class ShapeThread(ExtensionThread):
     def main(self):       
         actions: List[Tuple[ShapesPostAction, Any]] = []
         try:
-            self.module.app(self._tskin, self._keyboard, self.braccio_interface, self.zion_interface, actions, self._logging_queue)
+            self.module.tactigon_shape_function(self._tskin, self._keyboard, self.braccio_interface, self.zion_interface, actions, self._logging_queue)
         except Exception as e:
             self._logging_queue.error(str(e))
 
