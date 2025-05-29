@@ -163,7 +163,7 @@
 {% macro ironboy(config) %}
 <div id="ironboy-management" class="d-flex gap-3 m-2">
     <div class="gap-1">
-        <i class="mi-round mi-memory" style="font-size: 20px;"></i>
+        <i class="mi-round mi-smart-toy" style="font-size: 20px;"></i>
         {% if config %}
             <small>{{ config.name }}</small>
         {% else %}
@@ -221,7 +221,7 @@
                 <div>
                     {% if has_ironboy %}
                         <a href="{{ url_for('ironboy.index') }}" class="btn btn-link text-decoration-none text-light" title="ironboy">
-                            <i class="mi-round mi-memory" style="font-size: 24px"></i>
+                            <i class="mi-round mi-smart-toy" style="font-size: 24px"></i>
                         </a>
                     {% endif %}
                     <a href="{{ url_for('zion.index') }}" class="btn btn-link text-decoration-none text-light" title="Zion cloud">
