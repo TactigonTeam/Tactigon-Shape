@@ -1172,10 +1172,10 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
             return generator.INDENT + "global " + v.name;
         }).join('\n');
 //----------------------------------------------------------------------------
-        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue, ironboy: Optional[IronBoyInterface]):\n' +
+        var code = libs + 'def tactigon_shape_function(t_tskin: TSkin, i_keyboard: KeyboardController, t_braccio: Optional[BraccioInterface], i_zion: Optional[ZionInterface], i_actions: List[ShapesPostAction], t_logging_queue: LoggingQueue, t_ironboy: Optional[IronBoyInterface]):\n' +
             variables + '\n' + "\n" +
-            Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
-            Blockly.Python.INDENT + "touch = tskin.touch\n" +
+            Blockly.Python.INDENT + "t_gesture = t_tskin.gesture\n" +
+            Blockly.Python.INDENT + "t_touch = t_tskin.touch\n" +
             statements_body + '\n';
         return code;
     };
@@ -1183,7 +1183,7 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
 
     python.pythonGenerator.forBlock['tactigon_shape_debug'] = function (block, generator) {
         var message = generator.valueToCode(block, 'TEXT', python.Order.ATOMIC);
-        var code = `debug(logging_queue, ${message})\n`;
+        var code = `debug(t_logging_queue, ${message})\n`;
         return code;
     };
     
@@ -1202,26 +1202,26 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
 function defineTSkinGenerators(){
     python.pythonGenerator.forBlock['tskin_gesture_list'] = function (block) {
         var gesture = block.getFieldValue('gesture');
-        var code = `check_gesture(gesture, "${gesture}")`;
+        var code = `check_gesture(t_gesture, "${gesture}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['tskin_take_angle'] = function (block, generator) {
         var angle = block.getFieldValue('angle');
-        var code = `tskin.angle.${angle} if tskin.angle else 0`;
+        var code = `t_tskin.angle.${angle} if t_tskin.angle else 0`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['tskin_take_gyro'] = function (block, generator) {
         var gyro = block.getFieldValue('gyro');
-        var code = `tskin.gyro.${gyro} if tskin.gyro else 0`;
+        var code = `t_tskin.gyro.${gyro} if t_tskin.gyro else 0`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['tskin_touch_list'] = function (block, generator) {
         var touchType = block.getFieldValue('touch');
 
-        var code = `check_touch(touch, "${touchType}", actions)`
+        var code = `check_touch(t_touch, "${touchType}", i_actions)`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1248,7 +1248,7 @@ function defineSpeechGenerators(){
             })
             .join(", ");
 
-        var code = `check_speech(tskin, logging_queue, [${args}])`
+        var code = `check_speech(t_tskin, t_logging_queue, [${args}])`
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
@@ -1256,20 +1256,20 @@ function defineSpeechGenerators(){
         let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
         let seconds = generator.valueToCode(block, 'seconds', python.Order.ATOMIC);
 
-        return `record_audio(tskin, ${filename}, ${seconds})\n`
+        return `record_audio(t_tskin, ${filename}, ${seconds})\n`
     };
 
     python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
         let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
 
-        return `tskin.play(${filename})\n`
+        return `t_tskin.play(${filename})\n`
     };
 }
 
 function defineKeyboardGenerators(){
     python.pythonGenerator.forBlock['keyboard_press'] = function (block, generator) {
         var message = generator.valueToCode(block, 'NAME', python.Order.ATOMIC);
-        var code = `keyboard_press(keyboard, HotKey.parse(${message}))\n`;
+        var code = `keyboard_press(i_keyboard, HotKey.parse(${message}))\n`;
         return code;
     };
 
@@ -1321,19 +1321,19 @@ function defineBraccioGenerators(){
         const x = generator.valueToCode(block, 'x', python.Order.ATOMIC);
         const y = generator.valueToCode(block, 'y', python.Order.ATOMIC);
         const z = generator.valueToCode(block, 'z', python.Order.ATOMIC);
-        const code = `braccio_move(braccio, logging_queue, ${x}, ${y}, ${z})\n`;
+        const code = `braccio_move(t_braccio, t_logging_queue, ${x}, ${y}, ${z})\n`;
         return code;
     };
 
     python.pythonGenerator.forBlock['braccio_wrist'] = function (block, generator) {
         const x = block.getFieldValue('wrist');
-        const code = `braccio_wrist(braccio, logging_queue, Wrist['${x}'])\n`;
+        const code = `braccio_wrist(t_braccio, t_logging_queue, Wrist['${x}'])\n`;
         return code;
     };
 
     python.pythonGenerator.forBlock['braccio_gripper'] = function (block, generator) {
         const x = block.getFieldValue('gripper');
-        const code = `braccio_gripper(braccio, logging_queue, Gripper['${x}'])\n`;
+        const code = `braccio_gripper(t_braccio, t_logging_queue, Gripper['${x}'])\n`;
         return code;
     };
 }
@@ -1377,7 +1377,7 @@ function defineZionGenerators() {
         var device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
         var keys = generator.valueToCode(block, 'keys', python.Order.ATOMIC);
 
-        var code = `zion_device_last_telemetry(zion, ${device}, ${keys})`
+        var code = `zion_device_last_telemetry(i_zion, ${device}, ${keys})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1387,7 +1387,7 @@ function defineZionGenerators() {
         const key = generator.valueToCode(block, 'key', python.Order.ATOMIC);
         const payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
 
-        const code = `zion_send_device_last_telemetry(zion, ${device}, ${key}, ${payload})`
+        const code = `zion_send_device_last_telemetry(i_zion, ${device}, ${key}, ${payload})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1398,7 +1398,7 @@ function defineZionGenerators() {
         const key = generator.valueToCode(block, 'key', python.Order.ATOMIC);
         const payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
 
-        const code = `zion_send_device_attr(zion, ${device}, ${scope}, ${key}, ${payload})`
+        const code = `zion_send_device_attr(i_zion, ${device}, ${scope}, ${key}, ${payload})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1409,7 +1409,7 @@ function defineZionGenerators() {
         var scope = generator.valueToCode(block, 'scope', python.Order.ATOMIC);
         var keys = generator.valueToCode(block, 'keys', python.Order.ATOMIC);
 
-        var code = `zion_device_attr(zion, ${device}, ${scope}, ${keys})`
+        var code = `zion_device_attr(i_zion, ${device}, ${scope}, ${keys})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1419,7 +1419,7 @@ function defineZionGenerators() {
         var severity = generator.valueToCode(block, 'severity', python.Order.ATOMIC);
         var search_status = generator.valueToCode(block, 'search_status', python.Order.ATOMIC);
 
-        var code = `zion_device_alarm(zion, ${device}, ${severity}, ${search_status})`
+        var code = `zion_device_alarm(i_zion, ${device}, ${severity}, ${search_status})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1428,7 +1428,7 @@ function defineZionGenerators() {
         var device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
         var name = generator.valueToCode(block, 'name', python.Order.ATOMIC);
 
-        var code = `zion_send_device_alarm(zion, ${device}, ${name})`
+        var code = `zion_send_device_alarm(i_zion, ${device}, ${name})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1438,7 +1438,7 @@ function defineZionGenerators() {
         var scope = generator.valueToCode(block, 'scope', python.Order.ATOMIC);
         var key = generator.valueToCode(block, 'key', python.Order.ATOMIC);
 
-        var code = `zion_delete_device_attr(zion,${device},${scope},${key})`
+        var code = `zion_delete_device_attr(i_zion,${device},${scope},${key})`
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
@@ -1449,7 +1449,7 @@ function defineIronBoyGenerators(){
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
         const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
 
-        const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
+        const code = `iron_boy_command(t_ironboy, t_logging_queue, ${command}, ${reps})\n`;
         return code;
     }
         
