@@ -54,6 +54,6 @@ Make sure you have the following installed:
    ```bash
     docker-compose up --build
    ```
-3. **Start the Tactigon App**
+4. **Start the Tactigon App**
     
     Once the container is up and running, you will see a URL in the terminal output. Open this URL in your browser to use the Tactigon Shape application.

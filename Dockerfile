@@ -18,6 +18,9 @@ COPY . /app
 
 RUN pip install -r docker-requirements.txt
 
+RUN pip install deepspeech-tflite==0.9.3 --no-deps
+RUN pip install tactigon_speech==5.0.10 --no-deps
+
 EXPOSE 5123
 
 CMD ["python", "main.py"]

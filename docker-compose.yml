@@ -14,3 +14,4 @@ services:
     stdin_open: true  
     tty: true        
 
+#docker run --privileged -v /run/dbus:/run/dbus -it tactigon-sdk

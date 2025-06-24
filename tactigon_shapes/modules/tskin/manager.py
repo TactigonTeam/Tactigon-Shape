@@ -37,15 +37,15 @@ def reset_tskin():
 
 def get_tskin_default_config(address: str, hand: Hand, name: str, model: TSkinModel):
     return TSkinConfig(
-        address,
-        hand,
-        name,
-        GestureConfig(
-            path.join("models", model.name, "model.pickle"),
-            path.join("models", model.name, "encoder.pickle"),
-            model.name,
-            model.date,
-            [g.gesture for g in model.gestures]
+        address=address,
+        hand=hand,
+        name=name,
+        gesture_config=GestureConfig(
+            model_path=path.join("models", model.name, "model.pickle"),
+            encoder_path=path.join("models", model.name, "encoder.pickle"),
+            name=model.name,
+            created_at=model.date,
+            gestures=[g.gesture for g in model.gestures]
         )
     )
 
