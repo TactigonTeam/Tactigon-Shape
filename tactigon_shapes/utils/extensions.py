@@ -6,7 +6,7 @@ from ..modules.socketio import SocketApp
 from ..modules.braccio.extension import BraccioInterface
 from ..modules.zion.extension import ZionInterface
 from ..modules.tskin.manager import TSKIN_EXTENSION
-from ..modules.ironboy.extension import IronBoyInterface
+from ..modules.ironBoy.extension import IronBoyInterface
 
 excluded_apps = [SocketApp.name, TSKIN_EXTENSION, "socketio", BraccioInterface.__name__, ZionInterface.__name__,IronBoyInterface.__name__]
 

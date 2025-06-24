@@ -18,7 +18,7 @@ from ..braccio.extension import BraccioInterface, Wrist, Gripper
 from ..zion.extension import ZionInterface
 from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
 from ..tskin.manager import walk
-from ..ironboy.extension import IronBoyInterface
+from ..ironBoy.extension import IronBoyInterface
 
 from ...extensions.base import ExtensionThread, ExtensionApp
 

@@ -26,7 +26,7 @@ def index():
         flash("Iron Boy interface not running", category="danger")
         return redirect(url_for("main.index"))
 
-    return render_template("ironboy/index.jinja", configured=app.configured, config=app.config)
+    return render_template("ironBoy/index.jinja", configured=app.configured, config=app.config)
 
 if sys.platform == "darwin":
     @bp.route("scan")

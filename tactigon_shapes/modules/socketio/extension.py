@@ -5,7 +5,7 @@ from flask_socketio import SocketIO
 
 from typing import Optional
 
-from ..ironboy.extension import IronBoyInterface
+from ..ironBoy.extension import IronBoyInterface
 
 from ..braccio.extension import BraccioInterface
 from ..shapes.extension import ShapesApp

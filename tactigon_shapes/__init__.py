@@ -24,8 +24,8 @@ from .modules.shapes.extension import ShapesApp
 from .modules.zion.extension import ZionInterface
 from .modules.zion.manager import get_zion_interface
 from .modules.tskin.manager import load_tskin, start_tskin, TSKIN_EXTENSION
-from .modules.ironboy.extension import IronBoyInterface
-from .modules.ironboy.manager import get_ironboy_interface
+from .modules.ironBoy.extension import IronBoyInterface
+from .modules.ironBoy.manager import get_ironboy_interface
 
 class Server(Process):
     url: str
@@ -76,7 +76,7 @@ class Server(Process):
             shapes_app = ShapesApp(path.join(BASE_PATH, "config", "shapes"))
             braccio_interface = BraccioInterface(path.join(BASE_PATH, "config", "braccio"))
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
-            ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
+            ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironBoy"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -107,7 +107,7 @@ class Server(Process):
             from .modules.shapes.blueprint import bp as shapes_bp
             from .modules.braccio.blueprint import bp as braccio_bp
             from .modules.zion.blueprint import bp as zion_bp
-            from .modules.ironboy.blueprint import bp as ironboy_bp
+            from .modules.ironBoy.blueprint import bp as ironboy_bp
 
             flask_app.register_blueprint(main.bp)
             flask_app.register_blueprint(tskin_bp)

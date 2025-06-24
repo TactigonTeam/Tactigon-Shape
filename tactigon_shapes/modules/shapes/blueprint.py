@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from flask import Blueprint, render_template, flash, redirect, url_for
 
-from ..ironboy.manager import get_ironboy_interface
+from ..ironBoy.manager import get_ironboy_interface
 
 from .extension import ShapeConfig, Program
 from .manager import get_shapes_app

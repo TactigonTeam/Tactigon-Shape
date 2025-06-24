@@ -49,7 +49,7 @@ def get_tskin_default_config(address: str, hand: Hand, name: str, model: TSkinMo
         )
     )
 
-if sys.platform == "win32":
+if sys.platform != "darwin":
     def walk(args, s: TSpeech, level: int = 0, parent: str = "_init_"):
         if level > len(args) - 1:
             args.append(dict())
