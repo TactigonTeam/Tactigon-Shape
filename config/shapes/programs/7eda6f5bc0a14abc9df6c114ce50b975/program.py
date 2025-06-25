@@ -8,7 +8,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
-from tactigon_shapes.modules.ironBoy.extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
 
