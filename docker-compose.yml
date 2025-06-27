@@ -13,5 +13,3 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
     stdin_open: true  
     tty: true        
-
-#docker run --privileged -v /run/dbus:/run/dbus -it tactigon-sdk
