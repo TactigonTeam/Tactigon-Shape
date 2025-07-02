@@ -16,10 +16,18 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install -r docker-requirements.txt
+RUN pip install \
+    flask==3.0.3 \
+    flask_socketio==5.3.6 \
+    gevent==24.2.1 \
+    tactigon_gear==5.3.1 \
+    PyAudio==0.2.13 \
+    pynput==1.7.7 \
+    sympy==1.13.2 \
+    tactigon_ironboy==1.0.0 && \
+    pip install deepspeech-tflite==0.9.3 --no-deps && \
+    pip install tactigon_speech==5.0.10 --no-deps
 
-RUN pip install deepspeech-tflite==0.9.3 --no-deps
-RUN pip install tactigon_speech==5.0.10 --no-deps
 
 EXPOSE 5123
 
