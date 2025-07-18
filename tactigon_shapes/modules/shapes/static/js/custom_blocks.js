@@ -1,47 +1,23 @@
 function loadCustomBlocks(response) {
-    const gestures = response ? response.gestures : []
-    const modKeys = response ? response.modKeys : []
-    const funcKeys = response ? response.funckeys : []
-    const taps = response ? response.taps : []
-    const wristOptions = response ? response.wristOptions : []
-    const gripperOptions = response ? response.gripperOptions : []
-    const speechs = response ? response.speechs : []
-    const zion = response ? response.zion : []
-    const ironboy = response ? response.ironboy : []
+    const gestures = response ? response.gestures : [];
+    const modKeys = response ? response.modKeys : [];
+    const funcKeys = response ? response.funckeys : [];
+    const taps = response ? response.taps : [];
+    const wristOptions = response ? response.wristOptions : [];
+    const gripperOptions = response ? response.gripperOptions : [];
+    const speechs = response ? response.speechs : [];
+    const zion = response ? response.zion : [];
+    const ironboy = response ? response.ironboy : [];
+    const ginos = response ? response.ginos: {};
     
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
-    loadIronBoyBlocks(ironboy)
+    loadIronBoyBlocks(ironboy);
+    loadGinosBlocks(ginos);
     
-
-    Blockly.Blocks['wait'] = {
-        init: function () {
-            this.jsonInit({
-        "type": "wait",
-        "tooltip": "wait",
-        "helpUrl": "",
-        "message0": "wait %1 seconds %2",
-        "args0": [
-          {
-            "type": "field_number",
-            "name": "n",
-            "value": 0
-          },
-          {
-            "type": "input_end_row",
-            "name": "NAME"
-          }
-        ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 225,
-        "inputsInline": true
-    })}},
-                          
-
     Blockly.Blocks['get_dict_property'] = {
         init: function () {
             this.jsonInit({
@@ -705,10 +681,7 @@ function loadZionBlocks(zion){
 
             });
         }
-    }
-
-                            
-                          
+    };
 
     Blockly.Blocks['device_last_telemetry'] = {
         init: function () {
@@ -883,7 +856,7 @@ function loadZionBlocks(zion){
         }
     };
 } 
-//----------------------------------------
+
 function loadIronBoyBlocks(ironboy) {
     Blockly.Blocks['ironboy_command'] = {
         init: function () {
@@ -935,6 +908,34 @@ function loadIronBoyBlocks(ironboy) {
         }
         };
 }
+
+function loadGinosBlocks(ginos){
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "ginos_prompt",
+            "message0": "AI prompt %1 %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "prompt",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "context",
+                    "check": "String"
+                }
+            ],
+            "output": "String",
+            "colour": "#EB6152",
+            "tooltip": "AI response from Ginos",
+            "helpUrl": ""
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
 function defineCustomGenerators() {
     Blockly.Python.INDENT = '    ';
 
@@ -1158,6 +1159,9 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
     else:
         debug(logging_queue, "ironboy not configured")
 
+def ginos_prompt(prompt: str, context: str):
+    pass
+
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 `;
@@ -1171,8 +1175,8 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
         let variables = block.workspace.getAllVariables().map((v) => {
             return generator.INDENT + "global " + v.name;
         }).join('\n');
-//----------------------------------------------------------------------------
-        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue, ironboy: Optional[IronBoyInterface]):\n' +
+
+        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], ironboy: Optional[IronBoyInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
             variables + '\n' + "\n" +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
@@ -1180,23 +1184,20 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
         return code;
     };
 
-
     python.pythonGenerator.forBlock['tactigon_shape_debug'] = function (block, generator) {
         var message = generator.valueToCode(block, 'TEXT', python.Order.ATOMIC);
         var code = `debug(logging_queue, ${message})\n`;
         return code;
     };
     
-
     defineTSkinGenerators();
     defineSpeechGenerators();
-    definewaitGenerators();
     defineKeyboardGenerators();
     defineBraccioGenerators();
     defineDictionaryGenerators();
     defineZionGenerators();
     defineIronBoyGenerators();
-
+    defineGinosGenerators();
 }
 
 function defineTSkinGenerators(){
@@ -1226,15 +1227,6 @@ function defineTSkinGenerators(){
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
-function definewaitGenerators(){
-    python.pythonGenerator.forBlock['wait'] = function(block) {
-    const n = block.getFieldValue('n');
-
-        const code = `time.sleep(${n})\n`;
-        return code;
-    }
-    }
-
 
 function defineSpeechGenerators(){
     python.pythonGenerator.forBlock['tskin_listen'] = function (block) {
@@ -1443,19 +1435,26 @@ function defineZionGenerators() {
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
+
 function defineIronBoyGenerators(){
     python.pythonGenerator.forBlock['ironboy_command'] = function(block,generator) {
-
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
         const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
-
         const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
-        return code;
-    }
-        
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
     python.pythonGenerator.forBlock['command_list'] = function(block) {
         const command = block.getFieldValue('command');
         return [`IronBoyCommand.${command}`, Blockly.Python.ORDER_ATOMIC];
-      };    
+    };
+}
 
+function defineGinosGenerators(){
+    python.pythonGenerator.forBlock["ginos_prompt"] = function(block, generator) {
+        var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
+        var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
+        var code = `ginos_prompt(${prompt}, ${context})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
 }

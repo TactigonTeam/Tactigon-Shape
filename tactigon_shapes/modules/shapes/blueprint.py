@@ -5,6 +5,8 @@ from typing import List, Optional
 
 from flask import Blueprint, render_template, flash, redirect, url_for
 
+from tactigon_shapes.modules.ginos.models import GinosConfig
+
 from ..ironboy.manager import get_ironboy_interface
 
 from .extension import ShapeConfig, Program
@@ -106,13 +108,24 @@ def add():
     if program:
         flash(f"Name '{program_name}' already exist!", category="danger")
         return redirect(url_for("shapes.index"))
+    
+    ginos_url = get_from_request("ginos_url")
+    ginos_model = get_from_request("ginos_model")
+    ginos_config = None
+
+    if ginos_url is not None and ginos_model is not None:
+        ginos_config = GinosConfig(
+            url=ginos_url,
+            model=ginos_model,
+        )
 
     new_config = ShapeConfig(
         id=uuid4(),
         name=program_name,
         description=_program_description,
         created_on=datetime.now(),
-        modified_on=datetime.now()
+        modified_on=datetime.now(),
+        ginos_config=ginos_config
     )
 
     _shapes.add(new_config)
@@ -155,9 +168,7 @@ def edit(program_id: str):
     ironboy = get_ironboy_interface()
 
     if ironboy:
-        blocks_config["ironboy"] = ironboy.get_shape_blocks()
-           
-        
+        blocks_config["ironboy"] = ironboy.get_shape_blocks()       
 
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()

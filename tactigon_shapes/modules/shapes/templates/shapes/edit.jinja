@@ -382,173 +382,190 @@
             </block>
         </category> 
         {% if braccio_config %}
-        <sep></sep>
-        <category name="Braccio" colour="#cb6434">
-            <block type="braccio_move">
-                <value name="x">
-                    <shadow type="math_number">
-                        <field name="NUM">0</field>
-                    </shadow>
-                </value>
-                <value name="y">
-                    <shadow type="math_number">
-                        <field name="NUM">10</field>
-                    </shadow>
-                </value>
-                <value name="z">
-                    <shadow type="math_number">
-                        <field name="NUM">5</field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="braccio_gripper"></block>
-            <block type="braccio_wrist"></block>
-        </category>
+            <sep></sep>
+            <category name="Braccio" colour="#cb6434">
+                <block type="braccio_move">
+                    <value name="x">
+                        <shadow type="math_number">
+                            <field name="NUM">0</field>
+                        </shadow>
+                    </value>
+                    <value name="y">
+                        <shadow type="math_number">
+                            <field name="NUM">10</field>
+                        </shadow>
+                    </value>
+                    <value name="z">
+                        <shadow type="math_number">
+                            <field name="NUM">5</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="braccio_gripper"></block>
+                <block type="braccio_wrist"></block>
+            </category>
         {% endif %}
         {% if ironboy_config %}
-        <category name="IronBoy" colour="80ef80">
-            <block type="ironboy_command">
-                <value name="command">
-                    <shadow type="command_list">
-                    </shadow>
-                </value>
-                <value name="reps">
-                    <shadow type="math_number">
-                        <field name="NUM">1</field>
-                    </shadow>
-                </value>
-            </block>
-
-
-            <block type="command_list"></block>
-        </category>
+            <sep></sep>
+            <category name="IronBoy" colour="80ef80">
+                <block type="ironboy_command">
+                    <value name="command">
+                        <shadow type="command_list">
+                        </shadow>
+                    </value>
+                    <value name="reps">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="command_list"></block>
+            </category>
         {% endif %}
-
-        <sep></sep>
-        <category name="Zion API" colour="#6665DD">
-            <block type="device_list">
-            </block>
-            <block type="scope_list">
-            </block>
-            <block type="alarm_severity_list">
-            </block>
-            <block type="alarm_search_status_list">
-            </block>
-            <block type="device_last_telemetry">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="keys">
-                    <shadow type="text">
-                        <field name="keys"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="device_attr">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="scope">
-                    <shadow type="scope_list">
-                        <field name="scope"></field>
-                    </shadow>
-                </value>
-                <value name="keys">
-                    <shadow type="text">
-                        <field name="keys"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="device_alarm">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="severity">
-                    <shadow type="alarm_severity_list">
-                        <field name="severity"></field>
-                    </shadow>
-                </value>
-                <value name="search_status">
-                    <shadow type="alarm_search_status_list">
-                        <field name="search_status"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="send_device_last_telemetry">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="key">
-                    <shadow type="text">
-                        <field name="key"></field>
-                    </shadow>
-                </value>
-                <value name="payload">
-                    <shadow type="text">
-                        <field name="payload"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="send_device_attr">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="scope">
-                    <shadow type="scope_list">
-                        <field name="scope"></field>
-                    </shadow>
-                </value>
-                <value name="key">
-                    <shadow type="text">
-                        <field name="key"></field>
-                    </shadow>
-                </value>
-                <value name="payload">
-                    <shadow type="text">
-                        <field name="payload"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="send_device_alarm">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="name">
-                    <shadow type="text">
-                        <field name="name"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="delete_device_attr">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="scope">
-                    <shadow type="scope_list">
-                        <field name="scope"></field>
-                    </shadow>
-                </value>
-                <value name="key">
-                    <shadow type="text">
-                        <field name="key"></field>
-                    </shadow>
-            </block>
-            
-        </category>
+        {% if zion_config %}
+            <sep></sep>
+            <category name="Zion API" colour="#6665DD">
+                <block type="device_list">
+                </block>
+                <block type="scope_list">
+                </block>
+                <block type="alarm_severity_list">
+                </block>
+                <block type="alarm_search_status_list">
+                </block>
+                <block type="device_last_telemetry">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="keys">
+                        <shadow type="text">
+                            <field name="keys"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="device_attr">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="scope">
+                        <shadow type="scope_list">
+                            <field name="scope"></field>
+                        </shadow>
+                    </value>
+                    <value name="keys">
+                        <shadow type="text">
+                            <field name="keys"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="device_alarm">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="severity">
+                        <shadow type="alarm_severity_list">
+                            <field name="severity"></field>
+                        </shadow>
+                    </value>
+                    <value name="search_status">
+                        <shadow type="alarm_search_status_list">
+                            <field name="search_status"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="send_device_last_telemetry">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="key">
+                        <shadow type="text">
+                            <field name="key"></field>
+                        </shadow>
+                    </value>
+                    <value name="payload">
+                        <shadow type="text">
+                            <field name="payload"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="send_device_attr">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="scope">
+                        <shadow type="scope_list">
+                            <field name="scope"></field>
+                        </shadow>
+                    </value>
+                    <value name="key">
+                        <shadow type="text">
+                            <field name="key"></field>
+                        </shadow>
+                    </value>
+                    <value name="payload">
+                        <shadow type="text">
+                            <field name="payload"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="send_device_alarm">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="name">
+                        <shadow type="text">
+                            <field name="name"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="delete_device_attr">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="scope">
+                        <shadow type="scope_list">
+                            <field name="scope"></field>
+                        </shadow>
+                    </value>
+                    <value name="key">
+                        <shadow type="text">
+                            <field name="key"></field>
+                        </shadow>
+                    </value>
+                </block>
+            </category>
+        {% endif %}
+        {% if current_config.ginos_config %}
+            <sep></sep>
+            <category name="Ginos AI" colour="#6665DD">
+                <block type="ginos_prompt">
+                    <value name="prompt">
+                        <shadow type="text">
+                            <field name="prompt"></field>
+                        </shadow>
+                    </value>
+                    <value name="context">
+                        <shadow type="text">
+                            <field name="context"></field>
+                        </shadow>
+                    </value>
+                </block>
+            </category>
+        {% endif %}
         <sep></sep>
         <category name="Keyboard" colour="#c2c2c2">
             <block type="keyboard_press"></block>
@@ -568,18 +585,6 @@
                     </shadow>
                 </value>
             </block>
-        </category>
-        <category name="test" colour="aaaaaa">
-            <block type="wait">
-                <value name="seconds">
-                    <shadow type="text">
-                        <field name="NUM"></field>
-                    </shadow>
-                </value>
-            </block>
-            
-
-
         </category>
     </xml>
 </div>
