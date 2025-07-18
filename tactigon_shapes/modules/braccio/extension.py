@@ -6,7 +6,6 @@ from flask import Flask
 from bleak import BleakClient
 from threading import Thread, Event
 from queue import Queue
-from dataclasses import dataclass
 
 from typing import Optional, Tuple
 
