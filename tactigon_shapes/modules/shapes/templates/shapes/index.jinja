@@ -178,6 +178,15 @@
                                     <textarea class="form-control" id="programDescription"
                                         name="description">{{current_config.description}}</textarea>
                                 </div>
+                                <h6>Ginos AI</h6>
+                                <div class="mb-3">
+                                    <label for="program-name" class="form-label">Address</label>
+                                    <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai" value="{{ current_config.ginos_config.url if current_config.ginos_config else '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="program-name" class="form-label">Model name</label>
+                                    <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b" value="{{ current_config.ginos_config.model if current_config.ginos_config else '' }}">
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-outline-secondary"

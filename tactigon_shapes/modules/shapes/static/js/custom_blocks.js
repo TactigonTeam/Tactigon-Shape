@@ -910,7 +910,7 @@ function loadIronBoyBlocks(ironboy) {
 }
 
 function loadGinosBlocks(ginos){
-    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+    /*
         {
             "type": "ginos_prompt",
             "message0": "AI prompt %1 %2",
@@ -924,6 +924,22 @@ function loadGinosBlocks(ginos){
                     "type": "input_value",
                     "name": "context",
                     "check": "String"
+                }
+            ],
+            "output": "String",
+            "colour": "#EB6152",
+            "tooltip": "AI response from Ginos",
+            "helpUrl": ""
+        }
+    */
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "ginos_prompt",
+            "message0": "AI prompt %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "prompt"
                 }
             ],
             "output": "String",
@@ -952,6 +968,8 @@ from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandS
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ginos.extension import GinosInterface
+from tactigon_shapes.modules.ginos.models import LLMPrompt
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any`;
         
@@ -1144,7 +1162,7 @@ def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
         rounded=round(msg,4)
         logging_queue.debug(str(rounded))
     else:
-        logging_queue.debug(str(msg))
+        logging_queue.debug(str(msg).replace("\\\\n","<br\\\\>"))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
@@ -1159,8 +1177,16 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_prompt(prompt: str, context: str):
-    pass
+def ginos_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""):
+    if not ginos:
+        return
+
+    prompt_object = LLMPrompt(
+        model=ginos.model,
+        prompt=prompt
+    )
+
+    return ginos.prompt(prompt_object)
 
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
@@ -1176,7 +1202,7 @@ def ginos_prompt(prompt: str, context: str):
             return generator.INDENT + "global " + v.name;
         }).join('\n');
 
-        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], ironboy: Optional[IronBoyInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
+        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], ironboy: Optional[IronBoyInterface], ginos: Optional[GinosInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
             variables + '\n' + "\n" +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
@@ -1453,8 +1479,9 @@ function defineIronBoyGenerators(){
 function defineGinosGenerators(){
     python.pythonGenerator.forBlock["ginos_prompt"] = function(block, generator) {
         var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
-        var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-        var code = `ginos_prompt(${prompt}, ${context})`;
+        // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
+        // var code = `ginos_prompt(ginos, ${prompt}, ${context})`;
+        var code = `ginos_prompt(ginos, ${prompt})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }

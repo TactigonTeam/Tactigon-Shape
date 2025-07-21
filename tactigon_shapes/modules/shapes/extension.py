@@ -11,6 +11,8 @@ from typing import List, Optional, Tuple, Any
 from flask import Flask
 from pynput.keyboard import Controller as KeyboardController
 
+from tactigon_shapes.modules.ginos.models import GinosConfig
+
 from .models import ShapeConfig, DebugMessage, ShapesPostAction, Program
 
 from ..braccio.extension import BraccioInterface, Wrist, Gripper
@@ -18,6 +20,7 @@ from ..zion.extension import ZionInterface
 from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
 from ..tskin.manager import walk
 from ..ironboy.extension import IronBoyInterface
+from ..ginos.extension import GinosInterface
 
 from ...extensions.base import ExtensionThread, ExtensionApp
 
@@ -45,7 +48,7 @@ class ShapeThread(ExtensionThread):
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
     _ironboy_interface: Optional[IronBoyInterface] = None
-
+    _ginos_interface: Optional[GinosInterface] = None
     
     def __init__(
             self, 
@@ -64,6 +67,9 @@ class ShapeThread(ExtensionThread):
         self._braccio_interface = braccio
         self._zion_interface = zion
         self._ironboy_interface = ironboy
+
+        if app.ginos_config:
+            self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
 
         ExtensionThread.__init__(self)
 
@@ -114,7 +120,16 @@ class ShapeThread(ExtensionThread):
     def main(self):       
         actions: List[Tuple[ShapesPostAction, Any]] = []
         try:
-            self.module.tactigon_shape_function(self._tskin, self._keyboard, self.braccio_interface, self.zion_interface, actions, self._logging_queue, self._ironboy_interface)
+            self.module.tactigon_shape_function(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ironboy_interface, 
+                self._ginos_interface, 
+                actions, 
+                self._logging_queue
+            )
         except Exception as e:
             self._logging_queue.error(str(e))
 
