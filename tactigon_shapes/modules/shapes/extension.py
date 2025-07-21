@@ -3,8 +3,9 @@ import json
 import shutil
 import sys
 import time
-from queue import Queue
 from uuid import UUID
+from queue import Queue
+
 from os import path, makedirs
 from typing import List, Optional, Tuple, Any
 
@@ -148,7 +149,6 @@ class ShapeThread(ExtensionThread):
         self.module = importlib.util.module_from_spec(spec)  # type: ignore
         sys.modules[self.MODULE_NAME] = self.module
         spec.loader.exec_module(self.module)  # type: ignore
-
 
 class ShapesApp(ExtensionApp):
     config_file_path: str
