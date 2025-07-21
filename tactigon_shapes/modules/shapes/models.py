@@ -3,7 +3,7 @@ from enum import Enum
 from dataclasses import dataclass
 from datetime import datetime
 
-from typing import Optional
+from typing import Any, Optional
 
 from ..ginos.models import GinosConfig
 
@@ -13,6 +13,10 @@ class Severity(Enum):
     INFO = 1
     WARNING = 2
     ERROR = 3
+
+class MessageType(Enum):
+    MESSAGE = "string"
+    PROMPT = "prompt"
 
 class ShapesPostAction(Enum):
     READ_TOUCH = 1
@@ -60,7 +64,8 @@ class ShapeConfig:
 class DebugMessage:
     severity: Severity
     date: datetime
-    message: str
+    message: Any
+    message_type: MessageType = MessageType.MESSAGE
 
     @classmethod
     def Debug(cls, message: str):
@@ -94,9 +99,19 @@ class DebugMessage:
             message
         )
     
+    @classmethod
+    def Prompt(cls, message: Any):
+        return cls(
+            Severity.DEBUG,
+            datetime.now(),
+            message,
+            MessageType.PROMPT
+        )
+    
     def toJSON(self) -> dict:
         return dict(
             severity=self.severity.name,
             date=self.date.isoformat(),
-            message=self.message
+            message=self.message if isinstance(self.message, str) else self.message.toJSON(),
+            message_type=self.message_type.value
         )

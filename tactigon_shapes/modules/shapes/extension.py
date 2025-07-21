@@ -25,17 +25,20 @@ from ..ginos.extension import GinosInterface
 from ...extensions.base import ExtensionThread, ExtensionApp
 
 class LoggingQueue(Queue):
-    def debug(self, msg):
+    def debug(self, msg: str):
         self.put_nowait(DebugMessage.Debug(msg))
 
-    def info(self, msg):
+    def info(self, msg: str):
         self.put_nowait(DebugMessage.Info(msg))
 
-    def warning(self, msg):
+    def warning(self, msg: str):
         self.put_nowait(DebugMessage.Warning(msg))
 
-    def error(self, msg):
+    def error(self, msg: str):
         self.put_nowait(DebugMessage.Error(msg))
+
+    def prompt(self, msg: Any):
+        self.put_nowait(DebugMessage.Prompt(msg))
 
 class ShapeThread(ExtensionThread):
     MODULE_NAME: str = "ShapeThreadModule"

@@ -214,9 +214,24 @@ def save_config(program_id: str):
         flash(f"Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
 
+    ginos_url = get_from_request("ginos_url")
+    ginos_model = get_from_request("ginos_model")
+
+    if ginos_url is not None and ginos_model is not None:
+        ginos_config = GinosConfig(
+            url=ginos_url,
+            model=ginos_model,
+        )
+    elif ginos_url is None and ginos_model is None:
+        ginos_config = None
+    else:
+        flash(f"Invalid Ginos config!", category="danger")
+        return redirect(url_for("shapes.index"))
+
     config.name = program_name
     config.description = program_description
     config.modified_on = datetime.now()
+    config.ginos_config = ginos_config
 
     _shapes.save_config(config=config)
 
@@ -277,7 +292,6 @@ def clone_config(program_id: str):
     return redirect(url_for("shapes.edit", program_id=new_config.id))
 
 
-#----------------------------------------------------------------------
 @bp.route("/<string:program_id>/save/program", methods=["POST"])
 @check_config
 def save_program(program_id: str):
@@ -316,7 +330,7 @@ def save_program(program_id: str):
     flash(f"Shape saved.", category="success")
     return redirect(url_for("shapes.index", program_id=program_id))
 
-#----------------------------------------------
+
 @bp.route("/<string:program_id>/start")
 @check_config
 def start(program_id: str):

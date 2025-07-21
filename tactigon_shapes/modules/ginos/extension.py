@@ -148,7 +148,7 @@ class GinosInterface:
 
     def _stream(self, path: str, payload: dict):
         url = f"{self.url}/{path}"
-        return httpx.stream("POST", url, headers=HEADERS, json=payload, timeout=None)
+        return httpx.stream("POST", url, headers=HEADERS, json=payload, timeout=60)
     
     def _delete(self, path: str, payload: dict) -> int:
         url = f"{self.url}/{path}"

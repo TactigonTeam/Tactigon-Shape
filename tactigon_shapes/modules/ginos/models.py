@@ -72,6 +72,15 @@ class LLMModelPullResponse:
             completed=json.get("completed", 0),
             error=json.get("error", "")
         )
+    
+    def __str__(self) -> str:
+        if self.error:
+            return f"Error while pulling model: {self.error}"
+        if self.total > 0:
+            completed = self.completed*100//self.total
+            return f"Status: Downloading model |{'#'*completed}{'-'*(100-completed)}|"
+        else:
+            return f"Status: {self.status}"
 
 @dataclass
 class LLMModelDetailsRequest:
@@ -236,6 +245,13 @@ class LLMPromptResponse:
             prompt_eval_duration=json.get("prompt_eval_duration", 0),
             eval_duration=json.get("eval_duration", 0),
         )
+    
+    def toJSON(self) -> dict:
+        return dict(
+            model=self.model,
+            message=self.response.replace("\n", "<br>"),
+            self=self.done
+        )
 
     
 @dataclass
@@ -306,4 +322,11 @@ class LLMChatResponse:
             load_duration=json.get("load_duration", 0),
             prompt_eval_duration=json.get("prompt_eval_duration", 0),
             eval_duration=json.get("eval_duration", 0),
+        )
+    
+    def toJSON(self) -> dict:
+        return dict(
+            model=self.model,
+            message=self.message.content.replace("\n", "<br>"),
+            self=self.done
         )

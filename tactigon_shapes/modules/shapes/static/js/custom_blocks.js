@@ -961,6 +961,7 @@ function defineCustomGenerators() {
 
 import time
 import random
+import types
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -969,7 +970,7 @@ from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSe
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPrompt
+from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any`;
         
@@ -1161,8 +1162,11 @@ def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
     if isinstance(msg,(float)):
         rounded=round(msg,4)
         logging_queue.debug(str(rounded))
+    elif isinstance(msg, types.GeneratorType):
+        for line in msg:
+            logging_queue.prompt(line)
     else:
-        logging_queue.debug(str(msg).replace("\\\\n","<br\\\\>"))
+        logging_queue.debug(str(msg).replace("\\n","<br\\>"))
 
 def reset_touch(tskin: TSkin):
         if tskin.touch_preserve:
@@ -1181,7 +1185,7 @@ def ginos_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""
     if not ginos:
         return
 
-    prompt_object = LLMPrompt(
+    prompt_object = LLMPromptRequest(
         model=ginos.model,
         prompt=prompt
     )
