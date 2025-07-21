@@ -6,6 +6,7 @@ from typing import List, Optional
 from flask import Blueprint, render_template, flash, redirect, url_for
 
 from tactigon_shapes.modules.ginos.models import GinosConfig
+from tactigon_shapes.modules.mqtt.models import MQTTConfig
 
 from ..ironboy.manager import get_ironboy_interface
 
@@ -122,13 +123,26 @@ def add():
             model=ginos_model,
         )
 
+    mqtt_url = get_from_request("mqtt_url")
+    mqtt_port = get_from_request("mqtt_port")
+    mqtt_clientid = get_from_request("mqtt_clientid")
+    mqtt_config = None
+
+    if mqtt_url is not None and mqtt_port is not None and mqtt_clientid is not None:
+        mqtt_config = MQTTConfig(
+            broker_url=mqtt_url,
+            broker_port=int(mqtt_port),
+            client_id=mqtt_clientid,
+        )
+
     new_config = ShapeConfig(
         id=uuid4(),
         name=program_name,
         description=_program_description,
         created_on=datetime.now(),
         modified_on=datetime.now(),
-        ginos_config=ginos_config
+        ginos_config=ginos_config,
+        mqtt_config=mqtt_config,
     )
 
     _shapes.add(new_config)
@@ -230,13 +244,30 @@ def save_config(program_id: str):
     elif ginos_url is None and ginos_model is None:
         ginos_config = None
     else:
-        flash(f"Invalid Ginos config!", category="danger")
+        flash(f"Invalid Ginos AI config!", category="danger")
+        return redirect(url_for("shapes.index"))
+    
+    mqtt_url = get_from_request("mqtt_url")
+    mqtt_port = get_from_request("mqtt_port")
+    mqtt_clientid = get_from_request("mqtt_clientid")
+
+    if mqtt_url is not None and mqtt_port is not None and mqtt_clientid is not None:
+        mqtt_config = MQTTConfig(
+            broker_url=mqtt_url,
+            broker_port=int(mqtt_port),
+            client_id=mqtt_clientid,
+        )
+    elif mqtt_url is None and mqtt_port is None and mqtt_clientid is None:
+        mqtt_config = None
+    else:
+        flash(f"Invalid Ginos MQTT config!", category="danger")
         return redirect(url_for("shapes.index"))
 
     config.name = program_name
     config.description = program_description
     config.modified_on = datetime.now()
     config.ginos_config = ginos_config
+    config.mqtt_config = mqtt_config
 
     _shapes.save_config(config=config)
 

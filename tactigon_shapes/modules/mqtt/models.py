@@ -15,7 +15,7 @@ class MQTTConfig:
 
 
     @classmethod
-    def FromJSON(cls, json):
+    def FromJSON(cls, json: dict):
         return cls(
             json["broker_url"],
             json["broker_port"],
@@ -31,6 +31,7 @@ class MQTTConfig:
         return dict(
             broker_url=self.broker_url,
             broker_port=self.broker_port,
+            client_id=self.client_id,
             max_reconnect_count=self.max_reconnect_count,
             reconnect_delay=self.reconnect_delay,
             reconnect_rate=self.reconnect_rate,

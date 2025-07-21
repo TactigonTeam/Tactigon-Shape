@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from ..ginos.models import GinosConfig
+from ..mqtt.models import MQTTConfig
 
 
 class Severity(Enum):
@@ -36,9 +37,12 @@ class ShapeConfig:
     readonly: bool = False
     app_file: str = "program.py"
     ginos_config: Optional[GinosConfig] = None
+    mqtt_config: Optional[MQTTConfig] = None
 
     @classmethod
     def FromJSON(cls, json):
+        ginos_config = json.get("ginos_config", None)
+        mqtt_config = json.get("mqtt_config", None)
         return cls(
             id=UUID(json["id"]),
             name=json["name"],
@@ -46,7 +50,8 @@ class ShapeConfig:
             modified_on=datetime.fromisoformat(json["modified_on"]),
             description=json["description"],
             readonly=json["readonly"],
-            ginos_config=GinosConfig.FromJSON(json["ginos_config"]) if "ginos_config" in json and json["ginos_config"] is not None else None
+            ginos_config=GinosConfig.FromJSON(ginos_config) if ginos_config else None,
+            mqtt_config=MQTTConfig.FromJSON(mqtt_config) if mqtt_config else None,
         )
 
     def toJSON(self) -> dict:
@@ -58,6 +63,7 @@ class ShapeConfig:
             description=self.description,
             readonly=self.readonly,
             ginos_config=self.ginos_config.toJSON() if self.ginos_config else None,
+            mqtt_config=self.mqtt_config.toJSON() if self.mqtt_config else None
         )
     
 @dataclass

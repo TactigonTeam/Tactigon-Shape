@@ -86,7 +86,7 @@
                 Add Shape
             </button>
             <div class="modal fade" id="add" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <form action="{{ url_for('shapes.add') }}" method="POST">
                             <div class="modal-header">
@@ -103,14 +103,33 @@
                                     <label for="program-description" class="form-label">Description</label>
                                     <textarea class="form-control" id="program-description" rows="3" name="description"></textarea>
                                 </div>
-                                <h6>Ginos AI</h6>
-                                <div class="mb-3">
-                                    <label for="program-name" class="form-label">Address</label>
-                                    <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="program-name" class="form-label">Model name</label>
-                                    <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b">
+                                <h6>Ginos</h6>
+                                <div class="row">
+                                    <div class="col-md-6 border-end">
+                                        <div class="mb-3">
+                                            <label for="ginos-url" class="form-label">Address</label>
+                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="ginos-model" class="form-label">Model name</label>
+                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row mb-3">
+                                            <label class="form-label">MQTT Broker</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="http://ginos.ai">
+                                            </div>
+                                            <div class="col-sm">
+                                                <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-clientid" class="form-label">Client ID</label>
+                                            <input type="text" class="form-control" name="mqtt_clientid" id="mqtt-clientid" placeholder="">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -159,7 +178,7 @@
             </div>
             {% if not current_config.readonly %}
             <div class="modal fade" id="edit" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <form action="{{ url_for('shapes.save_config', program_id=current_config.id) }}" method="POST">
                             <div class="modal-header">
@@ -178,14 +197,33 @@
                                     <textarea class="form-control" id="programDescription"
                                         name="description">{{current_config.description}}</textarea>
                                 </div>
-                                <h6>Ginos AI</h6>
-                                <div class="mb-3">
-                                    <label for="program-name" class="form-label">Address</label>
-                                    <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai" value="{{ current_config.ginos_config.url if current_config.ginos_config else '' }}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="program-name" class="form-label">Model name</label>
-                                    <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b" value="{{ current_config.ginos_config.model if current_config.ginos_config else '' }}">
+                                <h6>Ginos</h6>
+                                <div class="row">
+                                    <div class="col-md-6 border-end">
+                                        <div class="mb-3">
+                                            <label for="ginos-url" class="form-label">Address</label>
+                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai" value="{{current_config.ginos_config.url}}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="ginos-model" class="form-label">Model name</label>
+                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b" value="{{current_config.ginos_config.model}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row mb-3">
+                                            <label class="form-label">MQTT Broker</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="http://ginos.ai" value="{{current_config.mqtt_config.broker_url}}">
+                                            </div>
+                                            <div class="col-sm">
+                                                <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883" value="{{current_config.mqtt_config.broker_port}}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-clientid" class="form-label">Client ID</label>
+                                            <input type="text" class="form-control" name="mqtt_clientid" id="mqtt-clientid" placeholder="" value="{{current_config.mqtt_config.client_id}}">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
