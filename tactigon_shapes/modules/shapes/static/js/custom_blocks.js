@@ -9,6 +9,8 @@ function loadCustomBlocks(response) {
     const zion = response ? response.zion : [];
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos: {};
+
+    console.log(ginos)
     
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs);
@@ -910,28 +912,6 @@ function loadIronBoyBlocks(ironboy) {
 }
 
 function loadGinosBlocks(ginos){
-    /*
-        {
-            "type": "ginos_prompt",
-            "message0": "AI prompt %1 %2",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "prompt",
-                    "check": "String"
-                },
-                {
-                    "type": "input_value",
-                    "name": "context",
-                    "check": "String"
-                }
-            ],
-            "output": "String",
-            "colour": "#EB6152",
-            "tooltip": "AI response from Ginos",
-            "helpUrl": ""
-        }
-    */
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "ginos_prompt",
@@ -946,11 +926,61 @@ function loadGinosBlocks(ginos){
             "colour": "#EB6152",
             "tooltip": "AI response from Ginos",
             "helpUrl": ""
+        },
+        {
+            "type": "ginos_chat_message_role",
+            "message0": "AI role %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "scope",
+                    "options": ginos.roles
+                }
+            ],
+            "output": "GinosAIChatRole",
+            "colour": "#EB6152",
+            "tooltip": "",
+            "helpUrl": ""
+        },
+        {
+            "type": "ginos_chat",
+            "message0": "AI chat message %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "messages",
+                }
+            ],
+            "output": "String",
+            "colour": "#EB6152",
+            "tooltip": "",
+            "helpUrl": ""
+        },
+        {
+            "type": "ginos_chat_message",
+            "message0": "AI chat message %1 %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "role",
+                    "check": "GinosAIChatRole"
+                },
+                {
+                    "type": "input_value",
+                    "name": "content",
+                }
+            ],
+            "output": "GinosAIChatMessage",
+            "colour": "#EB6152",
+            "tooltip": "",
+            "helpUrl": ""
         }
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
+
 }
+
 
 function defineCustomGenerators() {
     Blockly.Python.INDENT = '    ';
@@ -1486,6 +1516,23 @@ function defineGinosGenerators(){
         // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
         // var code = `ginos_prompt(ginos, ${prompt}, ${context})`;
         var code = `ginos_prompt(ginos, ${prompt})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ginos_chat"] = function(block, generator) {
+        // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
+        // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
+        // var code = `ginos_prompt(ginos, ${prompt}, ${context})`;
+        var code = ``;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ginos_chat_message"] = function(block, generator) {
+        var code = ``;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+    python.pythonGenerator.forBlock["ginos_chat_message_role"] = function(block, generator) {
+        var code = ``;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }

@@ -552,17 +552,37 @@
         {% if current_config.ginos_config %}
             <sep></sep>
             <category name="Ginos AI" colour="#6665DD">
+                <block type="ginos_chat_message_role">
+                </block>
                 <block type="ginos_prompt">
                     <value name="prompt">
                         <shadow type="text">
-                            <field name="prompt"></field>
                         </shadow>
                     </value>
-                    {# <value name="context">
-                        <shadow type="text">
-                            <field name="context"></field>
+                </block>
+                <block type="ginos_chat">
+                    <value name="messages">
+                        <shadow type="ginos_chat_message">
+                            <value name="role">
+                                <shadow type="ginos_chat_message_role">
+                                </shadow>
+                            </value>
+                            <value name="content">
+                                <shadow type="text">
+                                </shadow>
+                            </value>
                         </shadow>
-                    </value> #}
+                    </value>
+                </block>
+                <block type="ginos_chat_message">
+                    <value name="role">
+                        <shadow type="ginos_chat_message_role">
+                        </shadow>
+                    </value>
+                    <value name="content">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
                 </block>
             </category>
         {% endif %}

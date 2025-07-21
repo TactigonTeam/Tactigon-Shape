@@ -15,6 +15,8 @@ from .manager import get_shapes_app
 from ..tskin.manager import get_tskin
 from ..zion.manager import get_zion_interface
 
+from ..ginos.manager import get_ginos_blocks
+
 from ...config import app_config, check_config
 from ...models import ModelGesture
 from ...utils.request_utils import get_from_request, check_empty_inputs
@@ -68,7 +70,8 @@ def index(program_id: Optional[str] = None):
 
     if ironboy:
         blocks_config["ironboy"] = ironboy.get_shape_blocks()
-           
+
+    blocks_config["ginos"] = get_ginos_blocks()
     
     state = _shapes.get_state(current_config.id) if current_config else None
 
@@ -172,6 +175,8 @@ def edit(program_id: str):
 
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
+
+    blocks_config["ginos"] = get_ginos_blocks()
 
     return render_template("shapes/edit.jinja",
                            current_config=current_config,
