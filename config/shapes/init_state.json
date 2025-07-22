@@ -3,12 +3,16 @@
     "languageVersion": 0,
     "blocks": [
       {
-        "type": "tactigon_shape_function",
+        "type": "tactigon_shape_setup",
         "x": 30,
         "y": 30,
+        "deletable": false
+      },
+      {
+        "type": "tactigon_shape_function",
+        "x": 30,
+        "y": 150,
         "deletable": false,
-        "icons": {
-        },
         "inputs": {
           "BODY": {
             "block": {
@@ -26,6 +30,12 @@
             }
           }
         }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "x": 30,
+        "y": 300,
+        "deletable": false
       }
     ]
   }
