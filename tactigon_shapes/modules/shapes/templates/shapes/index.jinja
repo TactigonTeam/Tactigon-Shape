@@ -126,8 +126,12 @@
                                             </div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="mqtt-clientid" class="form-label">Client ID</label>
-                                            <input type="text" class="form-control" name="mqtt_clientid" id="mqtt-clientid" placeholder="">
+                                            <label for="mqtt-nodename" class="form-label">Node name</label>
+                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-nodetype" class="form-label">Node type</label>
+                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="">
                                         </div>
                                     </div>
                                 </div>
@@ -220,8 +224,12 @@
                                             </div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="mqtt-clientid" class="form-label">Client ID</label>
-                                            <input type="text" class="form-control" name="mqtt_clientid" id="mqtt-clientid" placeholder="" value="{{current_config.mqtt_config.client_id}}">
+                                            <label for="mqtt-clientid" class="form-label">Node name</label>
+                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="" value="{{current_config.mqtt_config.node_name}}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-clientid" class="form-label">Node type</label>
+                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="" value="{{current_config.mqtt_config.node_type}}">
                                         </div>
                                     </div>
                                 </div>

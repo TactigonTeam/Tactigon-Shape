@@ -22,7 +22,7 @@ class MQTTClient:
         
         self.userdata = {}
         self.client = mqtt_client.Client(
-            client_id=self.config.client_id,
+            client_id=self.config.node_name,
             callback_api_version=self.config.callback_api_version,
             protocol=self.config.protocol_version,
             userdata=self.userdata,
@@ -105,6 +105,22 @@ class MQTTClient:
             return False
 
         return True
+    
+    def register(self):
+        payload = dict(
+            node_name=self.config.node_name,
+            node_type=self.config.node_type
+        )
+
+        self.pubblish(f"ginos/devices/register/{self.config.node_name}", payload=payload)
+
+    def unregister(self):
+        payload = dict(
+            node_name=self.config.node_name,
+            node_type=self.config.node_type
+        )
+
+        self.pubblish(f"ginos/devices/unregister/{self.config.node_name}", payload=payload)
     
     def disconnect(self):
         self._can_reconnect = False

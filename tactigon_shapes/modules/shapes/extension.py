@@ -141,8 +141,25 @@ class ShapeThread(ExtensionThread):
         # Clear the payload
         setattr(self.module, subscription.payload_reference, None)
 
+    def run(self):
+        try:
+            self.module.tactigon_shape_setup(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
+        except Exception as e:
+            print(e)
+            self._logging_queue.error(str(e))
+        
+        ExtensionThread.run(self)
+
     def main(self):
-        actions: List[Tuple[ShapesPostAction, Any]] = []
         try:
             self.module.tactigon_shape_function(
                 self._tskin, 
@@ -152,7 +169,6 @@ class ShapeThread(ExtensionThread):
                 self._ironboy_interface, 
                 self._ginos_interface,
                 self._mqtt_interface,
-                actions, 
                 self._logging_queue
             )
         except Exception as e:
@@ -172,6 +188,21 @@ class ShapeThread(ExtensionThread):
         spec.loader.exec_module(self.module)  # type: ignore
 
     def stop(self):
+        try:
+            self.module.tactigon_shape_close(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
+        except Exception as e:
+            print(e)
+            pass
+
         if self._ginos_interface:
             self._ginos_interface = None
             

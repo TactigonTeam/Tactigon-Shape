@@ -34,7 +34,8 @@ class MQTTSubscription:
 class MQTTConfig:
     broker_url: str
     broker_port: int
-    client_id: str
+    node_name: str
+    node_type: str
     max_reconnect_count: int = 5
     reconnect_delay: float = 1
     reconnect_rate: int = 2
@@ -47,7 +48,8 @@ class MQTTConfig:
         return cls(
             json["broker_url"],
             json["broker_port"],
-            json["client_id"],
+            json["node_name"],
+            json["node_type"],
             json["max_reconnect_count"],
             json["reconnect_delay"],
             json["reconnect_rate"],
@@ -60,7 +62,8 @@ class MQTTConfig:
         return dict(
             broker_url=self.broker_url,
             broker_port=self.broker_port,
-            client_id=self.client_id,
+            node_name=self.node_name,
+            node_type=self.node_type,
             max_reconnect_count=self.max_reconnect_count,
             reconnect_delay=self.reconnect_delay,
             reconnect_rate=self.reconnect_rate,
