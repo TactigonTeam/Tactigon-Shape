@@ -1032,9 +1032,9 @@ function loadGinosMQTTBlocks(ginos){
             "colour": 225
         },
         {
-            "type": "ginos_mqtt_pubblish",
+            "type": "ginos_mqtt_publish",
 
-            "message0": "Pubblish payload %1 on topic %2",
+            "message0": "publish payload %1 on topic %2",
             "args0": [
                 {
                     "type": "input_value",
@@ -1046,7 +1046,7 @@ function loadGinosMQTTBlocks(ginos){
                     "check": "String"
                 }
             ],
-            "tooltip": "Pubblish a message to a topic",
+            "tooltip": "publish a message to a topic",
             "helpUrl": "",
             "previousStatement": null,
             "nextStatement": null,
@@ -1315,11 +1315,11 @@ def ginos_ai_prompt(ginos: Optional[GinosInterface], prompt: str, context: str =
 
     return ginos.prompt(prompt_object)
 
-def mqtt_pubblish(mqtt: Optional[MQTTClient], topic: str, payload: Any):
+def mqtt_publish(mqtt: Optional[MQTTClient], topic: str, payload: Any):
     if not mqtt:
         return
     
-    mqtt.pubblish(topic, payload)
+    mqtt.publish(topic, payload)
 
 def mqtt_register(mqtt: Optional[MQTTClient]):
     if not mqtt:
@@ -1742,11 +1742,11 @@ function defineGinosMQTTGenerators(){
         return code;
     }
 
-    python.pythonGenerator.forBlock['ginos_mqtt_pubblish'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ginos_mqtt_publish'] = function(block, generator) {
         const value_payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
         const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
 
-        const code = `mqtt_pubblish(mqtt, ${value_topic}, ${value_payload})\n`
+        const code = `mqtt_publish(mqtt, ${value_topic}, ${value_payload})\n`
         return code;
     }
 

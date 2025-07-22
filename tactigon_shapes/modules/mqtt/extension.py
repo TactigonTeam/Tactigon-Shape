@@ -10,7 +10,6 @@ from .models import MQTTConfig
 class MQTTClient:
     config: MQTTConfig
     userdata: dict
-    pubblish_queue: Queue
 
     client: Optional[mqtt_client.Client] = None
 
@@ -88,7 +87,7 @@ class MQTTClient:
             qos=qos
         )
 
-    def pubblish(self, topic: str, payload: dict, qos: int = 0) -> bool:
+    def publish(self, topic: str, payload: dict, qos: int = 0) -> bool:
         if not self.client:
             return False
         
@@ -112,7 +111,7 @@ class MQTTClient:
             node_type=self.config.node_type
         )
 
-        self.pubblish(f"ginos/devices/register/{self.config.node_name}", payload=payload)
+        self.publish(f"ginos/devices/register/{self.config.node_name}", payload=payload)
 
     def unregister(self):
         payload = dict(
@@ -120,7 +119,7 @@ class MQTTClient:
             node_type=self.config.node_type
         )
 
-        self.pubblish(f"ginos/devices/unregister/{self.config.node_name}", payload=payload)
+        self.publish(f"ginos/devices/unregister/{self.config.node_name}", payload=payload)
     
     def disconnect(self):
         self._can_reconnect = False

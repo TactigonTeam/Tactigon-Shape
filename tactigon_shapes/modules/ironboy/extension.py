@@ -12,10 +12,7 @@ class IronBoyInterface:
 
     def __init__(self, config_file_path: str, app: Optional[Flask] = None):
         self.config_file_path = config_file_path
-        if not os.path.exists(self.config_file_path):
-            raise FileNotFoundError(f"Config file not found at: {self.config_file_path}")
         self.load_config()
-
         
         if app:
             self.init_app(app)
@@ -30,6 +27,13 @@ class IronBoyInterface:
     @property
     def running(self) -> bool:
         return self._thread.running if self._thread else False
+    
+    @property
+    def executing(self) -> bool:
+        if not self._thread:
+            return False
+
+        return self._thread.executing
     
     @property
     def connected(self) -> bool:
@@ -80,23 +84,7 @@ class IronBoyInterface:
         if self._thread:
             self._thread.stop()
             self._thread = None
-    """
-    def command(self, command:IronBoyCommand,reps:int=1):
-    
-        if self._thread:
-            cmd = self._thread.send_command(command=command,iterations=reps)
 
-            if not cmd:
-                return False
-            
-            while self._thread.executing:
-                if self._thread._current_command.is_timeout:
-                    return False
-                
-            return True
-
-        return False
-        """
     def command(self, command: IronBoyCommand, reps: int = 1) -> bool:
         if not self._thread:
             return False
@@ -110,16 +98,11 @@ class IronBoyInterface:
                 return False
             if self._thread._current_command.is_timeout:
                 return False
-            time.sleep(0.01)
-    
-    def executing(self):
-        return self._thread.executing
-    
+            time.sleep(0.01)  
     
     def get_shape_blocks(self):
-
         return {
-            "commands": [(c.name.replace("_", " ").title(), c.name) for c in IronBoyCommand if c.value > 0]
+            "commands": [(c.name.replace("_", " ").title(), c.name) for c in IronBoyCommand if c != IronBoyCommand.ACK]
         }
 
 

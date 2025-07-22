@@ -128,10 +128,11 @@ def add():
     
     mqtt_url = get_from_request("mqtt_url")
     mqtt_port = get_from_request("mqtt_port")
-    mqtt_clientid = get_from_request("mqtt_clientid")
+    mqtt_nodename = get_from_request("mqtt_nodename")
+    mqtt_nodetype = get_from_request("mqtt_nodetype")
     mqtt_config = None
 
-    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_clientid and mqtt_clientid != ""):
+    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
         try:
             mqtt_port = int(mqtt_port)
         except:
@@ -141,7 +142,8 @@ def add():
         mqtt_config = MQTTConfig(
             broker_url=mqtt_url,
             broker_port=mqtt_port,
-            client_id=mqtt_clientid,
+            node_name=mqtt_nodename,
+            node_type=mqtt_nodetype,
         )
 
     new_config = ShapeConfig(
@@ -258,9 +260,10 @@ def save_config(program_id: str):
     
     mqtt_url = get_from_request("mqtt_url")
     mqtt_port = get_from_request("mqtt_port")
-    mqtt_clientid = get_from_request("mqtt_clientid")
+    mqtt_nodename = get_from_request("mqtt_nodename")
+    mqtt_nodetype = get_from_request("mqtt_nodetype")
 
-    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_clientid and mqtt_clientid != ""):
+    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
         try:
             mqtt_port = int(mqtt_port)
         except:
@@ -269,16 +272,18 @@ def save_config(program_id: str):
 
         if not config.mqtt_config:
             mqtt_config = MQTTConfig(
-                broker_url=mqtt_url,
-                broker_port=mqtt_port,
-                client_id=mqtt_clientid,
-            )
+            broker_url=mqtt_url,
+            broker_port=mqtt_port,
+            node_name=mqtt_nodename,
+            node_type=mqtt_nodetype,
+        )
         else:
             mqtt_config = config.mqtt_config
 
             mqtt_config.broker_url = mqtt_url
             mqtt_config.broker_port = mqtt_port
-            mqtt_config.client_id = mqtt_clientid
+            mqtt_config.node_name = mqtt_nodename
+            mqtt_config.node_type = mqtt_nodetype
     else:
         mqtt_config = None
     # else:
