@@ -43,6 +43,7 @@ class ShapeConfig:
     def FromJSON(cls, json):
         ginos_config = json.get("ginos_config", None)
         mqtt_config = json.get("mqtt_config", None)
+        
         return cls(
             id=UUID(json["id"]),
             name=json["name"],

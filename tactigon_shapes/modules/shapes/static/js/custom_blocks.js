@@ -9,8 +9,6 @@ function loadCustomBlocks(response) {
     const zion = response ? response.zion : [];
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos: {};
-
-    console.log(ginos)
     
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs);
@@ -18,7 +16,8 @@ function loadCustomBlocks(response) {
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
     loadIronBoyBlocks(ironboy);
-    loadGinosBlocks(ginos);
+    loadGinosAIBlocks(ginos);
+    loadGinosMQTTBlocks(ginos);
     
     Blockly.Blocks['get_dict_property'] = {
         init: function () {
@@ -50,17 +49,12 @@ function loadCustomBlocks(response) {
         init: function () {
             this.jsonInit({
                 "type": "tactigon_shape_function",
-                "message0": "Tactigon Main %1",
+                "message0": "Loop %1 do %2",
                 "args0": [
                     {
-                        "type": "field_input",
-                        "name": "NAME",
-                        "text": "app",
-                        "editable": false
-                    }
-                ],
-                "message1": "do %1",
-                "args1": [
+                        "type": "input_dummy",
+                        "name": ""
+                    },
                     {
                         "type": "input_statement",
                         "name": "BODY"
@@ -69,6 +63,29 @@ function loadCustomBlocks(response) {
                 "inputsInline": false,
                 "colour": 230,
                 "tooltip": "Main function",
+                "helpUrl": ""
+            });
+        }
+    };
+
+    Blockly.Blocks['tactigon_shape_setup'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "tactigon_shape_setup",
+                "message0": "Setup %1 do %2",
+                "args0": [
+                    {
+                        "type": "input_dummy",
+                        "name": ""
+                    },
+                    {
+                        "type": "input_statement",
+                        "name": "setup_code"
+                    }
+                ],
+                "inputsInline": false,
+                "colour": 230,
+                "tooltip": "Setup function",
                 "helpUrl": ""
             });
         }
@@ -911,10 +928,10 @@ function loadIronBoyBlocks(ironboy) {
         };
 }
 
-function loadGinosBlocks(ginos){
+function loadGinosAIBlocks(ginos){
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
-            "type": "ginos_prompt",
+            "type": "ginos_ai_prompt",
             "message0": "AI prompt %1",
             "args0": [
                 {
@@ -928,7 +945,7 @@ function loadGinosBlocks(ginos){
             "helpUrl": ""
         },
         {
-            "type": "ginos_chat_message_role",
+            "type": "ginos_ai_chat_message_role",
             "message0": "AI role %1",
             "args0": [
                 {
@@ -943,7 +960,7 @@ function loadGinosBlocks(ginos){
             "helpUrl": ""
         },
         {
-            "type": "ginos_chat",
+            "type": "ginos_ai_chat",
             "message0": "AI chat message %1",
             "args0": [
                 {
@@ -957,7 +974,7 @@ function loadGinosBlocks(ginos){
             "helpUrl": ""
         },
         {
-            "type": "ginos_chat_message",
+            "type": "ginos_ai_chat_message",
             "message0": "AI chat message %1 %2",
             "args0": [
                 {
@@ -978,15 +995,44 @@ function loadGinosBlocks(ginos){
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
+}
+
+function loadGinosMQTTBlocks(ginos){
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "ginos_mqtt_subscribe",
+            "tooltip": "",
+            "helpUrl": "",
+            "message0": "On message from %1 get values in %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                },
+                {
+                    "type": "field_variable",
+                    "name": "var_name",
+                    "variable": "payload"
+                }
+            ],
+            "message1": "do %1",
+            "args1": [
+                {
+                    "type": "input_statement",
+                    "name": "function"
+                }
+            ],
+            "colour": 225
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
 
 }
 
-
-function defineCustomGenerators() {
-    Blockly.Python.INDENT = '    ';
-
-    python.pythonGenerator.forBlock['tactigon_shape_function'] = function (block, generator) {
-        Blockly.Python.definitions_['import_requests'] = `
+function defineImportsAndLibraries(){
+    return `
 # Shapes by Next Industries
 
 import time
@@ -1002,9 +1048,8 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
-from typing import List, Optional, Union, Any`;
-        
-        var libs = `
+from typing import List, Optional, Union, Any
+
 
 def check_gesture(gesture: Optional[Gesture], gesture_to_find: str) -> bool:
     if not gesture:
@@ -1211,21 +1256,38 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""):
+def ginos_ai_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""):
     if not ginos:
         return
 
     prompt_object = LLMPromptRequest(
         model=ginos.model,
-        prompt=prompt
+        prompt=prompt,
     )
 
     return ginos.prompt(prompt_object)
 
-# This is the main function that runs your code. Any
-# code blocks you add to this section will be executed.
+# ---------- Generated code ---------------
+
+
 `;
+}
+
+function defineCustomGenerators() {
+    Blockly.Python.INDENT = '    ';
+
+    python.pythonGenerator.forBlock['tactigon_shape_setup'] = function (block, generator) {
+        var statements_body = Blockly.Python.statementToCode(block, 'setup_code');
         
+        if (!statements_body) {
+            statements_body = "\tpass"
+        }
+
+        var code = 'def tactigon_shape_setup(logging_queue: LoggingQueue):\n' + statements_body;
+        return code;
+    };
+
+    python.pythonGenerator.forBlock['tactigon_shape_function'] = function (block, generator) {
         var statements_body = Blockly.Python.statementToCode(block, 'BODY');
         
         if (!statements_body) {
@@ -1233,11 +1295,15 @@ def ginos_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""
         }
 
         let variables = block.workspace.getAllVariables().map((v) => {
-            return generator.INDENT + "global " + v.name;
-        }).join('\n');
+            return v.name;
+        }).join(',');
 
-        var code = libs + 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], ironboy: Optional[IronBoyInterface], ginos: Optional[GinosInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
-            variables + '\n' + "\n" +
+        if (variables.length > 0){
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        var code = 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], ironboy: Optional[IronBoyInterface], ginos: Optional[GinosInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
+            variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
             statements_body + '\n';
@@ -1257,7 +1323,8 @@ def ginos_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""
     defineDictionaryGenerators();
     defineZionGenerators();
     defineIronBoyGenerators();
-    defineGinosGenerators();
+    defineGinosAIGenerators();
+    defineGinosMQTTGenerators();
 }
 
 function defineTSkinGenerators(){
@@ -1510,29 +1577,56 @@ function defineIronBoyGenerators(){
     };
 }
 
-function defineGinosGenerators(){
-    python.pythonGenerator.forBlock["ginos_prompt"] = function(block, generator) {
+function defineGinosAIGenerators(){
+    python.pythonGenerator.forBlock["ginos_ai_prompt"] = function(block, generator) {
         var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
         // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-        // var code = `ginos_prompt(ginos, ${prompt}, ${context})`;
-        var code = `ginos_prompt(ginos, ${prompt})`;
+        // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
+        var code = `ginos_ai_prompt(ginos, ${prompt})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_chat"] = function(block, generator) {
+    python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
         // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
         // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-        // var code = `ginos_prompt(ginos, ${prompt}, ${context})`;
+        // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
         var code = ``;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_chat_message"] = function(block, generator) {
+    python.pythonGenerator.forBlock["ginos_ai_chat_message"] = function(block, generator) {
         var code = ``;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
-    python.pythonGenerator.forBlock["ginos_chat_message_role"] = function(block, generator) {
+    python.pythonGenerator.forBlock["ginos_ai_chat_message_role"] = function(block, generator) {
         var code = ``;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
+}
+
+function defineGinosMQTTGenerators(){
+    python.pythonGenerator.forBlock['ginos_mqtt_subscribe'] = function(block, generator) {
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(',');
+
+        if (variables.length > 0){
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+        const function_name = clean_topic_names(value_topic);
+        const statement_function = generator.statementToCode(block, 'function');
+
+        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables +  statement_function;
+        return code;
+    }
+}
+
+function clean_topic_names(topic){
+    return topic
+        .replaceAll("/", "_")
+        .replaceAll("\\", "_")
+        .replaceAll(" ", "_")
+        .replaceAll("'", "");
 }

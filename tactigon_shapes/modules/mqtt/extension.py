@@ -1,36 +1,63 @@
 import time
 import json
-from flask import Flask
-from threading import Thread, Event
 from queue import Queue
-from typing import Optional, Tuple
+from typing import Optional, Callable
 
-from paho.mqtt.client import Client
+import paho.mqtt.client as mqtt_client
 
 from .models import MQTTConfig
 
-class MQTTClient(Thread):
+class MQTTClient:
     config: MQTTConfig
     userdata: dict
     pubblish_queue: Queue
 
-    client: Optional[Client] = None
+    client: Optional[mqtt_client.Client] = None
 
-    def __init__(self, config: MQTTConfig):
-        Thread.__init__(self)
+    _can_reconnect: bool
+
+    def __init__(self, config: MQTTConfig, on_message: Optional[Callable[[mqtt_client.Client, dict, mqtt_client.MQTTMessage], None]] = None):
         self.config = config
+        self._can_reconnect = True
+        
+        self.userdata = {}
+        self.client = mqtt_client.Client(
+            client_id=self.config.client_id,
+            callback_api_version=self.config.callback_api_version,
+            protocol=self.config.protocol_version,
+            userdata=self.userdata,
+        )
+        
+        self.client.connect(self.config.broker_url, self.config.broker_port)
+        self.client.loop_start()
+        self.client.on_disconnect=self.on_disconnect
+        self.client.on_connect=self.add_subscriptions()
+        if on_message:
+            self.client.on_message = on_message
+        else:
+            self.client.on_message=self.on_message
 
     @property
     def connected(self):
         return self.client.is_connected() if self.client else False
 
-    def on_connect(self):
-        pass
-
-    def on_disconnect(self, client: Client, *args):
+    def add_subscriptions(self):
         if not self.client:
             return
         
+        for s in self.config.subscriptions:
+            self.client.subscribe(
+            topic=s.topic,
+            qos=s.qos
+        )
+
+    def on_disconnect(self, client: mqtt_client.Client, *args):
+        if not self._can_reconnect:
+            return
+        
+        if not self.client:
+            return
+                
         reconnect_count = reconnect_delay = 0
         while reconnect_count < self.config.max_reconnect_count:
             time.sleep(reconnect_delay)
@@ -46,25 +73,15 @@ class MQTTClient(Thread):
 
         self.client = None
 
-    def on_message(self, client: Client, userdata: dict, msg):
-        print(msg)
-        pass
-
-    def run(self):
-        self.userdata = {}
-        self.client = Client(
-            client_id=self.config.client_id,
-            callback_api_version=self.config.callback_api_version,
-            protocol=self.config.protocol_version,
-            userdata=self.userdata,
-        )
-        # self.client.on_connect=self.on_connect
-        self.client.on_disconnect=self.on_disconnect
-        self.client.on_message=self.on_message
+    def on_message(self, client: mqtt_client.Client, userdata: dict, message: mqtt_client.MQTTMessage):
+        print(message.topic, message.payload)
 
     def subscribe(self, topic: str, qos: int = 0):
         if not self.client:
             return
+        
+        while not self.client.is_connected():
+            time.sleep(0.05)
         
         self.client.subscribe(
             topic=topic,
@@ -74,6 +91,9 @@ class MQTTClient(Thread):
     def pubblish(self, topic: str, payload: dict, qos: int = 0) -> bool:
         if not self.client:
             return False
+        
+        while not self.client.is_connected():
+            time.sleep(0.05)
         
         try:
             self.client.publish(
@@ -85,38 +105,10 @@ class MQTTClient(Thread):
             return False
 
         return True
-        
-
-
-class MQTTExtension:
-    _thread: Optional[MQTTClient] = None
-
-    def __init__(self, app: Optional[Flask] = None):    
-        if app:
-            self.init_app(app)
-
-    def init_app(self, app: Flask):
-        app.extensions[MQTTExtension.__name__] = self
     
-    @property
-    def connected(self) -> bool:
-        return bool(self._thread.connected) if self._thread else False
-
-    def start(self, config: MQTTConfig):
-        if self._thread:
-            self.stop()
-
-        self._thread = MQTTClient(config)
-        self._thread.start()
-
-    def stop(self):
-        if self._thread:
-            self._thread.stop()
-            self._thread = None
-
-    def pubblish(self, topic: str, payload: dict) -> bool:
-        if self._thread:
-            self._thread.pubblish(topic, payload)
-            return True
+    def disconnect(self):
+        self._can_reconnect = False
+        if self.client:
+            self.client.disconnect()
         
-        return False
+        self.client = None

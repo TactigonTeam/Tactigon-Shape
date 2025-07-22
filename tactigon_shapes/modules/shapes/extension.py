@@ -12,8 +12,6 @@ from typing import List, Optional, Tuple, Any
 from flask import Flask
 from pynput.keyboard import Controller as KeyboardController
 
-from tactigon_shapes.modules.ginos.models import GinosConfig
-
 from .models import ShapeConfig, DebugMessage, ShapesPostAction, Program
 
 from ..braccio.extension import BraccioInterface, Wrist, Gripper
@@ -22,6 +20,7 @@ from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGestu
 from ..tskin.manager import walk
 from ..ironboy.extension import IronBoyInterface
 from ..ginos.extension import GinosInterface
+from ..mqtt.extension import MQTTClient, mqtt_client
 
 from ...extensions.base import ExtensionThread, ExtensionApp
 
@@ -53,6 +52,7 @@ class ShapeThread(ExtensionThread):
     _zion_interface: Optional[ZionInterface] = None
     _ironboy_interface: Optional[IronBoyInterface] = None
     _ginos_interface: Optional[GinosInterface] = None
+    _mqtt_interface: Optional[MQTTClient] = None
     
     def __init__(
             self, 
@@ -75,9 +75,13 @@ class ShapeThread(ExtensionThread):
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
 
+        if app.mqtt_config:
+            self._mqtt_interface = MQTTClient(app.mqtt_config, self.on_message)
+
         ExtensionThread.__init__(self)
 
         self.load_module(path.join(base_path, "programs", app.id.hex, "program.py"))
+
 
     @property
     def braccio_interface(self) -> Optional[BraccioInterface]:
@@ -120,8 +124,24 @@ class ShapeThread(ExtensionThread):
             timeout += ShapeThread.TICK
             
         return False
+    
+    def on_message(self, client: mqtt_client.Client, userdata: dict, message: mqtt_client.MQTTMessage):
+        if not self._mqtt_interface or not self.module:
+            return
+        
+        subscription = next((s for s in self._mqtt_interface.config.subscriptions if s.topic == message.topic), None)
 
-    def main(self):       
+        if not subscription:
+            return
+        
+        # Set the payload reference first
+        setattr(self.module, subscription.payload_reference, json.loads(message.payload))
+        # Execute the function
+        getattr(self.module, subscription.function)(self._logging_queue)
+        # Clear the payload
+        setattr(self.module, subscription.payload_reference, None)
+
+    def main(self):
         actions: List[Tuple[ShapesPostAction, Any]] = []
         try:
             self.module.tactigon_shape_function(
@@ -149,6 +169,16 @@ class ShapeThread(ExtensionThread):
         self.module = importlib.util.module_from_spec(spec)  # type: ignore
         sys.modules[self.MODULE_NAME] = self.module
         spec.loader.exec_module(self.module)  # type: ignore
+
+    def stop(self):
+        if self._ginos_interface:
+            self._ginos_interface = None
+            
+        if self._mqtt_interface:
+            self._mqtt_interface.disconnect()
+
+        ExtensionThread.stop(self)
+
 
 class ShapesApp(ExtensionApp):
     config_file_path: str
@@ -359,6 +389,7 @@ class ShapesApp(ExtensionApp):
                     self.thread = ShapeThread(self.shapes_file_path, _config, tskin, self.keyboard, self.braccio_interface, self.zion_interface, self.ironboy_interface, self.logging_queue) 
                     self.thread.start()
                 except Exception as e:
+                    print(e)
                     self.current_id = None
                     if self.thread:
                         try:
