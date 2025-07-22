@@ -1348,6 +1348,14 @@ function defineCustomGenerators() {
             statements_body = Blockly.Python.INDENT + "pass"
         }
 
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0){
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
         var code = 'def tactigon_shape_setup(\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
@@ -1357,6 +1365,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
+            variables +
             statements_body;
         return code;
     };
@@ -1368,6 +1377,14 @@ function defineCustomGenerators() {
             statements_body = Blockly.Python.INDENT + "pass"
         }
 
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0){
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
         var code = 'def tactigon_shape_close(\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
@@ -1377,6 +1394,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
+            variables +
             statements_body;
         return code;
     };
