@@ -332,11 +332,11 @@
                 <field name="DIRECTION">1</field>
             </block>
         </category>
-        <category name="Dictionaries" colour="#000500">
+        <category name="Dictionaries" colour="#636363">
             <block type="get_dict_property">
-                <value name="KEY">
+                <value name="key">
                     <shadow type="text">
-                        <field name="KEY"></field>
+                        <field name="key"></field>
                     </shadow>
                 </value>
             </block>
@@ -596,6 +596,16 @@
                         </shadow>
                     </value>
                 </block>
+                <block type="ginos_mqtt_pubblish">
+                    <value name="payload">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                    <value name="topic">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                </block>
             </category>
         {% endif %}
         <sep></sep>
@@ -787,7 +797,6 @@
                 }
                 
                 const subscriptions = getSubscriptions(workspace);
-                console.log(subscriptions)
                 setGeneratedCode(workspace);
                 setState(workspace);
                 setSubscriptions(subscriptions);

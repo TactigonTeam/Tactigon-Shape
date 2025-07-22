@@ -150,7 +150,8 @@ class ShapeThread(ExtensionThread):
                 self.braccio_interface, 
                 self.zion_interface, 
                 self._ironboy_interface, 
-                self._ginos_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
                 actions, 
                 self._logging_queue
             )

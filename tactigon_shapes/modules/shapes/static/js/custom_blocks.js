@@ -18,49 +18,19 @@ function loadCustomBlocks(response) {
     loadIronBoyBlocks(ironboy);
     loadGinosAIBlocks(ginos);
     loadGinosMQTTBlocks(ginos);
+    loadDictionaryBlocks();
     
-    Blockly.Blocks['get_dict_property'] = {
-        init: function () {
-            this.jsonInit({
-                "type": "get_dict_property",
-                "message0": "In dictionary %1 Get value for key %2",
-                "args0": [
-                    {
-                        "type": "input_value",
-                        "name": "DICT",
-                        "check": "Dictionary"
-                    },
-                    {
-                        "type": "input_value",
-                        "name": "KEY",
-                        "check": "String"
-                    }
-                ],
-                "output": null,
-                "colour": '#000500',
-                "tooltip": "Get the value for a key in a dictionary",
-                "helpUrl": "",
-                "inputsInline": true
-            });
-        }
-    };
-
     Blockly.Blocks['tactigon_shape_function'] = {
         init: function () {
             this.jsonInit({
                 "type": "tactigon_shape_function",
-                "message0": "Loop %1 do %2",
+                "message0": "Do %1",
                 "args0": [
-                    {
-                        "type": "input_dummy",
-                        "name": ""
-                    },
                     {
                         "type": "input_statement",
                         "name": "BODY"
                     }
                 ],
-                "inputsInline": false,
                 "colour": 230,
                 "tooltip": "Main function",
                 "helpUrl": ""
@@ -110,6 +80,33 @@ function loadCustomBlocks(response) {
             });
         }
     };
+}
+
+function loadDictionaryBlocks(){
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "get_dict_property",
+            "message0": "Get item %1 from dictionary %2",
+            "args0": [
+                {
+                "type": "input_value",
+                "name": "key",
+                "check": "String"
+                },
+                {
+                "type": "input_value",
+                "name": "dictionary"
+                }
+            ],
+            "output": null,
+            "colour": '#636363',
+            "tooltip": "Get the value for a key in a dictionary",
+            "helpUrl": "",
+            "inputsInline": true
+        },
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
 }
 
 //Carica i blocchi relativi a TSkin
@@ -886,14 +883,14 @@ function loadIronBoyBlocks(ironboy) {
                 "message0": "Send command %1 execute for %2 times",
                 "args0": [
                     {
-                    "type": "input_value",
-                    "name": "command",
-                    "check": "IronBoyCommand"
+                        "type": "input_value",
+                        "name": "command",
+                        "check": "IronBoyCommand"
                     },
                     {
-                    "type": "input_value",
-                    "name": "reps",
-                    "check": "Number"
+                        "type": "input_value",
+                        "name": "reps",
+                        "check": "Number"
                     }
                 ],
                 "previousStatement": null,
@@ -905,8 +902,6 @@ function loadIronBoyBlocks(ironboy) {
         
     }
     
-
-//-----------------------------------------------
     Blockly.Blocks['command_list'] = {
         init: function() {
             this.jsonInit({
@@ -925,7 +920,7 @@ function loadIronBoyBlocks(ironboy) {
             "helpUrl": ""
             });
         }
-        };
+    };
 }
 
 function loadGinosAIBlocks(ginos){
@@ -1001,8 +996,6 @@ function loadGinosMQTTBlocks(ginos){
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "ginos_mqtt_subscribe",
-            "tooltip": "",
-            "helpUrl": "",
             "message0": "On message from %1 get values in %2",
             "args0": [
                 {
@@ -1023,6 +1016,29 @@ function loadGinosMQTTBlocks(ginos){
                     "name": "function"
                 }
             ],
+            "tooltip": "Subscribe to a topic and trigger the call on message event",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ginos_mqtt_pubblish",
+
+            "message0": "Pubblish payload %1 on topic %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "payload"
+                },
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                }
+            ],
+            "tooltip": "Pubblish a message to a topic",
+            "helpUrl": "",
+            "previousStatement": null,
+            "nextStatement": null,
             "colour": 225
         }
     ]);
@@ -1047,6 +1063,7 @@ from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFinge
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
 
@@ -1267,8 +1284,13 @@ def ginos_ai_prompt(ginos: Optional[GinosInterface], prompt: str, context: str =
 
     return ginos.prompt(prompt_object)
 
-# ---------- Generated code ---------------
+def mqtt_pubblish(mqtt: Optional[MQTTClient], topic: str, payload: Any):
+    if not mqtt:
+        return
+    
+    mqtt.pubblish(topic, payload)
 
+# ---------- Generated code ---------------
 
 `;
 }
@@ -1296,13 +1318,22 @@ function defineCustomGenerators() {
 
         let variables = block.workspace.getAllVariables().map((v) => {
             return v.name;
-        }).join(',');
+        }).join(', ');
 
         if (variables.length > 0){
             variables = `${Blockly.Python.INDENT}global ${variables}\n`;
         }
 
-        var code = 'def tactigon_shape_function(tskin: TSkin, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], ironboy: Optional[IronBoyInterface], ginos: Optional[GinosInterface], actions: List[ShapesPostAction], logging_queue: LoggingQueue):\n' +
+        var code = 'def tactigon_shape_function(\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'actions: List[ShapesPostAction],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
@@ -1459,10 +1490,10 @@ function defineBraccioGenerators(){
 
 function defineDictionaryGenerators() {
     python.pythonGenerator.forBlock['get_dict_property'] = function (block, generator) {
-        const dict = Blockly.Python.valueToCode(block, 'DICT', Blockly.Python.ORDER_ATOMIC) || "{}";
-        const key = Blockly.Python.valueToCode(block, 'KEY', Blockly.Python.ORDER_ATOMIC) || "''";
+        const dict = Blockly.Python.valueToCode(block, 'dictionary', Blockly.Python.ORDER_ATOMIC) || "{}";
+        const key = Blockly.Python.valueToCode(block, 'key', Blockly.Python.ORDER_ATOMIC) || "''";
 
-        const code = `${dict}.get(${key})`;
+        const code = `${dict}.get(${key}, None)`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
@@ -1608,7 +1639,7 @@ function defineGinosMQTTGenerators(){
     python.pythonGenerator.forBlock['ginos_mqtt_subscribe'] = function(block, generator) {
         let variables = block.workspace.getAllVariables().map((v) => {
             return v.name;
-        }).join(',');
+        }).join(', ');
 
         if (variables.length > 0){
             variables = `${Blockly.Python.INDENT}global ${variables}\n`;
@@ -1619,6 +1650,14 @@ function defineGinosMQTTGenerators(){
         const statement_function = generator.statementToCode(block, 'function');
 
         const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables +  statement_function;
+        return code;
+    }
+
+    python.pythonGenerator.forBlock['ginos_mqtt_pubblish'] = function(block, generator) {
+        const value_payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+
+        const code = `mqtt_pubblish(mqtt, ${value_topic}, ${value_payload})\n`
         return code;
     }
 }
