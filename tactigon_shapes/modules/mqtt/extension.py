@@ -58,7 +58,8 @@ class MQTTClient:
             return
                 
         reconnect_count = reconnect_delay = 0
-        while reconnect_count < self.config.max_reconnect_count:
+        # while reconnect_count < self.config.max_reconnect_count:
+        while True:
             time.sleep(reconnect_delay)
 
             try:
@@ -67,7 +68,7 @@ class MQTTClient:
             except Exception as err:
                 pass
 
-            reconnect_delay *= self.config.reconnect_rate
+            reconnect_delay = reconnect_count * self.config.reconnect_rate
             reconnect_count += 1
 
         self.client = None
@@ -75,24 +76,32 @@ class MQTTClient:
     def on_message(self, client: mqtt_client.Client, userdata: dict, message: mqtt_client.MQTTMessage):
         print(message.topic, message.payload)
 
-    def subscribe(self, topic: str, qos: int = 0):
+    def subscribe(self, topic: str, qos: int = 0, timeout: float = 5):
         if not self.client:
             return
         
+        _t = 0
         while not self.client.is_connected():
             time.sleep(0.05)
+            _t += 0.05
+            if _t > timeout:
+                return False
         
         self.client.subscribe(
             topic=topic,
             qos=qos
         )
 
-    def publish(self, topic: str, payload: dict, qos: int = 0) -> bool:
+    def publish(self, topic: str, payload: dict, qos: int = 0, timeout: float = 5) -> bool:
         if not self.client:
             return False
         
+        _t = 0
         while not self.client.is_connected():
             time.sleep(0.05)
+            _t += 0.05
+            if _t > timeout:
+                return False
         
         try:
             self.client.publish(
