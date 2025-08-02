@@ -11,7 +11,9 @@ function loadCustomBlocks(response) {
     const ginos = response ? response.ginos: {};
     
     loadTSkinBlocks(gestures, taps);
-    loadSpeechBlocks(speechs);
+    if (speechs) {
+        loadSpeechBlocks(speechs);
+    }
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
