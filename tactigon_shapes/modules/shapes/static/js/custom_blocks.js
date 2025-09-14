@@ -42,6 +42,130 @@ function loadCustomBlocks(response) {
     })}},
                           
 
+    Blockly.Blocks['create_empty_dict'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "create_empty_dict",
+                "message0": "Create empty dictionary",
+                "output": "Dictionary",
+                "colour": '#000500',
+                "tooltip": "Creates an empty dictionary (dict).",
+                "helpUrl": ""
+            });
+        }
+    };
+    
+    Blockly.Blocks['create_dict_with'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "create_dict_with",
+                "message0": "Create dictionary with %1",
+                "args0": [
+                    {
+                        "type": "input_value",
+                        "name": "PAIRS",
+                        "check": "Array"
+                    }
+                ],
+                "output": "Dictionary",
+                "colour": '#000500',
+                "tooltip": "Creates a dict with key-value pairs.",
+                "helpUrl": ""
+            });
+        }
+    };
+    
+    Blockly.Blocks['size_of_dict'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "size_of_dict",
+                "message0": "Size of %1",
+                "args0": [
+                    {
+                        "type": "input_value",
+                        "name": "MAP",
+                        "check": "Dictionary"
+                    }
+                ],
+                "output": "Number",
+                "colour": '#000500',
+                "tooltip": "Gets the number of entries in a dict.",
+                "helpUrl": ""
+            });
+        }
+    };
+    
+    Blockly.Blocks['is_empty_dict'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "is_empty_dict",
+                "message0": "is empty %1",
+                "args0": [
+                    {
+                        "type": "input_value",
+                        "name": "MAP",
+                        "check": "Dictionary"
+                    }
+                ],
+                "output": "Boolean",
+                "colour": '#000500',
+                "tooltip": "Checks if a dict is empty.",
+                "helpUrl": ""
+            });
+        }
+    };
+    
+    Blockly.Blocks['set_dict_property'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "set_dict_property",
+                "message0": "In dictionary %1 set key %2 as %3",
+                "args0": [
+                    {
+                        "type": "input_value",
+                        "name": "DICT",
+                        "check": "Dictionary"
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "KEY",
+                        "check": "String"
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "VALUE"
+                    }
+                ],
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": '#000500',
+                "tooltip": "Sets a key-value pair in a dictionary.",
+                "helpUrl": "",
+                "inputsInline": true
+            });
+        }
+    };
+    
+    Blockly.Blocks['get_keys_of_dict'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "get_keys_of_dict",
+                "message0": "Get keys of %1",
+                "args0": [
+                    {
+                        "type": "input_value",
+                        "name": "MAP",
+                        "check": "Dictionary"
+                    }
+                ],
+                "output": "Array",
+                "colour": '#000500',
+                "tooltip": "Gets all the keys from a dictionary.",
+                "helpUrl": ""
+            });
+        }
+    };
+
     Blockly.Blocks['get_dict_property'] = {
         init: function () {
             this.jsonInit({
@@ -1344,6 +1468,41 @@ function defineDictionaryGenerators() {
         const key = Blockly.Python.valueToCode(block, 'KEY', Blockly.Python.ORDER_ATOMIC) || "''";
 
         const code = `${dict}.get(${key})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['create_empty_dict'] = function (block, generator) {
+        return ['{}', Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['create_dict_with'] = function (block, generator) {
+        const pairs = Blockly.Python.valueToCode(block, 'PAIRS', Blockly.Python.ORDER_ATOMIC) || '[]';
+        const code = `dict(${pairs})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['size_of_dict'] = function(block) {
+        const dict = Blockly.Python.valueToCode(block, 'MAP', Blockly.Python.ORDER_ATOMIC) || '{}';
+        const code = `len(${dict})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['is_empty_dict'] = function(block) {
+        const dict = Blockly.Python.valueToCode(block, 'MAP', Blockly.Python.ORDER_ATOMIC) || '{}';
+        const code = `len(${dict}) == 0`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['set_dict_property'] = function(block) {
+        const dict = Blockly.Python.valueToCode(block, 'DICT', Blockly.Python.ORDER_ATOMIC) || '{}';
+        const key = Blockly.Python.valueToCode(block, 'KEY', Blockly.Python.ORDER_ATOMIC) || "''";
+        const value = Blockly.Python.valueToCode(block, 'VALUE', Blockly.Python.ORDER_ATOMIC) || "None";
+        return `${dict}[${key}] = ${value}\n`;
+    };
+
+    python.pythonGenerator.forBlock['get_keys_of_dict'] = function(block) {
+        const dict = Blockly.Python.valueToCode(block, 'MAP', Blockly.Python.ORDER_ATOMIC) || '{}';
+        const code = `list(${dict}.keys())`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
