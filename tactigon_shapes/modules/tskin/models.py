@@ -6,14 +6,15 @@ from dataclasses import dataclass
 from typing import Optional, List, Tuple, Iterable
 
 from tactigon_gear import TSkinConfig, GestureConfig, Gesture, Hand, Angle, Touch, OneFingerGesture, TwoFingerGesture
+from tactigon_shapes.utils import supports_voice, get_tactigon_speech_version
 
-if sys.platform != "darwin":
+if sys.version_info < (3, 9):
     from tactigon_speech import TSkin_Speech as OldTSkin, VoiceConfig as OldVoiceConfig, Transcription, TSpeech, TSpeechObject, HotWord
 else:
     from tactigon_gear import TSkin as OldTSkin
     tactigon_speech_version = None
 
-if sys.platform != "darwin":
+if sys.version_info < (3, 9):
     HotWords = Tuple[HotWord, Optional[Iterable["HotWords"]]]
 
     @dataclass
@@ -85,15 +86,6 @@ if sys.platform != "darwin":
 
 else:
     @dataclass
-    class VoiceConfig:
-        @classmethod
-        def FromJSON(cls, json: dict):
-            return cls()
-        
-        def toJSON(self) -> dict:
-            return {}
-        
-    @dataclass
     class HotWord:
         @classmethod
         def FromJSON(cls, json: dict):
@@ -105,7 +97,28 @@ else:
     HotWords = Tuple[HotWord, Optional[Iterable["HotWords"]]]
         
     @dataclass
+    class TSpeech:
+        @classmethod
+        def FromJSON(cls, json: dict):
+            return cls()
+        
+        def toJSON(self) -> dict:
+            return {}
+        
+    @dataclass
     class TSpeechObject:
+        t_speech: List[TSpeech]
+        @classmethod
+        def FromJSON(cls, json: dict):
+            return cls([])
+        
+        def toJSON(self) -> dict:
+            return {}
+        
+    @dataclass
+    class VoiceConfig:
+        voice_commands: Optional[TSpeechObject] = None
+
         @classmethod
         def FromJSON(cls, json: dict):
             return cls()

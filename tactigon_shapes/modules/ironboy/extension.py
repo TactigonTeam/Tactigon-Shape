@@ -113,7 +113,7 @@ class IronBoyInterface:
             time.sleep(0.01)
     
     def executing(self):
-        return self._thread.executing
+        return self._thread.executing if self._thread else False
     
     
     def get_shape_blocks(self):

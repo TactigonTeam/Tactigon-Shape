@@ -144,9 +144,6 @@ def save():
     tskin_config = get_tskin_default_config(tskin_mac, hand, tskin_name, current_model)
     voice_config = get_voice_default_config()
 
-    if voice_config:
-        voice_config.stop_hotword = None
-
     if socket_app:
         socket_app.stop()
 
@@ -165,7 +162,7 @@ def save():
 
     return json.dumps(tskin_config.toJSON()), 200
 
-if sys.platform != "darwin":
+if sys.version_info < (3, 9):
     @bp.route("play", methods=["POST"])
     def play(base_path = ""):
         tskin = get_tskin()

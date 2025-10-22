@@ -6,18 +6,13 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 
 from tactigon_gear import  __version__ as tactigon_gear_version
-
-if sys.platform != "darwin":
-    from tactigon_speech import __version__ as tactigon_speech_version
-else:
-    tactigon_speech_version = None
-
+from .utils import get_tactigon_speech_version
 from .modules.tskin.models import Hand, TSkinModel, TSkinConfig, VoiceConfig, ModelGesture, ModelTouch, OneFingerGesture
 
 BASE_PATH = getcwd()
 
 TACTIGON_GEAR = tactigon_gear_version
-TACTIGON_SPEECH = tactigon_speech_version
+TACTIGON_SPEECH = get_tactigon_speech_version()
 
 @dataclass
 class AppConfig(object):

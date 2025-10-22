@@ -49,7 +49,7 @@ def get_tskin_default_config(address: str, hand: Hand, name: str, model: TSkinMo
         )
     )
 
-if sys.platform != "darwin":
+if sys.version_info < (3, 9):
     def walk(args, s: TSpeech, level: int = 0, parent: str = "_init_"):
         if level > len(args) - 1:
             args.append(dict())
@@ -65,7 +65,7 @@ if sys.platform != "darwin":
                     walk(args, child, level + 1, hw.word)
 
     def get_voice_default_config() -> Optional[VoiceConfig]:
-        return VoiceConfig(
+        cfg = VoiceConfig(
             path.join("speech", "deepspeech-0.9.3-models.tflite"),
             path.join("speech", "shapes.scorer"),
             voice_timeout=8,
@@ -90,9 +90,11 @@ if sys.platform != "darwin":
                 ]
             )
         )
+        cfg.stop_hotword = None
+        return cfg
 
 else:
-    def walk (args, s, level, parent):
+    def walk (args, s: TSpeech, level: int = 0, parent: str = "_init_"):
         return []
     
     def get_voice_default_config() -> Optional[VoiceConfig]:
