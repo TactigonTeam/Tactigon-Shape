@@ -14,18 +14,20 @@ from gevent.pywsgi import WSGIServer
 
 from typing import Optional
 
-from .config import app_config
-from .models import BASE_PATH, TACTIGON_SPEECH, TACTIGON_GEAR
+from tactigon_shapes.config import app_config
+from tactigon_shapes.models import BASE_PATH, TACTIGON_SPEECH, TACTIGON_GEAR
 
-from .modules.socketio import SocketApp
-from .modules.braccio.extension import BraccioInterface
-from .modules.braccio.manager import get_braccio_interface
-from .modules.shapes.extension import ShapesApp
-from .modules.zion.extension import ZionInterface
-from .modules.zion.manager import get_zion_interface
-from .modules.tskin.manager import load_tskin, start_tskin, TSKIN_EXTENSION
-from .modules.ironboy.extension import IronBoyInterface
-from .modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.socketio import SocketApp
+from tactigon_shapes.modules.braccio.extension import BraccioInterface
+from tactigon_shapes.modules.braccio.manager import get_braccio_interface
+from tactigon_shapes.modules.shapes.extension import ShapesApp
+from tactigon_shapes.modules.zion.extension import ZionInterface
+from tactigon_shapes.modules.zion.manager import get_zion_interface
+from tactigon_shapes.modules.tskin.manager import load_tskin, start_tskin, TSKIN_EXTENSION
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.manager import get_ros_interface
 
 class Server(Process):
     url: str
@@ -77,6 +79,7 @@ class Server(Process):
             braccio_interface = BraccioInterface(path.join(BASE_PATH, "config", "braccio"))
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
+            ros2_interface = Ros2Interface()
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -84,6 +87,7 @@ class Server(Process):
             shapes_app.init_app(flask_app)
             socket_app.init_app(flask_app)
             ironboy_interface.init_app(flask_app)
+            ros2_interface.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
             shapes_app.zion_interface = zion_interface
