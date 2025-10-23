@@ -58,7 +58,7 @@
 
 {% block body %}
 <div class="d-flex flex-grow-1">
-    <div class="d-flex flex-column justify-content-between sidebar-container">
+    <div class="d-flex flex-column sidebar-container">
         <div class="text-center pb-3 pt-5">
             <h5>Shapes</h5>
         </div>
@@ -80,13 +80,13 @@
             </a>
             {% endfor %}
         </div>
-        <div class="mx-auto py-3">
+        <div class="mx-auto mt-auto py-3">
             <button type="button" class="btn btn-outline-tskin" data-bs-toggle="modal" data-bs-target="#add">
                 <i class="bi bi-plus"></i>
                 Add Shape
             </button>
             <div class="modal fade" id="add" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <form action="{{ url_for('shapes.add') }}" method="POST">
                             <div class="modal-header">
@@ -101,8 +101,39 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="program-description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="program-description" rows="3"
-                                        name="description"></textarea>
+                                    <textarea class="form-control" id="program-description" rows="3" name="description"></textarea>
+                                </div>
+                                <h6>Ginos</h6>
+                                <div class="row">
+                                    <div class="col-md-6 border-end">
+                                        <div class="mb-3">
+                                            <label for="ginos-url" class="form-label">Address</label>
+                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="ginos-model" class="form-label">Model name</label>
+                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row mb-3">
+                                            <label class="form-label">MQTT Broker</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="mqtt.ginos.ai">
+                                            </div>
+                                            <div class="col-sm">
+                                                <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-nodename" class="form-label">Node name</label>
+                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-nodetype" class="form-label">Node type</label>
+                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -151,7 +182,7 @@
             </div>
             {% if not current_config.readonly %}
             <div class="modal fade" id="edit" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <form action="{{ url_for('shapes.save_config', program_id=current_config.id) }}" method="POST">
                             <div class="modal-header">
@@ -169,6 +200,38 @@
                                     <label for="programDescription" class="form-label">Description</label>
                                     <textarea class="form-control" id="programDescription"
                                         name="description">{{current_config.description}}</textarea>
+                                </div>
+                                <h6>Ginos</h6>
+                                <div class="row">
+                                    <div class="col-md-6 border-end">
+                                        <div class="mb-3">
+                                            <label for="ginos-url" class="form-label">Address</label>
+                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai" value="{{current_config.ginos_config.url}}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="ginos-model" class="form-label">Model name</label>
+                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b" value="{{current_config.ginos_config.model}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row mb-3">
+                                            <label class="form-label">MQTT Broker</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="mqtt.ginos.ai" value="{{current_config.mqtt_config.broker_url}}">
+                                            </div>
+                                            <div class="col-sm">
+                                                <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883" value="{{current_config.mqtt_config.broker_port}}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-clientid" class="form-label">Node name</label>
+                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="" value="{{current_config.mqtt_config.node_name}}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="mqtt-clientid" class="form-label">Node type</label>
+                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="" value="{{current_config.mqtt_config.node_type}}">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -241,11 +304,11 @@
             </div>
             {% endif %}
         </div>
-        <div class="d-flex flex-fill flex-row gap-3">
+        <div class="row h-100">
             {% if current_config.id == current_running_program %}
-            <div id="blocklyDiv" class="flex-grow-1 border"></div>
+            <div id="blocklyDiv" class="col h-100"></div>
             
-            <div class="d-flex flex-column flex-grow-1 rounded border bg-white" style="height: 60vh; width: 25vh">
+            <div class="col rounded">
                 <div class="d-flex p-1 terminal-header rounded-top justify-content-start">
                     <div class="d-flex mx-1">
                         <div class="terminal-button terminal-button-close"></div>
@@ -259,12 +322,11 @@
                         <div class="terminal-button"></div>
                     </div>
                 </div>
-                <div class="d-flex flex-column flex-fill p-2 rounded-bottom terminal text-white overflow-y-scroll"
-                    id="terminal">
+                <div class="d-flex flex-column p-2 rounded-bottom terminal text-white overflow-y-scroll"id="terminal">
                 </div>
             </div>
             {% else %}
-            <div id="blocklyDiv" class="flex-grow-1 border"></div>
+            <div id="blocklyDiv" class="flex-grow-1"></div>
             {% endif %}
         </div>
         {%else%}
@@ -311,6 +373,24 @@
         return workspace;
     }
 
+    function getEventMessage(event) {
+        if (event.message_type === "string"){
+            return $("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message}`);
+        }
+
+        if (event.message_type === "prompt"){
+
+            return $("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message.message}`);
+        }
+
+        return "";
+    }
+
+    function resizeTerminal(terminal){
+        const container_h = terminal.parent(".col").height();
+        const siblings_h = terminal.siblings().outerHeight();
+        terminal.outerHeight(container_h-siblings_h);
+    }
 
     $(document).ready(() => {
         const terminal = $("#terminal");
@@ -329,11 +409,29 @@
                 return;
             }
 
-            terminal.prepend(
-                $("<span/>", {class: event.severity}).html(`[${event.date}] ${event.severity}: ${event.message}`)
-            );
+            if (event.message_type === "string"){
+                terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message}`));
+                return;
+            }
+
+            if (event.message_type === "prompt"){
+                const last_child = terminal.children().first();
+                if (last_child.attr('name') == event.message_type){
+                    const html = last_child.html();
+                    last_child.html(html+event.message.message);
+                    return;
+                }
+
+                terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message.message}`));
+                return;
+            }
+        });
+        resizeTerminal(terminal);
+        $(window).resize(() => {
+            resizeTerminal(terminal)
         });
         {% endif %}
+
         loadCustomBlocks({{ blocks_config | tojson | safe }});
         defineCustomGenerators();
         const workspace = initializeBlockly();

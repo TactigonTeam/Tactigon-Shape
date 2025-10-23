@@ -150,6 +150,11 @@ class Server(Process):
                     ironboy_config = None
                     has_ironboy = ironboy_status = ironboy_connected = False
 
+                if zion_interface:
+                    zion_config = zion_interface.config
+                else:
+                    zion_config = None
+
                 return dict(
                     DEBUG=app_config.DEBUG,
                     BASE_PATH=BASE_PATH,
@@ -163,7 +168,7 @@ class Server(Process):
                     tactigon_speech=TACTIGON_SPEECH,
                     tactigon_gear=TACTIGON_GEAR,
                     has_braccio=has_braccio,
-                    has_zion=True if zion_interface else False,
+                    zion_config=zion_config,
                     ironboy_config=ironboy_config,
                     has_ironboy=has_ironboy,
                     ironboy_status=ironboy_status,

@@ -71,7 +71,6 @@ const update_tskin_status = (tskin, data) => {
 
 const update_braccio_status = (braccio, data) => {
     if (data === undefined){
-        show_tskin(tskin, false)
         return;
     }
 
@@ -90,7 +89,6 @@ const update_braccio_status = (braccio, data) => {
 
 const update_ironboy_status = (ironboy, data) => {
     if (data === undefined){
-        show_tskin(tskin, false)
         return;
     }
 

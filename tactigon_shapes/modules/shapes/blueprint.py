@@ -6,6 +6,8 @@ from typing import List, Optional
 from flask import Blueprint, render_template, flash, redirect, url_for
 
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.ginos.models import GinosConfig
+from tactigon_shapes.modules.mqtt.models import MQTTConfig
 
 from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program
 from tactigon_shapes.modules.shapes.manager import get_shapes_app
@@ -16,6 +18,13 @@ from tactigon_shapes.modules.zion.manager import get_zion_interface
 from tactigon_shapes.config import app_config, check_config
 from tactigon_shapes.models import ModelGesture
 from tactigon_shapes.utils.request_utils import get_from_request, check_empty_inputs
+
+from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
+from tactigon_shapes.modules.mqtt.models import MQTTSubscription
+
+from ...config import app_config, check_config
+from ...models import ModelGesture
+from ...utils.request_utils import get_from_request, check_empty_inputs
 
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")
@@ -66,7 +75,8 @@ def index(program_id: Optional[str] = None):
 
     if ironboy:
         blocks_config["ironboy"] = ironboy.get_shape_blocks()
-           
+
+    blocks_config["ginos"] = get_ginos_blocks()
     
     state = _shapes.get_state(current_config.id) if current_config else None
 
@@ -78,6 +88,7 @@ def index(program_id: Optional[str] = None):
                            shapes_config=_shapes.config,
                            blocks_config=blocks_config,
                            )
+
 
 @bp.route("/add", methods=["POST"])
 @check_config
@@ -106,19 +117,52 @@ def add():
     if program:
         flash(f"Name '{program_name}' already exist!", category="danger")
         return redirect(url_for("shapes.index"))
+    
+    ginos_url = get_from_request("ginos_url")
+    ginos_model = get_from_request("ginos_model")
+    ginos_config = None
+
+    if (ginos_url and ginos_url != "") and (ginos_model and ginos_model != ""):
+        ginos_config = GinosConfig(
+            url=ginos_url,
+            model=ginos_model,
+        )
+    
+    mqtt_url = get_from_request("mqtt_url")
+    mqtt_port = get_from_request("mqtt_port")
+    mqtt_nodename = get_from_request("mqtt_nodename")
+    mqtt_nodetype = get_from_request("mqtt_nodetype")
+    mqtt_config = None
+
+    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
+        try:
+            mqtt_port = int(mqtt_port)
+        except:
+            flash(f"Invalid Ginos MQTT port config!", category="danger")
+            return redirect(url_for("shapes.index"))
+
+        mqtt_config = MQTTConfig(
+            broker_url=mqtt_url,
+            broker_port=mqtt_port,
+            node_name=mqtt_nodename,
+            node_type=mqtt_nodetype,
+        )
 
     new_config = ShapeConfig(
         id=uuid4(),
         name=program_name,
         description=_program_description,
         created_on=datetime.now(),
-        modified_on=datetime.now()
+        modified_on=datetime.now(),
+        ginos_config=ginos_config,
+        mqtt_config=mqtt_config,
     )
 
     _shapes.add(new_config)
 
     flash(f"Shape created.", category="success")
     return redirect(url_for("shapes.edit", program_id=new_config.id))
+
 
 @bp.route("/<string:program_id>/edit")
 @check_config
@@ -155,12 +199,12 @@ def edit(program_id: str):
     ironboy = get_ironboy_interface()
 
     if ironboy:
-        blocks_config["ironboy"] = ironboy.get_shape_blocks()
-           
-        
+        blocks_config["ironboy"] = ironboy.get_shape_blocks()       
 
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
+
+    blocks_config["ginos"] = get_ginos_blocks()
 
     return render_template("shapes/edit.jinja",
                            current_config=current_config,
@@ -203,9 +247,56 @@ def save_config(program_id: str):
         flash(f"Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
 
+    ginos_url = get_from_request("ginos_url")
+    ginos_model = get_from_request("ginos_model")
+
+    if (ginos_url and ginos_url != "") and (ginos_model and ginos_model != ""):
+        ginos_config = GinosConfig(
+            url=ginos_url,
+            model=ginos_model,
+        )
+    else:
+        ginos_config = None
+        # flash(f"Invalid Ginos AI config!", category="danger")
+        # return redirect(url_for("shapes.index"))
+    
+    mqtt_url = get_from_request("mqtt_url")
+    mqtt_port = get_from_request("mqtt_port")
+    mqtt_nodename = get_from_request("mqtt_nodename")
+    mqtt_nodetype = get_from_request("mqtt_nodetype")
+
+    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
+        try:
+            mqtt_port = int(mqtt_port)
+        except:
+            flash(f"Invalid Ginos MQTT port config!", category="danger")
+            return redirect(url_for("shapes.index"))
+
+        if not config.mqtt_config:
+            mqtt_config = MQTTConfig(
+            broker_url=mqtt_url,
+            broker_port=mqtt_port,
+            node_name=mqtt_nodename,
+            node_type=mqtt_nodetype,
+        )
+        else:
+            mqtt_config = config.mqtt_config
+
+            mqtt_config.broker_url = mqtt_url
+            mqtt_config.broker_port = mqtt_port
+            mqtt_config.node_name = mqtt_nodename
+            mqtt_config.node_type = mqtt_nodetype
+    else:
+        mqtt_config = None
+    # else:
+    #     flash(f"Invalid Ginos MQTT config!", category="danger")
+    #     return redirect(url_for("shapes.index"))
+
     config.name = program_name
     config.description = program_description
     config.modified_on = datetime.now()
+    config.ginos_config = ginos_config
+    config.mqtt_config = mqtt_config
 
     _shapes.save_config(config=config)
 
@@ -252,7 +343,11 @@ def clone_config(program_id: str):
         program_name,
         datetime.now(),
         datetime.now(),
-        program_description
+        program_description,
+        original_config.readonly,
+        original_config.app_file,
+        original_config.ginos_config,
+        original_config.mqtt_config
     )
 
     program = _shapes.get_shape(UUID(program_id))
@@ -266,7 +361,6 @@ def clone_config(program_id: str):
     return redirect(url_for("shapes.edit", program_id=new_config.id))
 
 
-#----------------------------------------------------------------------
 @bp.route("/<string:program_id>/save/program", methods=["POST"])
 @check_config
 def save_program(program_id: str):
@@ -278,11 +372,12 @@ def save_program(program_id: str):
 
     code = get_from_request('generatedCode')
     state = get_from_request('state')
+    subscriptions = get_from_request("subscriptions")
 
+    # is_empty_input = check_empty_inputs(locals().items())
 
-    is_empty_input = check_empty_inputs(locals().items())
-
-    if is_empty_input or code is None or state is None:
+    # if is_empty_input or code is None or state is None:
+    if code is None or state is None:
         flash(f"An error occurred while saving the Shape!", category="danger")
         return redirect(url_for("shapes.edit", program_id=program_id))
 
@@ -293,10 +388,12 @@ def save_program(program_id: str):
         return redirect(url_for("shapes.index"))
 
     config.modified_on = datetime.now()
+    
+    if subscriptions and config.mqtt_config:
+        config.mqtt_config.subscriptions = [MQTTSubscription.FromJSON(s) for s in json.loads(subscriptions)]   
 
     is_success = _shapes.update(config, Program(code=code, state=json.loads(state)))
 
-    
     if not is_success:
         flash(f"Something went wrong!", category="danger")
         return redirect(url_for("shapes.edit", program_id=program_id))
@@ -305,7 +402,7 @@ def save_program(program_id: str):
     flash(f"Shape saved.", category="success")
     return redirect(url_for("shapes.index", program_id=program_id))
 
-#----------------------------------------------
+
 @bp.route("/<string:program_id>/start")
 @check_config
 def start(program_id: str):

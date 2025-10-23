@@ -2,7 +2,7 @@ import sys
 import json
 from os import path
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Iterable
 
 from tactigon_gear import TSkinConfig, GestureConfig, Gesture, Hand, Angle, Touch, OneFingerGesture, TwoFingerGesture
@@ -131,11 +131,8 @@ else:
             OldTSkin.__init__(self, config, debug)
 
         @property
-        def touch_preserve(self) -> Optional[Touch]:
-            self._update_touch.acquire()
-            touch = self._touch
-            self._update_touch.release()
-            return touch
+        def can_listen(self):
+            return False
 
 @dataclass
 class ModelGesture:
