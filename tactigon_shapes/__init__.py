@@ -26,8 +26,6 @@ from tactigon_shapes.modules.zion.manager import get_zion_interface
 from tactigon_shapes.modules.tskin.manager import load_tskin, start_tskin, TSKIN_EXTENSION
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
-from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2.manager import get_ros_interface
 
 class Server(Process):
     url: str
@@ -79,7 +77,6 @@ class Server(Process):
             braccio_interface = BraccioInterface(path.join(BASE_PATH, "config", "braccio"))
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
-            ros2_interface = Ros2Interface()
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -87,7 +84,6 @@ class Server(Process):
             shapes_app.init_app(flask_app)
             socket_app.init_app(flask_app)
             ironboy_interface.init_app(flask_app)
-            ros2_interface.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
             shapes_app.zion_interface = zion_interface

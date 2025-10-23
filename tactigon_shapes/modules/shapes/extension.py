@@ -5,112 +5,24 @@ import sys
 import time
 from queue import Queue
 from uuid import UUID
-from datetime import datetime
-from dataclasses import dataclass, field
-from enum import Enum
+
 from os import path, makedirs
 from typing import List, Optional, Tuple, Any
 
 from flask import Flask
 from pynput.keyboard import Controller as KeyboardController
 
-from ..braccio.extension import BraccioInterface, Wrist, Gripper
-from ..zion.extension import ZionInterface
-from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
-from ..tskin.manager import walk
-from ..ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, Program, ShapesPostAction
 
-from ...extensions.base import ExtensionThread, ExtensionApp
+from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
+from tactigon_shapes.modules.zion.extension import ZionInterface
+from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
+from tactigon_shapes.modules.tskin.manager import walk
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.models import RosMessage
+from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
-class Severity(Enum):
-    DEBUG = 0
-    INFO = 1
-    WARNING = 2
-    ERROR = 3
-
-class ShapesPostAction(Enum):
-    READ_TOUCH = 1
-
-@dataclass
-class Program:
-    state: object
-    code: Optional[str] = None
-
-@dataclass
-class ShapeConfig:
-    id: UUID
-    name: str
-    created_on: datetime
-    modified_on: datetime
-    description: Optional[str] = None
-    readonly: bool = False
-    app_file: str = "program.py"
-
-    @classmethod
-    def FromJSON(cls, json):
-        return cls(
-            UUID(json["id"]),
-            json["name"],
-            datetime.fromisoformat(json["created_on"]),
-            datetime.fromisoformat(json["modified_on"]),
-            json["description"],
-            json["readonly"]
-        )
-
-    def toJSON(self) -> dict:
-        return dict(
-            id=self.id.hex,
-            name=self.name,
-            created_on=self.created_on.isoformat(),
-            modified_on=self.modified_on.isoformat(),
-            description=self.description,
-            readonly=self.readonly
-        )
-    
-@dataclass
-class DebugMessage:
-    severity: Severity
-    date: datetime
-    message: str
-
-    @classmethod
-    def Debug(cls, message: str):
-        return cls(
-            Severity.DEBUG,
-            datetime.now(),
-            message
-        )
-
-    @classmethod
-    def Info(cls, message: str):
-        return cls(
-            Severity.INFO,
-            datetime.now(),
-            message
-        )
-    
-    @classmethod
-    def Warning(cls, message: str):
-        return cls(
-            Severity.WARNING,
-            datetime.now(),
-            message
-        )
-    
-    @classmethod
-    def Error(cls, message: str):
-        return cls(
-            Severity.ERROR,
-            datetime.now(),
-            message
-        )
-    
-    def toJSON(self) -> dict:
-        return dict(
-            severity=self.severity.name,
-            date=self.date.isoformat(),
-            message=self.message
-        )
 
 class LoggingQueue(Queue):
     def debug(self, msg):
@@ -136,6 +48,7 @@ class ShapeThread(ExtensionThread):
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
     _ironboy_interface: Optional[IronBoyInterface] = None
+    _ros2_interface: Optional[Ros2Interface] = None
 
     
     def __init__(
@@ -155,6 +68,9 @@ class ShapeThread(ExtensionThread):
         self._braccio_interface = braccio
         self._zion_interface = zion
         self._ironboy_interface = ironboy
+
+        if app.ros2config:
+            self._ros2_interface = Ros2Interface(app.ros2config)
 
         ExtensionThread.__init__(self)
 
@@ -201,6 +117,22 @@ class ShapeThread(ExtensionThread):
             timeout += ShapeThread.TICK
             
         return False
+    
+    def on_ros2_message(self, message: RosMessage):
+        if not self._ros2_interface or not self.module:
+            return
+        
+        subscription = next((s for s in self._ros2_interface.config.subscriptions if s.topic == message.topic), None)
+
+        if not subscription:
+            return
+        
+        # Set the payload reference first
+        setattr(self.module, subscription.payload_reference, message.msg.data)
+        # Execute the function
+        getattr(self.module, subscription.function)(self._logging_queue)
+        # Clear the payload
+        setattr(self.module, subscription.payload_reference, None)
 
     def main(self):       
         actions: List[Tuple[ShapesPostAction, Any]] = []

@@ -1,4 +1,6 @@
-from dataclasses import dataclass
+from rclpy.node import QoSProfile
+
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
@@ -45,3 +47,23 @@ class NodeAction:
             NodeActions.UNSUBSCRIBE,
             payload
         )
+    
+@dataclass
+class Ros2Publisher:
+    topic: str
+    message_type: Any
+    qos_profile: QoSProfile | int = 10
+    
+@dataclass
+class Ros2Subscription:
+    topic: str
+    function: str
+    payload_reference: str
+    message_type: Any
+    qos_profile: QoSProfile | int = 10
+
+@dataclass
+class Ros2Config:
+    node_name: str
+    publisher: list[Ros2Publisher] = field(default_factory=list)
+    subscriptions: list[Ros2Subscription] = field(default_factory=list)

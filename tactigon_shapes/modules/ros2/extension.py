@@ -7,9 +7,9 @@ from queue import Queue, Empty
 from functools import wraps
 from flask import Flask
 
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 
-from tactigon_shapes.modules.ros2.models import RosMessage, NodeAction, NodeActions
+from tactigon_shapes.modules.ros2.models import Ros2Config, RosMessage, NodeAction, NodeActions
 
 class ShapeNode(Node):
     TICK: float = 0.02
@@ -17,24 +17,24 @@ class ShapeNode(Node):
     def __init__(self):
         Node.__init__(self, "tactigon_shape")
 
-    def add_publisher(self, topic: str, qos_profile: QoSProfile | int):
-        publisher = self.create_publisher(String, topic, qos_profile)
+    def add_publisher(self, topic: str, message_type: Any, qos_profile: QoSProfile | int):
+        publisher = self.create_publisher(message_type, topic, qos_profile)
 
-    def add_subscription(self, topic: str, fn: Callable[[RosMessage], None], qos_profile: QoSProfile | int):
+    def add_subscription(self, topic: str, fn: Callable[[RosMessage], None], message_type: Any, qos_profile: QoSProfile | int):
         self.create_subscription(
-            String, 
+            message_type, 
             topic, 
             self._callback(topic, fn), 
             qos_profile
         )
 
-    def publish(self, topic: str, msg: str):
+    def publish(self, topic: str, message_type: Any, msg: Any):
         publisher = next((p for p in self.publishers if p.topic == topic), None)
 
         if publisher:
-            _message = String()
-            _message.data = msg
-            publisher.publish(_message)
+            message = message_type()
+            message.data = msg
+            publisher.publish(message)
 
     def unsubscribe(self, topic: str):
         subscription = next((s for s in self.subscriptions if s.topic == topic), None)
@@ -68,15 +68,24 @@ class Ros2Thread(Thread):
                 payload = node_action.payload
 
                 if action == NodeActions.ADD_PUBLISHER:
-                    node.add_publisher(payload.get("topic", ""), payload.get("qos_profile", 10))
+                    node.add_publisher(
+                        payload.get("topic", ""), 
+                        payload.get("message_type", String),
+                        payload.get("qos_profile", 10)
+                    )
                 elif action == NodeActions.ADD_SUBSCRIPTION:
                     node.add_subscription(
                         payload.get("topic", ""), 
                         payload.get("fn", print),
+                        payload.get("message_type", String),
                         payload.get("qos_profile", 10)
                     )
                 elif action == NodeActions.PUBLISH:
-                    node.publish(payload.get("topic", ""), payload.get("msg", ""))
+                    node.publish(
+                        payload.get("topic", ""), 
+                        payload.get("message_type", String),
+                        payload.get("msg", "")
+                    )
                 elif action == NodeActions.UNSUBSCRIBE:
                     node.unsubscribe(payload.get("topic", ""))
 
@@ -95,16 +104,16 @@ class Ros2Thread(Thread):
         self._stop_event.set()
 
 class Ros2Interface:
+    config: Ros2Config
     _thread: None | Ros2Thread
 
-    def __init__(self, app: Optional[Flask] = None):
+    def __init__(self, config: Ros2Config, fn: Callable[[RosMessage], None] | None = None):
+        self.config = config
         self._thread = None
+        self._callback = fn or self.on_message
 
-        if app:
-            self.init_app(app)
-
-    def init_app(self, app: Flask):
-        app.extensions[Ros2Interface.__name__] = self
+    def on_message(self, message: RosMessage):
+        print(f"[DEFAULT] Messaggio ricevuto: {message}")
 
     def __enter__(self):
         self.start()
@@ -120,23 +129,37 @@ class Ros2Interface:
         self._thread = Ros2Thread()
         self._thread.start()
 
+        for p in self.config.publisher:
+            self.add_publisher(
+                p.topic,
+                p.message_type,
+                p.qos_profile
+            )
+
+        for s in self.config.subscriptions:
+            self.add_subscription(
+                s.topic,
+                s.message_type,
+                s.qos_profile
+            )
+
     def stop(self):
         if self._thread:
             self._thread.stop()
 
-    def add_publisher(self, topic: str, qos_profile: QoSProfile | int = 10):
+    def add_publisher(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
         if self._thread:
             self._thread.send_command(
                 NodeAction.AddPubblisher(
-                    dict(topic=topic, qos_profile=qos_profile)
+                    dict(topic=topic, message_type=message_type, qos_profile=qos_profile)
                 )
             )
 
-    def add_subscription(self, topic: str, callback: Callable[[RosMessage], None], qos_profile: QoSProfile | int = 10):
+    def add_subscription(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
         if self._thread:
             self._thread.send_command(
                 NodeAction.AddSubscription(
-                    dict(topic=topic, fn=callback, qos_profile=qos_profile)
+                    dict(topic=topic, fn=self._callback, message_type=message_type, qos_profile=qos_profile)
                 )
             )
 
@@ -148,11 +171,13 @@ class Ros2Interface:
                 )
             )
 
-    def publish(self, topic: str, msg: str) -> bool:
-        if self._thread:
+    def publish(self, topic: str, msg: Any) -> bool:
+        message_type = next((p.message_type for p in self.config.publisher if p.topic == topic), None)
+
+        if self._thread and message_type:
             self._thread.send_command(
                 NodeAction.Publish(
-                    dict(topic=topic, msg=msg)
+                    dict(topic=topic, message_type=message_type, msg=msg)
                 )
             )
             return True
