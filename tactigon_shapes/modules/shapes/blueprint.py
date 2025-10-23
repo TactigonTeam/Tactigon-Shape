@@ -6,9 +6,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
+# Project Name:
+# Tactigon Soul - Shape
+#
 # Contributors:
-# Massimiliano Bellino
-# Stefano Barbareschi
+# - Massimiliano Bellino
+# - Stefano Barbareschi
 #********************************************************************************/
 
 
