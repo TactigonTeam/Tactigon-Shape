@@ -9,7 +9,7 @@
 # Project Name:
 # Tactigon Soul - Shape
 # 
-# Release date: 30/10/2025
+# Release date: 30/09/2025
 # Release version: 1.0
 #
 # Contributors:
