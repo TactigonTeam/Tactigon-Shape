@@ -346,6 +346,7 @@ def clone_config(program_id: str):
         program_description,
         original_config.readonly,
         original_config.app_file,
+        original_config.ros2_config,
         original_config.ginos_config,
         original_config.mqtt_config
     )

@@ -75,8 +75,8 @@ class ShapeThread(ExtensionThread):
         self._zion_interface = zion
         self._ironboy_interface = ironboy
 
-        if app.ros2config:
-            self._ros2_interface = Ros2Interface(app.ros2config)
+        if app.ros2_config:
+            self._ros2_interface = Ros2Interface(app.ros2_config)
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
 

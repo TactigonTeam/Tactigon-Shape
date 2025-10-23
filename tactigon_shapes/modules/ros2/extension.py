@@ -129,7 +129,7 @@ class Ros2Interface:
         self._thread = Ros2Thread()
         self._thread.start()
 
-        for p in self.config.publisher:
+        for p in self.config.publishers:
             self.add_publisher(
                 p.topic,
                 p.message_type,
@@ -172,7 +172,7 @@ class Ros2Interface:
             )
 
     def publish(self, topic: str, msg: Any) -> bool:
-        message_type = next((p.message_type for p in self.config.publisher if p.topic == topic), None)
+        message_type = next((p.message_type for p in self.config.publishers if p.topic == topic), None)
 
         if self._thread and message_type:
             self._thread.send_command(

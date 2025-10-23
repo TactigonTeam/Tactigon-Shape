@@ -53,6 +53,21 @@ class Ros2Publisher:
     topic: str
     message_type: Any
     qos_profile: QoSProfile | int = 10
+
+    @classmethod
+    def FromJSON(cls, json: dict):
+        return cls(
+            json["topic"],
+            json["message_type"],
+            json["qos_profile"],
+        )
+    
+    def toJSON(self) -> dict:
+        return {
+            "topic": self.topic,
+            "message_type": self.message_type,
+            "qos_profile": self.qos_profile
+        }
     
 @dataclass
 class Ros2Subscription:
@@ -61,9 +76,43 @@ class Ros2Subscription:
     payload_reference: str
     message_type: Any
     qos_profile: QoSProfile | int = 10
+    
+    @classmethod
+    def FromJSON(cls, json: dict):
+        return cls(
+            json["topic"],
+            json["function"],
+            json["payload_reference"],
+            json["message_type"],
+            json["qos_profile"],
+        )
+    
+    def toJSON(self) -> dict:
+        return {
+            "topic": self.topic,
+            "function": self.function,
+            "payload_reference": self.payload_reference,
+            "message_type": self.message_type,
+            "qos_profile": self.qos_profile
+        }
 
 @dataclass
 class Ros2Config:
     node_name: str
-    publisher: list[Ros2Publisher] = field(default_factory=list)
+    publishers: list[Ros2Publisher] = field(default_factory=list)
     subscriptions: list[Ros2Subscription] = field(default_factory=list)
+
+    @classmethod
+    def FromJSON(cls, json: dict):
+        return cls(
+            json.get("node_name", "shape_node"),
+            [Ros2Publisher.FromJSON(json) for json in json.get("publishers", [])],
+            [Ros2Subscription.FromJSON(json) for json in json.get("subscriptions", [])]
+        )
+    
+    def toJSON(self) -> dict:
+        return {
+            "node_name": self.node_name,
+            "publishers": [p.toJSON() for p in self.publishers],
+            "subscriptions": [s.toJSON() for s in self.subscriptions],
+        }

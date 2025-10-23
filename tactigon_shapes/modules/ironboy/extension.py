@@ -98,11 +98,7 @@ class IronBoyInterface:
                 return False
             if self._thread._current_command.is_timeout:
                 return False
-            time.sleep(0.01)
-    
-    def executing(self):
-        return self._thread.executing if self._thread else False
-    
+            time.sleep(0.01)    
     
     def get_shape_blocks(self):
         return {
