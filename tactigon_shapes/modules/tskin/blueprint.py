@@ -6,13 +6,13 @@ from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from typing import Optional
 
-from .manager import get_tskin_default_config, get_voice_default_config, start_tskin, load_tskin, stop_tskin, get_tskin
-from .models import TSkinModel, VoiceConfig, TSkinConfig, Hand, GestureConfig, TSpeechObject, TSpeech, HotWord
+from tactigon_shapes.modules.tskin.manager import get_tskin_default_config, get_voice_default_config, start_tskin, load_tskin, stop_tskin, get_tskin
+from tactigon_shapes.modules.tskin.models import TSkinModel, VoiceConfig, TSkinConfig, Hand, GestureConfig, TSpeechObject, TSpeech, HotWord
 
-from ..socketio import get_socket_app
-from ...config import app_config
-from ...utils.extensions import stop_apps
-from ...utils.request_utils import get_from_request
+from tactigon_shapes.modules.socketio import get_socket_app
+from tactigon_shapes.config import app_config
+from tactigon_shapes.utils.extensions import stop_apps
+from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint('tskin', __name__, url_prefix="/tskin", template_folder="templates")
 

@@ -5,17 +5,17 @@ from typing import List, Optional
 
 from flask import Blueprint, render_template, flash, redirect, url_for
 
-from ..ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 
-from .extension import ShapeConfig, Program
-from .manager import get_shapes_app
+from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program
+from tactigon_shapes.modules.shapes.manager import get_shapes_app
 
-from ..tskin.manager import get_tskin
-from ..zion.manager import get_zion_interface
+from tactigon_shapes.modules.tskin.manager import get_tskin
+from tactigon_shapes.modules.zion.manager import get_zion_interface
 
-from ...config import app_config, check_config
-from ...models import ModelGesture
-from ...utils.request_utils import get_from_request, check_empty_inputs
+from tactigon_shapes.config import app_config, check_config
+from tactigon_shapes.models import ModelGesture
+from tactigon_shapes.utils.request_utils import get_from_request, check_empty_inputs
 
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")

@@ -3,7 +3,7 @@ from os import path
 from flask import current_app
 from typing import Optional, Union
 
-from .models import TSkin, TSkinConfig, GestureConfig, TSkinModel, VoiceConfig, Hand, TSpeech, TSpeechObject, HotWord
+from tactigon_shapes.modules.tskin.models import TSkin, TSkinConfig, GestureConfig, TSkinModel, VoiceConfig, Hand, TSpeech, TSpeechObject, HotWord
 
 TSKIN_EXTENSION = "tskin"
 

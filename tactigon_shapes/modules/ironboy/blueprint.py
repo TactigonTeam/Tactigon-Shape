@@ -4,12 +4,12 @@ import asyncio
 from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, flash
 
-from .extension import IronBoyConfig, IronBoyInterface
-from .manager import get_ironboy_interface
+from tactigon_shapes.modules.ironboy.extension import IronBoyConfig, IronBoyInterface
+from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 
-from ...config import check_config
-from ...utils.extensions import stop_apps
-from ...utils.request_utils import get_from_request
+from tactigon_shapes.config import check_config
+from tactigon_shapes.utils.extensions import stop_apps
+from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint("ironboy", __name__, url_prefix="/ironboy", template_folder="templates")
 

@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 
 from tactigon_gear import  __version__ as tactigon_gear_version
-from .utils import get_tactigon_speech_version
-from .modules.tskin.models import Hand, TSkinModel, TSkinConfig, VoiceConfig, ModelGesture, ModelTouch, OneFingerGesture
+from tactigon_shapes.utils import get_tactigon_speech_version
+from tactigon_shapes.modules.tskin.models import Hand, TSkinModel, TSkinConfig, VoiceConfig, ModelGesture, ModelTouch, OneFingerGesture
 
 BASE_PATH = getcwd()
 
