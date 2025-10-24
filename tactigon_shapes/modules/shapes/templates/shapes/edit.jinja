@@ -17,6 +17,8 @@
         <input id="generatedCode" type="hidden" name="generatedCode" />
         <input id="state" type="hidden" name="state" />
         <input id="subscriptions" type="hidden" name="subscriptions" />
+        <input id="ros2_subscriptions" type="hidden" name="ros2_subscriptions" />
+        <input id="ros2_publishers" type="hidden" name="ros2_publishers" />
         <a href="{{ url_for('shapes.index', program_id=current_config.id) }}" class="btn btn-outline-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
@@ -552,6 +554,33 @@
                 </block>
             </category>
         {% endif %}
+        <sep></sep>
+        <category name="ROS 2" colour="#6665DD">
+            <block type="ros2_subscribe">
+                <value name="topic">
+                    <shadow type="text"></shadow>
+                </value>
+                <value name="message_type">
+                    <shadow type="ros2_message_type">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_publish">
+                <value name="payload">
+                    <shadow type="text">
+                    </shadow>
+                </value>
+                <value name="topic">
+                    <shadow type="text">
+                    </shadow>
+                </value>
+                <value name="message_type">
+                    <shadow type="ros2_message_type">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_type"></block>
+        </category>
         {% if current_config.ginos_config %}
             <sep></sep>
             <category name="Ginos AI" colour="#6665DD">
@@ -700,7 +729,7 @@
 
         for (i in topBlocks){           
             if (functionBlockNames.indexOf(topBlocks[i].type) == -1){ 
-                return "Make sure all blocks are inside Tactigon Main or another function";
+                return "Make sure all blocks are inside Loop or another function";
             }
         }
         return "";
@@ -745,6 +774,27 @@
             return {"topic": topic, "function": clean_topic_names(topic), "payload_reference": payload_reference};
         });
     }
+
+    function getRos2Publishers(workspace){
+        const functions = workspace.getBlocksByType("ros2_publish");
+
+        return functions.map(block => {
+            const topic = block.getInputTargetBlock("topic").getFieldValue("TEXT");
+            const message_type = block.getInputTargetBlock("message_type").getFieldValue("message_type");
+            return {"topic": topic, "message_type": message_type};
+        });
+    }
+
+    function getRos2Subscriptions(workspace){
+        const functions = workspace.getBlocksByType("ros2_subscribe");
+
+        return functions.map(block => {
+            const topic = block.getInputTargetBlock("topic").getFieldValue("TEXT");
+            const message_type = block.getInputTargetBlock("message_type").getFieldValue("message_type");
+            const payload_reference = block.getField("var_name").getVariable().name;
+            return {"topic": topic, "function": clean_topic_names(topic), "message_type": message_type, "payload_reference": payload_reference};
+        });
+    }
     
     function validateShape(workspace){
 
@@ -785,7 +835,7 @@
     }
 
     const reservedWords = ["tactigon_shape_function","zion","code","logging_queue","debug","data", "main","tskin","tspeech","gesture","ironboy","touch","braccio"];
-    const functionBlockNames = ["tactigon_shape_function", "tactigon_shape_setup", "tactigon_shape_close", "procedures_defnoreturn", "variables_set", "procedures_defreturn", "ginos_mqtt_subscribe"];
+    const functionBlockNames = ["tactigon_shape_function", "tactigon_shape_setup", "tactigon_shape_close", "procedures_defnoreturn", "variables_set", "procedures_defreturn", "ginos_mqtt_subscribe", "ros2_subscribe"];
 
     $(document).ready(async function () {
 
@@ -803,9 +853,18 @@
                 }
                 
                 const subscriptions = getSubscriptions(workspace);
+                const ros2subscriptions = getRos2Subscriptions(workspace);
+                const ros2publishers = getRos2Publishers(workspace);
+
+                console.log(ros2subscriptions);
+                console.log(ros2publishers);
+
                 setGeneratedCode(workspace);
                 setState(workspace);
                 setSubscriptions(subscriptions);
+                $('#subscriptions').val(JSON.stringify(subscriptions));
+                $('#ros2_subscriptions').val(JSON.stringify(ros2subscriptions));
+                $('#ros2_publishers').val(JSON.stringify(ros2publishers));
             }
             catch(ex){
                 e.preventDefault();

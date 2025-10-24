@@ -1,3 +1,5 @@
+sudo apt install ros-jazzy-camera-ros
+
 sudo apt update
 sudo apt install portaudio19-dev python3-pyaudio
 

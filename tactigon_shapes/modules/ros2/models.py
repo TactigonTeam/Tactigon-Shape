@@ -1,4 +1,5 @@
 from rclpy.node import QoSProfile
+from std_msgs import msg
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -58,17 +59,17 @@ class Ros2Publisher:
     def FromJSON(cls, json: dict):
         return cls(
             json["topic"],
-            json["message_type"],
-            json["qos_profile"],
+            getattr(msg, json["message_type"]),
+            json["qos_profile"] if "qos_profile" in json and json["qos_profile"] else 10,
         )
     
     def toJSON(self) -> dict:
         return {
             "topic": self.topic,
-            "message_type": self.message_type,
+            "message_type": self.message_type.__name__,
             "qos_profile": self.qos_profile
         }
-    
+
 @dataclass
 class Ros2Subscription:
     topic: str
@@ -83,8 +84,8 @@ class Ros2Subscription:
             json["topic"],
             json["function"],
             json["payload_reference"],
-            json["message_type"],
-            json["qos_profile"],
+            getattr(msg, json["message_type"]),
+            json["qos_profile"] if "qos_profile" in json and json["qos_profile"] else 10,
         )
     
     def toJSON(self) -> dict:
@@ -92,7 +93,7 @@ class Ros2Subscription:
             "topic": self.topic,
             "function": self.function,
             "payload_reference": self.payload_reference,
-            "message_type": self.message_type,
+            "message_type": self.message_type.__name__,
             "qos_profile": self.qos_profile
         }
 

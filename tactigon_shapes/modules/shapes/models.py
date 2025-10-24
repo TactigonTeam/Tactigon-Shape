@@ -67,7 +67,7 @@ class ShapeConfig:
             modified_on=self.modified_on.isoformat(),
             description=self.description,
             readonly=self.readonly,
-            ros2_confg=self.ros2_config.toJSON() if self.ros2_config else None,
+            ros2_config=self.ros2_config.toJSON() if self.ros2_config else None,
             ginos_config=self.ginos_config.toJSON() if self.ginos_config else None,
             mqtt_config=self.mqtt_config.toJSON() if self.mqtt_config else None
         )

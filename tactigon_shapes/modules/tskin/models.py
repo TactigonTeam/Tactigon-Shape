@@ -3,7 +3,7 @@ import json
 from os import path
 from datetime import datetime
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, Iterable
+from typing import Optional, List, Tuple, Iterable, Union
 
 from tactigon_gear import TSkinConfig, GestureConfig, Gesture, Hand, Angle, Touch, OneFingerGesture, TwoFingerGesture
 from tactigon_shapes.utils import supports_voice, get_tactigon_speech_version
@@ -86,6 +86,14 @@ if sys.version_info < (3, 9):
 
 else:
     @dataclass
+    class Transcription:
+        text = None
+        path = []
+        time = 0
+        timeout = True
+
+
+    @dataclass
     class HotWord:
         @classmethod
         def FromJSON(cls, json: dict):
@@ -98,6 +106,9 @@ else:
         
     @dataclass
     class TSpeech:
+        hotwords: Union[List[HotWord], HotWord] = field(default_factory=list)
+        children: Optional["TSpeechObject"] = None
+
         @classmethod
         def FromJSON(cls, json: dict):
             return cls()
@@ -107,10 +118,11 @@ else:
         
     @dataclass
     class TSpeechObject:
-        t_speech: List[TSpeech]
+        t_speech: List[TSpeech] = field(default_factory=list)
+
         @classmethod
         def FromJSON(cls, json: dict):
-            return cls([])
+            return cls()
         
         def toJSON(self) -> dict:
             return {}
@@ -132,6 +144,35 @@ else:
 
         @property
         def can_listen(self):
+            return False
+        
+        @property
+        def transcription(self):
+            return Transcription()
+        
+        @property
+        def text_so_far(self):
+            return None
+        
+        @property
+        def is_recording(self):
+            return False
+        
+        @property
+        def is_listening(self):
+            return False
+        
+        @property
+        def is_playing(self):
+            return False
+
+        def listen(self, *args, **kwargs):
+            return False
+        
+        def record(self, *args, **kwargs):
+            return False
+        
+        def play(self, *args, **kwargs):
             return False
 
 @dataclass

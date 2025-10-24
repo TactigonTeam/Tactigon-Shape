@@ -19,12 +19,14 @@ from tactigon_shapes.config import app_config, check_config
 from tactigon_shapes.models import ModelGesture
 from tactigon_shapes.utils.request_utils import get_from_request, check_empty_inputs
 
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2Config
 from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
 from tactigon_shapes.modules.mqtt.models import MQTTSubscription
 
-from ...config import app_config, check_config
-from ...models import ModelGesture
-from ...utils.request_utils import get_from_request, check_empty_inputs
+from tactigon_shapes.config import app_config, check_config
+from tactigon_shapes.models import ModelGesture
+from tactigon_shapes.utils.request_utils import get_from_request, check_empty_inputs
 
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")
@@ -77,6 +79,7 @@ def index(program_id: Optional[str] = None):
         blocks_config["ironboy"] = ironboy.get_shape_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
+    blocks_config["ros2"] = Ros2Interface.get_blocks()
     
     state = _shapes.get_state(current_config.id) if current_config else None
 
@@ -205,6 +208,7 @@ def edit(program_id: str):
         blocks_config["zion"] = zion.get_shape_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
+    blocks_config["ros2"] = Ros2Interface.get_blocks()
 
     return render_template("shapes/edit.jinja",
                            current_config=current_config,
@@ -374,6 +378,8 @@ def save_program(program_id: str):
     code = get_from_request('generatedCode')
     state = get_from_request('state')
     subscriptions = get_from_request("subscriptions")
+    ros2_publishers = get_from_request("ros2_publishers")
+    ros2_subscriptions = get_from_request("ros2_subscriptions")
 
     # is_empty_input = check_empty_inputs(locals().items())
 
@@ -391,14 +397,24 @@ def save_program(program_id: str):
     config.modified_on = datetime.now()
     
     if subscriptions and config.mqtt_config:
-        config.mqtt_config.subscriptions = [MQTTSubscription.FromJSON(s) for s in json.loads(subscriptions)]   
+        config.mqtt_config.subscriptions = [MQTTSubscription.FromJSON(s) for s in json.loads(subscriptions)]
+
+    print(ros2_publishers)
+    print(ros2_subscriptions)
+
+    if ros2_publishers or ros2_subscriptions:
+        ros2_config = Ros2Config(
+            config.name,
+            [Ros2Publisher.FromJSON(p) for p in json.loads(ros2_publishers)] if ros2_publishers else [],
+            [Ros2Subscription.FromJSON(s) for s in json.loads(ros2_subscriptions)] if ros2_subscriptions else [],
+        )
+        config.ros2_config = ros2_config
 
     is_success = _shapes.update(config, Program(code=code, state=json.loads(state)))
 
     if not is_success:
         flash(f"Something went wrong!", category="danger")
         return redirect(url_for("shapes.edit", program_id=program_id))
-
 
     flash(f"Shape saved.", category="success")
     return redirect(url_for("shapes.index", program_id=program_id))

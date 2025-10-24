@@ -76,7 +76,9 @@ class ShapeThread(ExtensionThread):
         self._ironboy_interface = ironboy
 
         if app.ros2_config:
-            self._ros2_interface = Ros2Interface(app.ros2_config)
+            self._ros2_interface = Ros2Interface(app.ros2_config, self.on_ros2_message)
+            self._ros2_interface.start()
+        
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
 
@@ -137,8 +139,8 @@ class ShapeThread(ExtensionThread):
         subscription = next((s for s in self._ros2_interface.config.subscriptions if s.topic == message.topic), None)
 
         if not subscription:
-            return
-        
+            return  
+                
         # Set the payload reference first
         setattr(self.module, subscription.payload_reference, message.msg.data)
         # Execute the function
@@ -170,6 +172,7 @@ class ShapeThread(ExtensionThread):
                 self.braccio_interface, 
                 self.zion_interface, 
                 self._ironboy_interface, 
+                self._ros2_interface,
                 self._ginos_interface,
                 self._mqtt_interface,
                 self._logging_queue
@@ -188,6 +191,7 @@ class ShapeThread(ExtensionThread):
                 self.braccio_interface, 
                 self.zion_interface, 
                 self._ironboy_interface, 
+                self._ros2_interface,
                 self._ginos_interface,
                 self._mqtt_interface,
                 self._logging_queue
@@ -216,6 +220,7 @@ class ShapeThread(ExtensionThread):
                 self.braccio_interface, 
                 self.zion_interface, 
                 self._ironboy_interface, 
+                self._ros2_interface,
                 self._ginos_interface,
                 self._mqtt_interface,
                 self._logging_queue
@@ -224,11 +229,16 @@ class ShapeThread(ExtensionThread):
             print(e)
             pass
 
+        if self._ros2_interface:
+            self._ros2_interface.stop()
+            self._ros2_interface = None
+
         if self._ginos_interface:
             self._ginos_interface = None
             
         if self._mqtt_interface:
             self._mqtt_interface.disconnect()
+            self._mqtt_interface = None
 
         ExtensionThread.stop(self)
 
@@ -327,14 +337,9 @@ class ShapesApp(ExtensionApp):
         if config:
             found = False
 
-            for cfg in self.config:
+            for i, cfg in enumerate(self.config):
                 if cfg.id == config.id:
-                    cfg.name = config.name
-                    cfg.description = cfg.description
-                    cfg.readonly = config.readonly
-                    cfg.app_file = config.app_file
-                    cfg.created_on = config.created_on
-                    cfg.modified_on = config.modified_on
+                    self.config[i] = config
                     found = True
                     break
 

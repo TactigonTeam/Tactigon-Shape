@@ -8,6 +8,7 @@ function loadCustomBlocks(response) {
     const speechs = response ? response.speechs : [];
     const zion = response ? response.zion : [];
     const ironboy = response ? response.ironboy : [];
+    const ros2 = response ? response.ros2 : {};
     const ginos = response ? response.ginos: {};
     
     loadTSkinBlocks(gestures, taps);
@@ -19,6 +20,7 @@ function loadCustomBlocks(response) {
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
     loadIronBoyBlocks(ironboy);
+    loadRos2Blocks(ros2);
     loadGinosAIBlocks(ginos);
     loadGinosMQTTBlocks(ginos);
     loadDictionaryBlocks();
@@ -937,6 +939,84 @@ function loadIronBoyBlocks(ironboy) {
     };
 }
 
+function loadRos2Blocks(ros2blocks){
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "ros2_subscribe",
+            "message0": "On topic %1 type %2 get values in %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "message_type",
+                    "check": "Ros2MessageType"
+                },
+                {
+                    "type": "field_variable",
+                    "name": "var_name",
+                    "variable": "payload"
+                }
+            ],
+            "message1": "do %1",
+            "args1": [
+                {
+                    "type": "input_statement",
+                    "name": "function"
+                }
+            ],
+            "tooltip": "Subscribe to a ROS 2 topic and trigger the call on message event",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_publish",
+            "message0": "Publish payload %1 of type %2 on topic %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "payload"
+                },
+                {
+                    "type": "input_value",
+                    "name": "message_type",
+                    "check": "Ros2MessageType"
+                },
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                }                
+            ],
+            "tooltip": "Publish a message to a ROS 2 topic",
+            "helpUrl": "",
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_type",
+            "message0": "Type %1",
+            "args0": [
+                {
+                "type": "field_dropdown",
+                "name": "message_type",
+                "options": ros2blocks.default_types
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Select a ROS 2 message type",
+            "helpUrl": "",
+            "colour": 225
+            }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
 function loadGinosAIBlocks(ginos){
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1090,11 +1170,13 @@ import random
 import types
 from numbers import Number
 from datetime import datetime
+from std_msgs.msg import String, Bool, Byte, Char, Float64, Int64, UInt64, ColorRGBA
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
@@ -1294,10 +1376,6 @@ def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
     else:
         logging_queue.debug(str(msg).replace("\\n","<br>"))
 
-def reset_touch(tskin: TSkin):
-        if tskin.touch_preserve:
-            _ = tskin.touch
-
 def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
     if ironboy:
         command = ironboy.command(cmd,reps)
@@ -1306,6 +1384,12 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
             debug(logging_queue, "command error")
     else:
         debug(logging_queue, "ironboy not configured")
+
+def ros2_publish(ros2: Optional[Ros2Interface], topic: str, message_type: Any, message):
+    if not ros2:
+        return
+    
+    ros2.publish(topic, message_type, message)
 
 def ginos_ai_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""):
     if not ginos:
@@ -1348,7 +1432,7 @@ function defineCustomGenerators() {
         var statements_body = Blockly.Python.statementToCode(block, 'setup_code');
         
         if (!statements_body) {
-            statements_body = Blockly.Python.INDENT + "pass"
+            statements_body = Blockly.Python.INDENT + "pass\n"
         }
 
         let variables = block.workspace.getAllVariables().map((v) => {
@@ -1365,6 +1449,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Optional[Ros2Interface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
@@ -1377,7 +1462,7 @@ function defineCustomGenerators() {
         var statements_body = Blockly.Python.statementToCode(block, 'setup_code');
         
         if (!statements_body) {
-            statements_body = Blockly.Python.INDENT + "pass"
+            statements_body = Blockly.Python.INDENT + "pass\n"
         }
 
         let variables = block.workspace.getAllVariables().map((v) => {
@@ -1394,6 +1479,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Optional[Ros2Interface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
@@ -1406,7 +1492,7 @@ function defineCustomGenerators() {
         var statements_body = Blockly.Python.statementToCode(block, 'BODY');
         
         if (!statements_body) {
-            statements_body = Blockly.Python.INDENT + "pass"
+            statements_body = Blockly.Python.INDENT + "pass\n"
         }
 
         let variables = block.workspace.getAllVariables().map((v) => {
@@ -1423,6 +1509,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Optional[Ros2Interface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
@@ -1446,6 +1533,7 @@ function defineCustomGenerators() {
     defineDictionaryGenerators();
     defineZionGenerators();
     defineIronBoyGenerators();
+    defineRos2Generators();
     defineGinosAIGenerators();
     defineGinosMQTTGenerators();
 }
@@ -1697,6 +1785,41 @@ function defineIronBoyGenerators(){
     python.pythonGenerator.forBlock['command_list'] = function(block) {
         const command = block.getFieldValue('command');
         return [`IronBoyCommand.${command}`, Blockly.Python.ORDER_ATOMIC];
+    };
+}
+
+function defineRos2Generators(){
+    python.pythonGenerator.forBlock['ros2_subscribe'] = function(block, generator) {
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0){
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+        const message_type = generator.valueToCode(block, 'message_type', python.Order.ATOMIC);
+        const function_name = clean_topic_names(value_topic);
+        const statement_function = generator.statementToCode(block, 'function');
+
+        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables +  statement_function;
+        return code;
+    }
+
+    python.pythonGenerator.forBlock['ros2_publish'] = function(block, generator) {
+        const value_payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+        const message_type = generator.valueToCode(block, 'message_type', python.Order.ATOMIC);
+
+        const code = `ros2_publish(ros2, ${value_topic}, ${message_type}, ${value_payload})\n`
+        return code;
+    }
+
+    python.pythonGenerator.forBlock['ros2_message_type'] = function(block) {
+        const command = block.getFieldValue('message_type');
+        console.log("vaav", command)
+        return [command, Blockly.Python.ORDER_ATOMIC];
     };
 }
 

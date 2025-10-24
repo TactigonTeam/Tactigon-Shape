@@ -58,44 +58,49 @@ class Ros2Thread(Thread):
 
     def run(self):
         rclpy.init()
-        node = ShapeNode()
+        try:
+            node = ShapeNode()
 
-        while rclpy.ok() and not self._stop_event.is_set():
-            rclpy.spin_once(node, timeout_sec=0)
-            try:
-                node_action: NodeAction = self._queue.get_nowait()
-                action = node_action.action
-                payload = node_action.payload
+            while rclpy.ok() and not self._stop_event.is_set():
+                rclpy.spin_once(node, timeout_sec=0)
+                try:
+                    node_action: NodeAction = self._queue.get_nowait()
+                    action = node_action.action
+                    payload = node_action.payload
 
-                if action == NodeActions.ADD_PUBLISHER:
-                    node.add_publisher(
-                        payload.get("topic", ""), 
-                        payload.get("message_type", String),
-                        payload.get("qos_profile", 10)
-                    )
-                elif action == NodeActions.ADD_SUBSCRIPTION:
-                    node.add_subscription(
-                        payload.get("topic", ""), 
-                        payload.get("fn", print),
-                        payload.get("message_type", String),
-                        payload.get("qos_profile", 10)
-                    )
-                elif action == NodeActions.PUBLISH:
-                    node.publish(
-                        payload.get("topic", ""), 
-                        payload.get("message_type", String),
-                        payload.get("msg", "")
-                    )
-                elif action == NodeActions.UNSUBSCRIBE:
-                    node.unsubscribe(payload.get("topic", ""))
+                    if action == NodeActions.ADD_PUBLISHER:
+                        node.add_publisher(
+                            payload.get("topic", ""), 
+                            payload.get("message_type", String),
+                            payload.get("qos_profile", 10)
+                        )
+                    elif action == NodeActions.ADD_SUBSCRIPTION:
+                        node.add_subscription(
+                            payload.get("topic", ""), 
+                            payload.get("fn", print),
+                            payload.get("message_type", String),
+                            payload.get("qos_profile", 10)
+                        )
+                    elif action == NodeActions.PUBLISH:
+                        node.publish(
+                            payload.get("topic", ""), 
+                            payload.get("message_type", String),
+                            payload.get("msg", "")
+                        )
+                    elif action == NodeActions.UNSUBSCRIBE:
+                        node.unsubscribe(payload.get("topic", ""))
 
-            except Empty as e:
-                pass
+                except Empty as e:
+                    pass
 
-        time.sleep(node.TICK)
+                time.sleep(node.TICK)
 
-        node.destroy_node()
-        rclpy.shutdown()
+            node.destroy_node()
+        except Exception as e:
+            print(e)
+
+        finally:
+            rclpy.shutdown()
 
     def send_command(self, cmd: NodeAction):
         self._queue.put_nowait(cmd)
@@ -111,6 +116,21 @@ class Ros2Interface:
         self.config = config
         self._thread = None
         self._callback = fn or self.on_message
+
+    @staticmethod
+    def get_blocks():
+        return {
+            "default_types": [
+                ('Bool', 'Bool'),
+                ('Byte', 'Byte'),
+                ('Char', 'Char'),
+                ('Float64', 'Float64'),
+                ('Int64', 'Int64'),
+                ('UInt64', 'UInt64'),
+                ('String', 'String'),
+                ('ColorRGBA', 'ColorRGBA')
+            ]
+        }
 
     def on_message(self, message: RosMessage):
         print(f"[DEFAULT] Messaggio ricevuto: {message}")
@@ -171,9 +191,7 @@ class Ros2Interface:
                 )
             )
 
-    def publish(self, topic: str, msg: Any) -> bool:
-        message_type = next((p.message_type for p in self.config.publishers if p.topic == topic), None)
-
+    def publish(self, topic: str, message_type: Any, msg: Any) -> bool:
         if self._thread and message_type:
             self._thread.send_command(
                 NodeAction.Publish(
