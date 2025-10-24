@@ -2,7 +2,8 @@ import rclpy
 import time
 from rclpy.node import Node, QoSProfile
 from std_msgs.msg import String
-from threading import Thread, Event
+from threading import Thread, Event as ThreadEvent
+from multiprocessing import Process, Queue, Event, Pipe
 from queue import Queue, Empty
 from functools import wraps
 from flask import Flask
@@ -49,12 +50,11 @@ class ShapeNode(Node):
             return result
         return wrapper
 
-
-class Ros2Thread(Thread):
+class Ros2Process(Process):
     def __init__(self):
-        Thread.__init__(self, daemon=True)
+        Process.__init__(self, daemon=True)
         self._stop_event = Event()
-        self._queue = Queue()
+        self._in, self._out = Pipe()
 
     def run(self):
         rclpy.init()
@@ -63,8 +63,8 @@ class Ros2Thread(Thread):
 
             while rclpy.ok() and not self._stop_event.is_set():
                 rclpy.spin_once(node, timeout_sec=0)
-                try:
-                    node_action: NodeAction = self._queue.get_nowait()
+                if self._in.poll():
+                    node_action: NodeAction = self._in.recv()
                     action = node_action.action
                     payload = node_action.payload
 
@@ -77,7 +77,7 @@ class Ros2Thread(Thread):
                     elif action == NodeActions.ADD_SUBSCRIPTION:
                         node.add_subscription(
                             payload.get("topic", ""), 
-                            payload.get("fn", print),
+                            self._in.send,
                             payload.get("message_type", String),
                             payload.get("qos_profile", 10)
                         )
@@ -90,10 +90,7 @@ class Ros2Thread(Thread):
                     elif action == NodeActions.UNSUBSCRIBE:
                         node.unsubscribe(payload.get("topic", ""))
 
-                except Empty as e:
-                    pass
-
-                time.sleep(node.TICK)
+                # time.sleep(node.TICK)
 
             node.destroy_node()
         except Exception as e:
@@ -103,19 +100,29 @@ class Ros2Thread(Thread):
             rclpy.shutdown()
 
     def send_command(self, cmd: NodeAction):
-        self._queue.put_nowait(cmd)
+        self._out.send(cmd)
+
+    def get_msg(self) -> RosMessage | None:
+        if self._out.poll():
+            return self._out.recv()
+        
+        return None
 
     def stop(self):
         self._stop_event.set()
+        self.join(10)
 
 class Ros2Interface:
     config: Ros2Config
-    _thread: None | Ros2Thread
+    _process: None | Ros2Process = None
+    _thread: None | Thread = None
+    _stop_event: ThreadEvent
 
     def __init__(self, config: Ros2Config, fn: Callable[[RosMessage], None] | None = None):
         self.config = config
-        self._thread = None
-        self._callback = fn or self.on_message
+        self._process = None
+        self._callback = fn
+        self._stop_event = ThreadEvent()
 
     @staticmethod
     def get_blocks():
@@ -132,8 +139,15 @@ class Ros2Interface:
             ]
         }
 
-    def on_message(self, message: RosMessage):
+    @staticmethod
+    def on_message(message: RosMessage):
         print(f"[DEFAULT] Messaggio ricevuto: {message}")
+
+    def wrap_callback(self, fn: Callable[[RosMessage], None]):
+        while not self._stop_event.is_set():
+            msg = self.get_msg()
+            if msg:
+                fn(msg)
 
     def __enter__(self):
         self.start()
@@ -143,11 +157,11 @@ class Ros2Interface:
         self.stop()
         
     def start(self):
-        if self._thread:
+        if self._process:
             self.stop()
 
-        self._thread = Ros2Thread()
-        self._thread.start()
+        self._process = Ros2Process()
+        self._process.start()
 
         for p in self.config.publishers:
             self.add_publisher(
@@ -163,37 +177,49 @@ class Ros2Interface:
                 s.qos_profile
             )
 
+        if self._callback:
+            self._thread = Thread(target=self.wrap_callback, args=(self._callback, ), daemon=True)
+            self._thread.start()
+
     def stop(self):
+        self._stop_event.set()
+
+        if self._process:
+            self._process.stop()
+        
         if self._thread:
-            self._thread.stop()
+            self._thread.join()
+
+        self._process = None
+        self._thread = None
 
     def add_publisher(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
-        if self._thread:
-            self._thread.send_command(
+        if self._process:
+            self._process.send_command(
                 NodeAction.AddPubblisher(
                     dict(topic=topic, message_type=message_type, qos_profile=qos_profile)
                 )
             )
 
     def add_subscription(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
-        if self._thread:
-            self._thread.send_command(
+        if self._process:
+            self._process.send_command(
                 NodeAction.AddSubscription(
-                    dict(topic=topic, fn=self._callback, message_type=message_type, qos_profile=qos_profile)
+                    dict(topic=topic, message_type=message_type, qos_profile=qos_profile)
                 )
             )
 
     def unsubscribe(self, topic: str):
-        if self._thread:
-            self._thread.send_command(
+        if self._process:
+            self._process.send_command(
                 NodeAction.Unsubscribe(
                     dict(topic=topic)
                 )
             )
 
     def publish(self, topic: str, message_type: Any, msg: Any) -> bool:
-        if self._thread and message_type:
-            self._thread.send_command(
+        if self._process and message_type:
+            self._process.send_command(
                 NodeAction.Publish(
                     dict(topic=topic, message_type=message_type, msg=msg)
                 )
@@ -201,3 +227,9 @@ class Ros2Interface:
             return True
         
         return False
+    
+    def get_msg(self) -> RosMessage | None:
+        if self._process:
+            return self._process.get_msg()
+        
+        return None
