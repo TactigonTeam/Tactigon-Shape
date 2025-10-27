@@ -119,19 +119,19 @@
                                         <div class="row mb-3">
                                             <label class="form-label">MQTT Broker</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="mqtt.ginos.ai">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="broker.emqx.io" value="broker.emqx.io">
                                             </div>
                                             <div class="col-sm">
-                                                <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883">
+                                                <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883" value="1883">
                                             </div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="mqtt-nodename" class="form-label">Node name</label>
-                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="">
+                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="" disabled="true">
                                         </div>
                                         <div class="mb-3">
                                             <label for="mqtt-nodetype" class="form-label">Node type</label>
-                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="">
+                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="" disabled="true">
                                         </div>
                                     </div>
                                 </div>
@@ -217,19 +217,20 @@
                                         <div class="row mb-3">
                                             <label class="form-label">MQTT Broker</label>
                                             <div class="col-sm-9">
-                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="mqtt.ginos.ai" value="{{current_config.mqtt_config.broker_url}}">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="broker.emqx.io" value="{{current_config.mqtt_config.broker_url}}">
                                             </div>
                                             <div class="col-sm">
                                                 <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883" value="{{current_config.mqtt_config.broker_port}}">
                                             </div>
                                         </div>
+                                        
                                         <div class="mb-3">
                                             <label for="mqtt-clientid" class="form-label">Node name</label>
-                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="" value="{{current_config.mqtt_config.node_name}}">
+                                            <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="" value="{{current_config.mqtt_config.node_name}}" disabled="true">
                                         </div>
                                         <div class="mb-3">
                                             <label for="mqtt-clientid" class="form-label">Node type</label>
-                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="" value="{{current_config.mqtt_config.node_type}}">
+                                            <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="" value="{{current_config.mqtt_config.node_type}}" disabled="true">
                                         </div>
                                     </div>
                                 </div>

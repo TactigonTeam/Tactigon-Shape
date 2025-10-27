@@ -131,7 +131,7 @@ def braccio_gripper(braccio: Optional[BraccioInterface], logging_queue: LoggingQ
             else:
                 debug(logging_queue, f"Braccio command error: {res[1].name}")
         else:
-            debug(logging_queue, "Braccio not connected")
+            (logging_queue, "Braccio not connected")
     else:
         debug(logging_queue, "Braccio not configured")
 
