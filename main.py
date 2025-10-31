@@ -7,5 +7,6 @@ if __name__ == "__main__":
     parser.add_argument("-P", "--port", help="Server port", type=int, default=5123)
     args = parser.parse_args()
 
+    server = Server("0.0.0.0", args.port, True)
     server = Server(args.address, args.port, True)
     server.serve()

@@ -128,11 +128,14 @@ def add():
     
     mqtt_url = get_from_request("mqtt_url")
     mqtt_port = get_from_request("mqtt_port")
-    mqtt_nodename = get_from_request("mqtt_nodename")
-    mqtt_nodetype = get_from_request("mqtt_nodetype")
+    #mqtt_nodename = get_from_request("mqtt_nodename")
+    mqtt_nodename =""
+    #mqtt_nodetype = get_from_request("mqtt_nodetype")
+    mqtt_nodetype =""
     mqtt_config = None
 
-    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
+    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != ""):
+    #and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
         try:
             mqtt_port = int(mqtt_port)
         except:
@@ -260,10 +263,13 @@ def save_config(program_id: str):
     
     mqtt_url = get_from_request("mqtt_url")
     mqtt_port = get_from_request("mqtt_port")
-    mqtt_nodename = get_from_request("mqtt_nodename")
-    mqtt_nodetype = get_from_request("mqtt_nodetype")
+    #mqtt_nodename = get_from_request("mqtt_nodename")
+    mqtt_nodename = ""
+    #mqtt_nodetype = get_from_request("mqtt_nodetype")
+    mqtt_nodetype= ""
 
-    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != "") and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
+    if (mqtt_url and mqtt_url != "") and (mqtt_port and mqtt_port != ""):
+    #and (mqtt_nodename and mqtt_nodename != "") and (mqtt_nodetype and mqtt_nodetype != ""):
         try:
             mqtt_port = int(mqtt_port)
         except:

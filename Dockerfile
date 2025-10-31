@@ -8,7 +8,10 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     build-essential \
     libportaudio2 portaudio19-dev \
+    xvfb xserver-xorg-core libice6 libxrender1 libfontconfig1 libglib2.0-0 \
+    curl\
     && rm -rf /var/lib/apt/lists/*
+
 
 RUN pip install --upgrade pip
 
@@ -26,9 +29,22 @@ RUN pip install \
     sympy==1.13.2 \
     tactigon_ironboy==1.0.0 && \
     pip install deepspeech-tflite==0.9.3 --no-deps && \
-    pip install tactigon_speech==5.0.10 --no-deps
+    pip install tactigon_speech==5.0.10 --no-deps \
+    paho-mqtt\
+    httpx\
+    argparse\
+    uuid \
+    anyio \
+    exceptiongroup\
+    sniffio
 
+VOLUME ["/app/config"]
 
 EXPOSE 5123
 
-CMD ["python", "main.py"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD curl -f http://localhost:5123/ || exit 1
+
+CMD bash -c "xvfb-run --server-args='-screen 0 1024x768x24' python -u main.py --address=0.0.0.0 --port 5123"
+
+#CMD ["xvfb-run", "--server-args", "-screen 0 1024x768x24", "python", "main.py"]
+#CMD ["python", "main.py", "--address", "0.0.0.0"]
