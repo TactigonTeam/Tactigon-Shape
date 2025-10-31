@@ -38,7 +38,7 @@ RUN pip install \
     exceptiongroup\
     sniffio
 
-VOLUME ["/app/config"]
+
 
 EXPOSE 5123
 
