@@ -1,8 +1,9 @@
 import json
 import logging
+from pathlib import Path
 import requests
 import httpx
-
+import time
 from flask import Flask
 
 from typing import Iterator, Optional, List
@@ -25,6 +26,16 @@ class GinosInterface:
     def __init__(self, url: str, model: str):
         self._url = url if url[-1] == "/" else f"{url}/"
         self._model = model
+
+        retries = 0
+        while retries < 3:
+            self._version = self.get_version()
+            if self._version is not None:
+                break
+            retries += 1
+            if retries < 3:
+                print(f"Retrying Ollama connection")
+                time.sleep(5)
 
         self._version = self.get_version()
         self.get_models()
@@ -160,3 +171,4 @@ class GinosInterface:
             logging.error(e)
 
         return 500
+

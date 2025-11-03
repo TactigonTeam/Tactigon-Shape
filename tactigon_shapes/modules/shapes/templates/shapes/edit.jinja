@@ -555,16 +555,20 @@
         {% if current_config.ginos_config %}
             <sep></sep>
             <category name="Ginos AI" colour="#6665DD">
-                <block type="ginos_ai_chat_message_role">
-                </block>
                 <block type="ginos_ai_prompt">
                     <value name="prompt">
                         <shadow type="text">
                         </shadow>
                     </value>
                 </block>
-
-                <!--<block type="ginos_ai_chat">
+                <block type="ginos_summarize_text">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>   
+                    </value>
+                </block>
+                {#
+                <block type="ginos_ai_chat">
                     <value name="messages">
                         <shadow type="ginos_ai_chat_message">
                             <value name="role">
@@ -577,7 +581,7 @@
                             </value>
                         </shadow>
                     </value>
-                </block>-->
+                </block>
                 <block type="ginos_ai_chat_message">
                     <value name="role">
                         <shadow type="ginos_ai_chat_message_role">
@@ -588,6 +592,9 @@
                         </shadow>
                     </value>
                 </block>
+                <block type="ginos_ai_chat_message_role">
+                </block>
+                #}
             </category>
         {% endif %}
         {% if current_config.mqtt_config %}

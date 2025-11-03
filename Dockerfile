@@ -36,7 +36,10 @@ RUN pip install \
     uuid \
     anyio \
     exceptiongroup\
-    sniffio
+    sniffio \
+    httpcore \
+    langchain-community langchain pypdf chromadb \
+    python-docx
 
 
 
