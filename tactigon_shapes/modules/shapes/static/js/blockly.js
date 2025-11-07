@@ -39,8 +39,6 @@ function initializeBlockly(blocks, toolbox, save_state_endpoint, load_state_endp
                 data: state_string,
                 dataType: "json"
             }).done(function(res){
-                console.log(res)
-                console.log("salvato")
                 window.location.reload()
             });
 

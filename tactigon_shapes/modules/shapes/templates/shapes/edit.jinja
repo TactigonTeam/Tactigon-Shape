@@ -12,10 +12,11 @@
         <h4>{{ current_config.name | capitalize }}</h4>
         <p>{{ current_config.description| capitalize }}</p>
     </div>
-    <div class="flex-fill border" id="blocklyDiv"></div>
+    <div class="flex-fill" id="blocklyDiv"></div>
     <form class="d-flex justify-content-end gap-3" id="update-program-form" action="{{ url_for('shapes.save_program', program_id=current_config.id) }}" method="POST">
         <input id="generatedCode" type="hidden" name="generatedCode" />
         <input id="state" type="hidden" name="state" />
+        <input id="subscriptions" type="hidden" name="subscriptions" />
         <a href="{{ url_for('shapes.index', program_id=current_config.id) }}" class="btn btn-outline-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
@@ -331,11 +332,11 @@
                 <field name="DIRECTION">1</field>
             </block>
         </category>
-        <category name="Dictionaries" colour="#000500">
+        <category name="Dictionaries" colour="#636363">
             <block type="get_dict_property">
-                <value name="KEY">
+                <value name="key">
                     <shadow type="text">
-                        <field name="KEY"></field>
+                        <field name="key"></field>
                     </shadow>
                 </value>
             </block>
@@ -358,6 +359,7 @@
                 <field name="gyro">x</field>
             </block>
         </category>
+        {% if voice_config %}
         <category name="Voice" colour="#EB6152">
             <block type="tskin_listen">
             </block>
@@ -380,175 +382,251 @@
                     </shadow>
                 </value>
             </block>
-        </category> 
-        {% if braccio_config %}
-        <sep></sep>
-        <category name="Braccio" colour="#cb6434">
-            <block type="braccio_move">
-                <value name="x">
-                    <shadow type="math_number">
-                        <field name="NUM">0</field>
-                    </shadow>
-                </value>
-                <value name="y">
-                    <shadow type="math_number">
-                        <field name="NUM">10</field>
-                    </shadow>
-                </value>
-                <value name="z">
-                    <shadow type="math_number">
-                        <field name="NUM">5</field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="braccio_gripper"></block>
-            <block type="braccio_wrist"></block>
         </category>
+        {% endif %}
+        {% if braccio_config %}
+            <sep></sep>
+            <category name="Braccio" colour="#cb6434">
+                <block type="braccio_move">
+                    <value name="x">
+                        <shadow type="math_number">
+                            <field name="NUM">0</field>
+                        </shadow>
+                    </value>
+                    <value name="y">
+                        <shadow type="math_number">
+                            <field name="NUM">10</field>
+                        </shadow>
+                    </value>
+                    <value name="z">
+                        <shadow type="math_number">
+                            <field name="NUM">5</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="braccio_gripper"></block>
+                <block type="braccio_wrist"></block>
+            </category>
         {% endif %}
         {% if ironboy_config %}
-        <category name="IronBoy" colour="80ef80">
-            <block type="ironboy_command">
-                <value name="command">
-                    <shadow type="command_list">
-                    </shadow>
-                </value>
-                <value name="reps">
-                    <shadow type="math_number">
-                        <field name="NUM">1</field>
-                    </shadow>
-                </value>
-            </block>
-
-
-            <block type="command_list"></block>
-        </category>
+            <sep></sep>
+            <category name="IronBoy" colour="80ef80">
+                <block type="ironboy_command">
+                    <value name="command">
+                        <shadow type="command_list">
+                        </shadow>
+                    </value>
+                    <value name="reps">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="command_list"></block>
+            </category>
         {% endif %}
+        {% if zion_config %}
+            <sep></sep>
+            <category name="Zion API" colour="#6665DD">
+                <block type="device_list">
+                </block>
+                <block type="scope_list">
+                </block>
+                <block type="alarm_severity_list">
+                </block>
+                <block type="alarm_search_status_list">
+                </block>
+                <block type="device_last_telemetry">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="keys">
+                        <shadow type="text">
+                            <field name="keys"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="device_attr">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="scope">
+                        <shadow type="scope_list">
+                            <field name="scope"></field>
+                        </shadow>
+                    </value>
+                    <value name="keys">
+                        <shadow type="text">
+                            <field name="keys"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="device_alarm">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="severity">
+                        <shadow type="alarm_severity_list">
+                            <field name="severity"></field>
+                        </shadow>
+                    </value>
+                    <value name="search_status">
+                        <shadow type="alarm_search_status_list">
+                            <field name="search_status"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="send_device_last_telemetry">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="key">
+                        <shadow type="text">
+                            <field name="key"></field>
+                        </shadow>
+                    </value>
+                    <value name="payload">
+                        <shadow type="text">
+                            <field name="payload"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="send_device_attr">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="scope">
+                        <shadow type="scope_list">
+                            <field name="scope"></field>
+                        </shadow>
+                    </value>
+                    <value name="key">
+                        <shadow type="text">
+                            <field name="key"></field>
+                        </shadow>
+                    </value>
+                    <value name="payload">
+                        <shadow type="text">
+                            <field name="payload"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="send_device_alarm">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="name">
+                        <shadow type="text">
+                            <field name="name"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="delete_device_attr">
+                    <value name="device">
+                        <shadow type="device_list">
+                            <field name="device"></field>
+                        </shadow>
+                    </value>
+                    <value name="scope">
+                        <shadow type="scope_list">
+                            <field name="scope"></field>
+                        </shadow>
+                    </value>
+                    <value name="key">
+                        <shadow type="text">
+                            <field name="key"></field>
+                        </shadow>
+                    </value>
+                </block>
+            </category>
+        {% endif %}
+        {% if current_config.ginos_config %}
+            <sep></sep>
+            <category name="Ginos AI" colour="#6665DD">
+                <block type="ginos_ai_prompt">
+                    <value name="prompt">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                </block>
+                <block type="ginos_summarize_text">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>   
+                    </value>
+                </block>
+                {#
+                <block type="ginos_ai_chat">
+                    <value name="messages">
+                        <shadow type="ginos_ai_chat_message">
+                            <value name="role">
+                                <shadow type="ginos_ai_chat_message_role">
+                                </shadow>
+                            </value>
+                            <value name="content">
+                                <shadow type="text">
+                                </shadow>
+                            </value>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="ginos_ai_chat_message">
+                    <value name="role">
+                        <shadow type="ginos_ai_chat_message_role">
+                        </shadow>
+                    </value>
+                    <value name="content">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                </block>
+                <block type="ginos_ai_chat_message_role">
+                </block>
+                #}
+            </category>
+        {% endif %}
+        {% if current_config.mqtt_config %}
+            <sep></sep>
+            <category name="Ginos MQTT" colour="#6665DD">
+                <block type="ginos_mqtt_subscribe">
+                    <value name="topic">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                </block>
+                <block type="ginos_mqtt_publish">
+                    <value name="payload">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                    <value name="topic">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
 
-        <sep></sep>
-        <category name="Zion API" colour="#6665DD">
-            <block type="device_list">
-            </block>
-            <block type="scope_list">
-            </block>
-            <block type="alarm_severity_list">
-            </block>
-            <block type="alarm_search_status_list">
-            </block>
-            <block type="device_last_telemetry">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="keys">
-                    <shadow type="text">
-                        <field name="keys"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="device_attr">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="scope">
-                    <shadow type="scope_list">
-                        <field name="scope"></field>
-                    </shadow>
-                </value>
-                <value name="keys">
-                    <shadow type="text">
-                        <field name="keys"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="device_alarm">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="severity">
-                    <shadow type="alarm_severity_list">
-                        <field name="severity"></field>
-                    </shadow>
-                </value>
-                <value name="search_status">
-                    <shadow type="alarm_search_status_list">
-                        <field name="search_status"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="send_device_last_telemetry">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="key">
-                    <shadow type="text">
-                        <field name="key"></field>
-                    </shadow>
-                </value>
-                <value name="payload">
-                    <shadow type="text">
-                        <field name="payload"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="send_device_attr">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="scope">
-                    <shadow type="scope_list">
-                        <field name="scope"></field>
-                    </shadow>
-                </value>
-                <value name="key">
-                    <shadow type="text">
-                        <field name="key"></field>
-                    </shadow>
-                </value>
-                <value name="payload">
-                    <shadow type="text">
-                        <field name="payload"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="send_device_alarm">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="name">
-                    <shadow type="text">
-                        <field name="name"></field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="delete_device_attr">
-                <value name="device">
-                    <shadow type="device_list">
-                        <field name="device"></field>
-                    </shadow>
-                </value>
-                <value name="scope">
-                    <shadow type="scope_list">
-                        <field name="scope"></field>
-                    </shadow>
-                </value>
-                <value name="key">
-                    <shadow type="text">
-                        <field name="key"></field>
-                    </shadow>
-            </block>
-            
-        </category>
+                <!--commentati i blocchi in sviluppo-->
+                {#
+                </block>
+                <block type="ginos_mqtt_register">
+                </block>
+                <block type="ginos_mqtt_unregister">
+                </block>
+                #}
+
+            </category>
+        {% endif %}
         <sep></sep>
         <category name="Keyboard" colour="#c2c2c2">
             <block type="keyboard_press"></block>
@@ -568,18 +646,6 @@
                     </shadow>
                 </value>
             </block>
-        </category>
-        <category name="test" colour="aaaaaa">
-            <block type="wait">
-                <value name="seconds">
-                    <shadow type="text">
-                        <field name="NUM"></field>
-                    </shadow>
-                </value>
-            </block>
-            
-
-
         </category>
     </xml>
 </div>
@@ -682,6 +748,16 @@
 
         return errors;
     }
+
+    function getSubscriptions(workspace){
+        const functions = workspace.getBlocksByType("ginos_mqtt_subscribe");
+
+        return functions.map(block => {
+            const topic = block.getInputTargetBlock("topic").getFieldValue("TEXT");
+            const payload_reference = block.getField("var_name").getVariable().name;
+            return {"topic": topic, "function": clean_topic_names(topic), "payload_reference": payload_reference};
+        });
+    }
     
     function validateShape(workspace){
 
@@ -708,7 +784,8 @@
         Blockly.Python.addReservedWords('code');
         const code = python.pythonGenerator.workspaceToCode(workspace);
         let origin = code.indexOf("# Shapes");
-        $('#generatedCode').val(code.substring(origin));
+        const imports_and_libraries = defineImportsAndLibraries();
+        $('#generatedCode').val(imports_and_libraries + code.substring(origin));
     }
 
     function setState(workspace) {
@@ -716,8 +793,12 @@
         $('#state').val(JSON.stringify(state));
     }
 
+    function setSubscriptions(subscriptions) {
+        $('#subscriptions').val(JSON.stringify(subscriptions));
+    }
+
     const reservedWords = ["tactigon_shape_function","zion","code","logging_queue","debug","data", "main","tskin","tspeech","gesture","ironboy","touch","braccio"];
-    const functionBlockNames = ["tactigon_shape_function", "procedures_defnoreturn", "variables_set", "procedures_defreturn"];
+    const functionBlockNames = ["tactigon_shape_function", "tactigon_shape_setup", "tactigon_shape_close", "procedures_defnoreturn", "variables_set", "procedures_defreturn", "ginos_mqtt_subscribe"];
 
     $(document).ready(async function () {
 
@@ -734,12 +815,10 @@
                     return false;
                 }
                 
+                const subscriptions = getSubscriptions(workspace);
                 setGeneratedCode(workspace);
                 setState(workspace);
-                console.log(workspace);
-
-                
-
+                setSubscriptions(subscriptions);
             }
             catch(ex){
                 e.preventDefault();

@@ -112,7 +112,7 @@ if sys.platform != "darwin":
         )
 
 else:
-    def walk (args, s, level, parent):
+    def walk (*args, **kwargs):
         return []
     
     def get_voice_default_config() -> Optional[VoiceConfig]:

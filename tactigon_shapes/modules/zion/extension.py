@@ -46,7 +46,6 @@ class ZionInterface:
         self.config_file_path = config_file_path
         self.load_config()
 
-
         if app:
             self.init_app(app)
 

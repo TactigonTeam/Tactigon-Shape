@@ -23,127 +23,42 @@ import json
 import shutil
 import sys
 import time
-from queue import Queue
 from uuid import UUID
-from datetime import datetime
-from dataclasses import dataclass, field
-from enum import Enum
+from queue import Queue
+
 from os import path, makedirs
 from typing import List, Optional, Tuple, Any
 
 from flask import Flask
 from pynput.keyboard import Controller as KeyboardController
 
+from .models import ShapeConfig, DebugMessage, ShapesPostAction, Program
+
 from ..braccio.extension import BraccioInterface, Wrist, Gripper
 from ..zion.extension import ZionInterface
 from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
 from ..tskin.manager import walk
 from ..ironboy.extension import IronBoyInterface
+from ..ginos.extension import GinosInterface
+from ..mqtt.extension import MQTTClient, mqtt_client
 
 from ...extensions.base import ExtensionThread, ExtensionApp
 
-class Severity(Enum):
-    DEBUG = 0
-    INFO = 1
-    WARNING = 2
-    ERROR = 3
-
-class ShapesPostAction(Enum):
-    READ_TOUCH = 1
-
-@dataclass
-class Program:
-    state: object
-    code: Optional[str] = None
-
-@dataclass
-class ShapeConfig:
-    id: UUID
-    name: str
-    created_on: datetime
-    modified_on: datetime
-    description: Optional[str] = None
-    readonly: bool = False
-    app_file: str = "program.py"
-
-    @classmethod
-    def FromJSON(cls, json):
-        return cls(
-            UUID(json["id"]),
-            json["name"],
-            datetime.fromisoformat(json["created_on"]),
-            datetime.fromisoformat(json["modified_on"]),
-            json["description"],
-            json["readonly"]
-        )
-
-    def toJSON(self) -> dict:
-        return dict(
-            id=self.id.hex,
-            name=self.name,
-            created_on=self.created_on.isoformat(),
-            modified_on=self.modified_on.isoformat(),
-            description=self.description,
-            readonly=self.readonly
-        )
-    
-@dataclass
-class DebugMessage:
-    severity: Severity
-    date: datetime
-    message: str
-
-    @classmethod
-    def Debug(cls, message: str):
-        return cls(
-            Severity.DEBUG,
-            datetime.now(),
-            message
-        )
-
-    @classmethod
-    def Info(cls, message: str):
-        return cls(
-            Severity.INFO,
-            datetime.now(),
-            message
-        )
-    
-    @classmethod
-    def Warning(cls, message: str):
-        return cls(
-            Severity.WARNING,
-            datetime.now(),
-            message
-        )
-    
-    @classmethod
-    def Error(cls, message: str):
-        return cls(
-            Severity.ERROR,
-            datetime.now(),
-            message
-        )
-    
-    def toJSON(self) -> dict:
-        return dict(
-            severity=self.severity.name,
-            date=self.date.isoformat(),
-            message=self.message
-        )
-
 class LoggingQueue(Queue):
-    def debug(self, msg):
+    def debug(self, msg: str):
         self.put_nowait(DebugMessage.Debug(msg))
 
-    def info(self, msg):
+    def info(self, msg: str):
         self.put_nowait(DebugMessage.Info(msg))
 
-    def warning(self, msg):
+    def warning(self, msg: str):
         self.put_nowait(DebugMessage.Warning(msg))
 
-    def error(self, msg):
+    def error(self, msg: str):
         self.put_nowait(DebugMessage.Error(msg))
+
+    def prompt(self, msg: Any):
+        self.put_nowait(DebugMessage.Prompt(msg))
 
 class ShapeThread(ExtensionThread):
     MODULE_NAME: str = "ShapeThreadModule"
@@ -156,7 +71,8 @@ class ShapeThread(ExtensionThread):
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
     _ironboy_interface: Optional[IronBoyInterface] = None
-
+    _ginos_interface: Optional[GinosInterface] = None
+    _mqtt_interface: Optional[MQTTClient] = None
     
     def __init__(
             self, 
@@ -176,9 +92,16 @@ class ShapeThread(ExtensionThread):
         self._zion_interface = zion
         self._ironboy_interface = ironboy
 
+        if app.ginos_config:
+            self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
+
+        if app.mqtt_config:
+            self._mqtt_interface = MQTTClient(app.mqtt_config, self.on_message)
+
         ExtensionThread.__init__(self)
 
         self.load_module(path.join(base_path, "programs", app.id.hex, "program.py"))
+
 
     @property
     def braccio_interface(self) -> Optional[BraccioInterface]:
@@ -221,11 +144,53 @@ class ShapeThread(ExtensionThread):
             timeout += ShapeThread.TICK
             
         return False
+    
+    def on_message(self, client: mqtt_client.Client, userdata: dict, message: mqtt_client.MQTTMessage):
+        if not self._mqtt_interface or not self.module:
+            return
+        
+        subscription = next((s for s in self._mqtt_interface.config.subscriptions if s.topic == message.topic), None)
 
-    def main(self):       
-        actions: List[Tuple[ShapesPostAction, Any]] = []
+        if not subscription:
+            return
+        
+        # Set the payload reference first
+        setattr(self.module, subscription.payload_reference, json.loads(message.payload))
+        # Execute the function
+        getattr(self.module, subscription.function)(self._logging_queue)
+        # Clear the payload
+        setattr(self.module, subscription.payload_reference, None)
+
+    def run(self):
         try:
-            self.module.tactigon_shape_function(self._tskin, self._keyboard, self.braccio_interface, self.zion_interface, actions, self._logging_queue, self._ironboy_interface)
+            self.module.tactigon_shape_setup(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
+        except Exception as e:
+            print(e)
+            self._logging_queue.error(str(e))
+        
+        ExtensionThread.run(self)
+
+    def main(self):
+        try:
+            self.module.tactigon_shape_function(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
         except Exception as e:
             self._logging_queue.error(str(e))
 
@@ -241,6 +206,30 @@ class ShapeThread(ExtensionThread):
         self.module = importlib.util.module_from_spec(spec)  # type: ignore
         sys.modules[self.MODULE_NAME] = self.module
         spec.loader.exec_module(self.module)  # type: ignore
+
+    def stop(self):
+        try:
+            self.module.tactigon_shape_close(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
+        except Exception as e:
+            print(e)
+            pass
+
+        if self._ginos_interface:
+            self._ginos_interface = None
+            
+        if self._mqtt_interface:
+            self._mqtt_interface.disconnect()
+
+        ExtensionThread.stop(self)
 
 
 class ShapesApp(ExtensionApp):
@@ -452,6 +441,7 @@ class ShapesApp(ExtensionApp):
                     self.thread = ShapeThread(self.shapes_file_path, _config, tskin, self.keyboard, self.braccio_interface, self.zion_interface, self.ironboy_interface, self.logging_queue) 
                     self.thread.start()
                 except Exception as e:
+                    print(e)
                     self.current_id = None
                     if self.thread:
                         try:
