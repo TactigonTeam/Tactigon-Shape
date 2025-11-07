@@ -1350,10 +1350,10 @@ def get_doc_content(file_path):
             return None
         
     except Exception as e:
-        logging.error(e)
+
         return None
 
-def summarize_text(ginos: Optional[GinosInterface],file_path: str,logging_queue: LoggingQueue):
+def summarize_text(ginos: Optional[GinosInterface],file_path: str):
 
     if not ginos:
         return
@@ -1361,7 +1361,6 @@ def summarize_text(ginos: Optional[GinosInterface],file_path: str,logging_queue:
     extracted_file_content = get_doc_content(file_path)
     
     if not extracted_file_content:
-        logging.error("file empty")
         return None
 
     prompt_per_riassunto = "summarize this text: " + extracted_file_content

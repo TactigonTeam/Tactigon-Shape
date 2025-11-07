@@ -16,15 +16,15 @@ docker run -d \
   --network ollama-net \
   ollama/ollama
 
-This activates the container in the background. To directly test the functionality of a model or download a new model, use:
+This activates the container in the background. To directly test the functionality of a model or download a new one, use:
+
+docker exec -it ollama ollama run <model-name>
+docker exec -it ollama ollama run tinyllama
 
 If you want to implement the reading part of a document (e.g., Word), you need to use a mini model called nomic
 which works alongside the actual model that evaluates the document. Nomic indexes the parts of the document (chunks) so that it can be read by the real model.
 
 docker exec -it ollama ollama pull nomic-embed-text
-
-docker exec -it ollama ollama run <model-name>
-docker exec -it ollama ollama run tinyllama
 
 From here, the download will start or the chat with the model will open.
 

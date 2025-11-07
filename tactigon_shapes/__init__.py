@@ -172,7 +172,8 @@ class Server(Process):
                     ironboy_config=ironboy_config,
                     has_ironboy=has_ironboy,
                     ironboy_status=ironboy_status,
-                    ironboy_connected=ironboy_connected
+                    ironboy_connected=ironboy_connected,
+                    voice_config=app_config.TSKIN_VOICE
                 )
 
         return flask_app
