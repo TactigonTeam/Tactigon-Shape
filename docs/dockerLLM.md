@@ -1,19 +1,20 @@
 
 # Initial System Boot Sequence
 
+this doc is to guide the user into creating a two-container network to work with Shapes and Ollama
 ## Network Creation
 The network provides a link between the two dockers; use:
 
 docker network create ollama-net
 
 ## Start Ollama container (Terminal 1)
-
+download the container of Ollama with 
 
 docker run -d \
   -v ollama:/root/.ollama \
   --name ollama \
   -p 11434:11434 \
-  --network ollama-net \
+  --network ollama-net \ 
   ollama/ollama
 
 This activates the container in the background. To directly test the functionality of a model or download a new one, use:
