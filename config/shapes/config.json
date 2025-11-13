@@ -60,10 +60,10 @@
     "mqtt_config": null
   },
   {
-    "id": "2b926e940dd4445fab8b6e2272b03246",
+    "id": "40327ab08a8a4d1c87e04cd0a1af78b0",
     "name": "Zion",
-    "created_on": "2025-04-01T13:18:52.239699",
-    "modified_on": "2025-05-29T15:13:03.013949",
+    "created_on": "2025-11-13T14:56:35.424768",
+    "modified_on": "2025-11-13T14:57:34.139145",
     "description": "",
     "readonly": true,
     "ginos_config": null,
