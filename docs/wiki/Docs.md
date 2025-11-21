@@ -533,6 +533,23 @@ This example shows you that we create an alarm for "test device" by updating the
 
 https://github.com/user-attachments/assets/f9e353db-4cce-4823-a488-74bce78ce78f
 
+# ROS and MQTT
+MQTT is a lightweight network protocol designed for IoT connectivity using a Client-Broker architecture.
+
+    Publisher block: The application connects to a central Broker and transmits data payloads to specific identification strings called Topics.
+    Receiver block: The application subscribes to specific Topics on the Broker to intercept and process data routed from other clients.
+
+ROS
+
+ROS is a middleware framework used for robot control that enables communication between independent processes known as Nodes.
+
+    Publisher node: The application functions as a Node, broadcasting serialized data messages over named communication buses called Topics.
+    Receiver node: The application implements subscriber logic to listen to specific Topics, capturing and deserializing messages broadcast by other Nodes.
+
+# GINOS
+Ginos is the new Tactigon Shapes Architecture to implement the use of AI inside the app.
+Powered by Ollama, a new Prompt block lets us send query to different models installed directly into your PC.
+
 # How to run Tactigon Shapes using Docker
 
 ### Prerequisites
@@ -569,3 +586,5 @@ We have created a file named docker-setup.sh - (Linux, macOS) to configure every
 4. **Final output**
     
     Once the container is up and running, you will see a URL in the terminal output. Open this URL in your browser to use the Tactigon Shape application.
+
+

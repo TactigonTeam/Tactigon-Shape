@@ -9,6 +9,7 @@ To set the required tools on your system, follow the steps below:
     - To check if your Mac supports **AVX/FMA** you can go to **About This Mac**. Check the CPU model and verify its features online.
   - Python 3.8.10 [Download Python 3.8.10](https://www.python.org/downloads/release/python-3810/)
 
+
 - **Windows:**
 To set up the required tools on your Windows 10 or Windows 11 operating system, follow the steps below:
   - CPU with AVX/FMA support
@@ -38,7 +39,7 @@ To set up the required tools on your Windows 10 or Windows 11 operating system, 
 ![image](https://github.com/user-attachments/assets/e5b29bb3-0e81-4daf-98d6-e1c829b409bb)
 
 
-### Steps to Install:
+### Installation from GitHub:
 1. Download the repository:
 ![Immagine 2025-02-12 101837](https://github.com/user-attachments/assets/4065de26-cb74-453f-9c3f-32497c698408)
    
@@ -57,6 +58,49 @@ To set up the required tools on your Windows 10 or Windows 11 operating system, 
 <br>
 <br>
 
+### Installation from Tar file
+1. Required Components
+Ensure the following two files are present in the same directory on the host machine where you plan to install the application:
+  - install_package.sh: Shell Script that automates the entire installation, loading, and startup process.
+  - tactigon-shapes.tar: Docker Image that contains the core Tactigon Shapes application image.
+
+2. Prerequisites
+You must have the following installed and configured on your Linux host machine:
+Docker Engine: For container creation and management.
+X11 Server: The application uses X11 forwarding to display a graphical interface, so your environment must support it.
+
+3. Deployment Commands
+
+  Execute the following commands sequentially in your terminal from the directory where the files are located.
+
+  1. Grant Execute Permission
+  Make the installation script executable.
+    ```
+    chmod +x install_package.sh
+    ```
+  2. Grant X11 Access
+  This temporarily allows the Docker container to display the application window on your host's screen. You must run this command before the installer.
+    ```
+    xhost +local:docker
+    ```
+  3. Run the Installation Script
+  Execute the script to load the Docker images, restore the data volume, set up the network, and start both containers in the background.
+    ```
+    ./install_package.sh
+    ```
+  4. Check that both the main application and the LLM service are running correctly.
+    ```
+    docker ps
+    ```
+4. Expected Result: You should see two containers (tactigon-shapes and ollama) listed with a status of Up.
+
+# Application Access
+
+Once the containers are running, you can access the services using a web browser:
+
+Tactigon Shapes App : http://localhost:5123
+
+Ollama LLM Service : http://localhost:11434
 
 ## Start Tactigon Shapes 
 We have created a start file (start.bat - Windows / start.sh - Linux, macOS). Please execute that file; you will see the following output on your terminal.
