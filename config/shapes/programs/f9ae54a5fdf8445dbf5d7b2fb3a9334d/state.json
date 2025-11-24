@@ -4,39 +4,58 @@
     "blocks": [
       {
         "type": "tactigon_shape_setup",
-        "id": "G7z[nmHYYS#GhJbvYuUM",
-        "x": 30,
+        "id": "yQt=D_%0dr4*boB{7f%%",
+        "x": 170,
         "y": 30,
-        "deletable": false
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "tactigon_shape_debug",
+              "id": "LVvvz|N+A_Tt28?|X|g%",
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": ".C[s7dwKSh)Agr5irp0W",
+                    "fields": {
+                      "TEXT": "Tactigon"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       {
         "type": "tactigon_shape_function",
-        "id": ":O/PdR:IdxE]4ghLEeiU",
+        "id": ")^Dkb1gc{o[bWpjV3HKi",
         "x": 150,
-        "y": 50,
+        "y": 130,
         "deletable": false,
         "inputs": {
           "BODY": {
             "block": {
               "type": "tactigon_shape_debug",
-              "id": "s)]=(IL/#y$fxIol/agu",
+              "id": "~6}aT@}RV@^[$ip[wRC#",
               "inputs": {
                 "TEXT": {
                   "shadow": {
                     "type": "text",
-                    "id": "uW|98%:$E7MM7#a}iza=",
+                    "id": "P!FYI#/l@c/V?YB_@n0.",
                     "fields": {
                       "TEXT": "Tactigon"
                     }
                   },
                   "block": {
                     "type": "device_last_telemetry",
-                    "id": "H!G-tmu1g%cR0F^kw~Sp",
+                    "id": "YVN8I$,/UY!U0o.z`2l0",
                     "inputs": {
                       "device": {
                         "shadow": {
                           "type": "device_list",
-                          "id": "}SYP1Xf(iRA2)2U`hd5O",
+                          "id": "%*`7GlfwV1J}I{-~Y,+a",
                           "fields": {
                             "device": "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4"
                           }
@@ -45,7 +64,7 @@
                       "keys": {
                         "shadow": {
                           "type": "text",
-                          "id": "7dsBM]t22{Oj6=r30KWP",
+                          "id": "e|mTTYF:SE(OCykg]esz",
                           "fields": {
                             "TEXT": ""
                           }
@@ -58,24 +77,24 @@
               "next": {
                 "block": {
                   "type": "tactigon_shape_debug",
-                  "id": "g,:A,8,v%ly{sd9:ZJ@x",
+                  "id": "H0a_nsM[nl*]:OD]iIB1",
                   "inputs": {
                     "TEXT": {
                       "shadow": {
                         "type": "text",
-                        "id": "qs_}x9Q+HxOG5!K%zj5}",
+                        "id": ")Ve=5Bl(|ZBryyI{uiZ)",
                         "fields": {
                           "TEXT": "Tactigon"
                         }
                       },
                       "block": {
                         "type": "device_attr",
-                        "id": "%6:,WhnVxTlh|zX`={_p",
+                        "id": "TCj5wb(~=w5U05@kklsg",
                         "inputs": {
                           "device": {
                             "shadow": {
                               "type": "device_list",
-                              "id": "kh{UrYLq~R!B|*fDx-#R",
+                              "id": "8o[Cr4K*s-D]g#;~q|SW",
                               "fields": {
                                 "device": "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4"
                               }
@@ -84,7 +103,7 @@
                           "scope": {
                             "shadow": {
                               "type": "scope_list",
-                              "id": "6Y)J%H$^~9]-gs$RV-.(",
+                              "id": "oJmYsA3%lbs=j:T|Xi.J",
                               "fields": {
                                 "scope": "SERVER_SCOPE"
                               }
@@ -93,7 +112,7 @@
                           "keys": {
                             "shadow": {
                               "type": "text",
-                              "id": "2s_Cd5AX+cx$.8C(L:+2",
+                              "id": "=QM[v?5PPm_.Z5IXwbI{",
                               "fields": {
                                 "TEXT": ""
                               }
@@ -106,103 +125,53 @@
                   "next": {
                     "block": {
                       "type": "tactigon_shape_debug",
-                      "id": "Dm]eM9nc)#[P_7V$F,UW",
+                      "id": "0j7,WJ#56:jI#/q5aA{O",
                       "inputs": {
                         "TEXT": {
                           "shadow": {
                             "type": "text",
-                            "id": "0E3WG=|.^-f$SeX2g})b",
+                            "id": ")Ve=5Bl(|ZBryyI{uiZ)",
                             "fields": {
                               "TEXT": "Tactigon"
                             }
                           },
                           "block": {
-                            "type": "device_alarm",
-                            "id": "qou33zc.j3/A_pty/2?b",
+                            "type": "send_device_attr",
+                            "id": "!hd_l@i2i2S~}qCWS}Ht",
                             "inputs": {
                               "device": {
                                 "shadow": {
                                   "type": "device_list",
-                                  "id": "/-13bQ]G57J}N1]6_@h+",
+                                  "id": "oTzqQ[GK48[.C|T;{_=$",
                                   "fields": {
                                     "device": "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4"
                                   }
                                 }
                               },
-                              "severity": {
+                              "scope": {
                                 "shadow": {
-                                  "type": "alarm_severity_list",
-                                  "id": "fLGPM(`.(e3C#f$Rb}lC",
+                                  "type": "scope_list",
+                                  "id": "6-Yk=!lL~O[UE;EKq,e`",
                                   "fields": {
-                                    "severity": ""
+                                    "scope": "SERVER_SCOPE"
                                   }
                                 }
                               },
-                              "search_status": {
+                              "key": {
                                 "shadow": {
-                                  "type": "alarm_search_status_list",
-                                  "id": ":#CRX]DN[RdY?12Tt2DK",
+                                  "type": "text",
+                                  "id": "^@_23`e[]vi6Vyw3;6N}",
                                   "fields": {
-                                    "search_status": "ACK"
+                                    "TEXT": "test_key"
                                   }
                                 }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "next": {
-                        "block": {
-                          "type": "tactigon_shape_debug",
-                          "id": "vbsw?#A.vqX6nMok1rs6",
-                          "inputs": {
-                            "TEXT": {
-                              "shadow": {
-                                "type": "text",
-                                "id": "v.`jg,;Seyesr(pD/]?a",
-                                "fields": {
-                                  "TEXT": "Tactigon"
-                                }
                               },
-                              "block": {
-                                "type": "send_device_attr",
-                                "id": "]=JQ`:Z$w5[D(EHM#5XX",
-                                "inputs": {
-                                  "device": {
-                                    "shadow": {
-                                      "type": "device_list",
-                                      "id": "Wd)c6|RNAenvX|r[X?Z#",
-                                      "fields": {
-                                        "device": "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4"
-                                      }
-                                    }
-                                  },
-                                  "scope": {
-                                    "shadow": {
-                                      "type": "scope_list",
-                                      "id": "mMH[uT`-1fm|hRS]8EkS",
-                                      "fields": {
-                                        "scope": "SERVER_SCOPE"
-                                      }
-                                    }
-                                  },
-                                  "key": {
-                                    "shadow": {
-                                      "type": "text",
-                                      "id": "3JL5SBEEVuwcrQtGP=!z",
-                                      "fields": {
-                                        "TEXT": ""
-                                      }
-                                    }
-                                  },
-                                  "payload": {
-                                    "shadow": {
-                                      "type": "text",
-                                      "id": "o.-G82yFOymS%1/O#16.",
-                                      "fields": {
-                                        "TEXT": ""
-                                      }
-                                    }
+                              "payload": {
+                                "shadow": {
+                                  "type": "text",
+                                  "id": "~^G{J};C_e%rOMAm)*~|",
+                                  "fields": {
+                                    "TEXT": "test_value"
                                   }
                                 }
                               }
@@ -220,9 +189,9 @@
       },
       {
         "type": "tactigon_shape_close",
-        "id": "/yh0{h~huj{6qR_TulD,",
-        "x": 30,
-        "y": 300,
+        "id": "b}%jri8doYjEEnaS;pYS",
+        "x": -330,
+        "y": 270,
         "deletable": false
       }
     ]

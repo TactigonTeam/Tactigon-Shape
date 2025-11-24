@@ -23,10 +23,10 @@
                                 <label for="username" class="form-label">Username</label>
                                 <input type="text" class="form-control" id="username" name="username" value="{{ config.username if config else ''}}">
                             </div>
-                            {# <div class="mb-3">
+                            <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" value="{{ config.password if config else ''}}">
-                            </div> #}
+                                <input type="password" class="form-control" id="password" name="password" value="{{config.username  if config else ''}}">
+                            </div>
                             <div class="mb-3">
                                 <label for="url" class="form-label">Url</label>
                                 <input type="text" class="form-control" id="url" name="url" value="{{ config.url if config else ''}}">
@@ -59,7 +59,7 @@
                         <div class="d-flex gap-3">
                             <p>
                                 <b>Username</b>: {{ config.username }} <br>
-                                <b>Password</b>: {{ config.password }} <br>
+                                {# <b>Password</b>: {{ config.password }} <br> #}
                                 <b>URL</b>: {{ config.url }} <br>
                             </p>
                             <div>

@@ -301,7 +301,8 @@ def tactigon_shape_setup(
         mqtt: Optional[MQTTClient],
         logging_queue: LoggingQueue):
 
-    pass
+    debug(logging_queue, 'Tactigon')
+
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -316,8 +317,7 @@ def tactigon_shape_function(
     touch = tskin.touch
     debug(logging_queue, zion_device_last_telemetry(zion, "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4", ''))
     debug(logging_queue, zion_device_attr(zion, "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4", Scope("SERVER_SCOPE"), ''))
-    debug(logging_queue, zion_device_alarm(zion, "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4", AlarmSeverity(""), AlarmSearchStatus("ACK")))
-    debug(logging_queue, zion_send_device_attr(zion, "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4", Scope("SERVER_SCOPE"), '', ''))
+    debug(logging_queue, zion_send_device_attr(zion, "b8e19960-36f7-11f0-bd09-6bbf7a7c54e4", Scope("SERVER_SCOPE"), 'test_key', 'test_value'))
 
 
 def tactigon_shape_close(

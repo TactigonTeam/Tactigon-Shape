@@ -60,13 +60,24 @@
     "mqtt_config": null
   },
   {
-    "id": "40327ab08a8a4d1c87e04cd0a1af78b0",
+    "id": "f9ae54a5fdf8445dbf5d7b2fb3a9334d",
     "name": "Zion",
-    "created_on": "2025-11-13T14:56:35.424768",
-    "modified_on": "2025-11-13T14:57:34.139145",
+    "created_on": "2025-11-24T09:31:26.567070",
+    "modified_on": "2025-11-24T11:13:22.287216",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "mqtt_config": null
+    "mqtt_config": {
+      "broker_url": "",
+      "broker_port": "",
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
   }
 ]

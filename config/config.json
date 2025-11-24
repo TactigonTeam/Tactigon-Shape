@@ -106,6 +106,7 @@
     "address": "C0:83:4C:34:28:38",
     "hand": "right",
     "name": "TSKIN50",
+    "touch_config": null,
     "gesture_config": {
       "model_path": "models/MODEL_01_RIGHT/model.pickle",
       "encoder_path": "models/MODEL_01_RIGHT/encoder.pickle",

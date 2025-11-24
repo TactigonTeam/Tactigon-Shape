@@ -61,12 +61,12 @@ fi
 
 docker rm -f tactigon-shapes >/dev/null 2>&1 || true
 
-docker run -d \
+docker run \
   --name tactigon-shapes \
   --privileged \
   -e DISPLAY=$DISPLAY \
   -p 5123:5123 \
-  -v /tmp/empty:/app/venv \
+  -v tactigon-config:/app/config \
   -v /var/run/dbus:/var/run/dbus \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -e SDL_AUDIODRIVER=dummy \
@@ -76,6 +76,6 @@ docker run -d \
 echo ""
 echo "======================================="
 echo "Installation Complete!"
-echo "Tactigon Shapes:   http://localhost:5123"
-echo "Ollama: http://localhost:11434"
+echo "Tactigon Shapes:    http://localhost:5123"
+echo "Ollama:             http://localhost:11434"
 echo "======================================="

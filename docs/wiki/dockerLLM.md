@@ -39,17 +39,17 @@ docker build -t tactigon-shapes .
 
 This command starts the application container, connecting it to the same network (ollama-net) to communicate with the Ollama server. It also includes the necessary configurations for the graphical interface (X server) on Linux (-e DISPLAY, -v /tmp/.X11-unix, etc.).
 
-sudo docker run -it --rm \
---name tactigon-shapes \
---privileged \
--e DISPLAY=$DISPLAY \
--p 5123:5123 \
--v /tmp/empty:/app/venv \
--v /var/run/dbus:/var/run/dbus \
--v /tmp/.X11-unix:/tmp/.X11-unix \
--e SDL_AUDIODRIVER=dummy \
---network ollama-net \
-tactigon-shapes
+docker run \
+  --name tactigon-shapes \
+  --privileged \
+  -e DISPLAY=$DISPLAY \
+  -p 5123:5123 \
+  -v tactigon-config:/app/config \
+  -v /var/run/dbus:/var/run/dbus \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -e SDL_AUDIODRIVER=dummy \
+  --network ollama-net \
+  tactigon-shapes
 
 In debug mode, add -v $(pwd):/app \
 
