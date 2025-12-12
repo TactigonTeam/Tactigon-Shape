@@ -160,14 +160,13 @@
                     </h5>
                 </label>
             </div>
-
             <div class="btn-group">
+            {% if not current_config.readonly %}
                 <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#clone"
                     title="Clone Shape" {% if is_running and current_config.id==current_running_program %} disabled {%
                     endif %}>
                     <i class="bi bi-copy"></i>
                 </button>
-                {% if not current_config.readonly %}
                 <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#edit"
                     title="Edit Shape" {% if is_running and current_config.id==current_running_program %} disabled {%
                     endif %}>
@@ -206,11 +205,11 @@
                                     <div class="col-md-6 border-end">
                                         <div class="mb-3">
                                             <label for="ginos-url" class="form-label">Address</label>
-                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ginos.ai" value="{{current_config.ginos_config.url}}">
+                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ollama:11434" value="{{current_config.ginos_config.url}}">
                                         </div>
                                         <div class="mb-3">
                                             <label for="ginos-model" class="form-label">Model name</label>
-                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral:7b" value="{{current_config.ginos_config.model}}">
+                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral" value="{{current_config.ginos_config.model}}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">

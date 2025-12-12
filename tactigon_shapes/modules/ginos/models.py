@@ -14,7 +14,8 @@ def parse_datetime(date_string: Optional[str]) -> datetime:
     
     if date_string.endswith('Z'):
         date_string = date_string[:-1]  # rimuove 'Z'
-        date_string = date_string.split('.')[0] + '.' + date_string.split('.')[1][:6]
+        if "." in date_string:
+            date_string = date_string.split('.')[0]
 
     return dateutil.parser.isoparse(date_string)
 
@@ -97,7 +98,7 @@ class LLMModelDetailsRequest:
             parent_model=json.get("parent_model", ""),
             format=json.get("format", ""),
             family=json.get("family", ""),
-            families=json.get("families", ""),
+            families=json.get("families", []),
             parameter_size=json.get("parameter_size", ""),
             quantization_level=json.get("quantization_level", ""),
         )

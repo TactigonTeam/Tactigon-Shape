@@ -21,7 +21,7 @@ sudo docker run -it \
   --privileged \
   -e DISPLAY=$DISPLAY \
   -p 5123:5123 \
-  -v /tmp/empty:/app/venv \
+  -v tactigon-config:/app/config \
   -v /var/run/dbus:/var/run/dbus \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -e SDL_AUDIODRIVER=dummy \

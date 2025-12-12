@@ -1,0 +1,47 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "#EiF@Q}|!`hy/nTV)8NG",
+        "x": 30,
+        "y": 30,
+        "deletable": false
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": ":!9:/e)pu0v|PH{1^F4v",
+        "x": 30,
+        "y": 150,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "tactigon_shape_debug",
+              "id": "^uEI{0d{Z}$8j-MHdjzV",
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "~)/2rMF3((AK|YW{c:La",
+                    "fields": {
+                      "TEXT": "Tactigon"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "8aZO~{HD$-])n8=lx8Oz",
+        "x": 30,
+        "y": 300,
+        "deletable": false
+      }
+    ]
+  }
+}

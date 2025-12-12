@@ -1015,6 +1015,24 @@ function loadGinosAIBlocks(ginos){
             "colour": "#EB6152",
             "tooltip": "",
             "helpUrl": ""
+        },
+        //----------------------------
+        {
+            "type": "read_static_file",
+            "tooltip": "read from file.csv",
+            "helpUrl": "read from file.csv",
+            "message0": "Input file : %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "path",
+                    "check": "String"
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 15,
+            "inputsInline": false
         }
     ]);
 
@@ -1090,6 +1108,7 @@ function loadGinosMQTTBlocks(ginos){
             "nextStatement": null,
             "colour": 225
         }
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1777,12 +1796,21 @@ function defineGinosAIGenerators(){
         var code = ``;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
+    
     python.pythonGenerator.forBlock['ginos_summarize_text'] = function(block, generator) {
-    const input_path = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
-        var code = `summarize_text(ginos,${input_path},logging_queue)`;
+    const text = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
+        var code = `summarize_text(ginos,${text},logging_queue)`;
         return [code, Blockly.Python.ORDER_ATOMIC];
+    }
+    //------------
+    python.pythonGenerator.forBlock['read_static_file'] = function(block, generator) {
+
+    const filepath = generator.valueToCode(block, 'path', python.Order.ATOMIC);
+    var code = `extract_data(${filepath},logging_queue)`
+    return code;
+    }
 }
-}
+
 
 function defineGinosMQTTGenerators(){
     python.pythonGenerator.forBlock['ginos_mqtt_subscribe'] = function(block, generator) {

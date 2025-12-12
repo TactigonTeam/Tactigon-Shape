@@ -37,7 +37,6 @@ class GinosInterface:
                 print(f"Retrying Ollama connection")
                 time.sleep(5)
 
-        self._version = self.get_version()
         self.get_models()
 
     @property

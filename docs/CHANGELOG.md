@@ -3,7 +3,7 @@
 ### 10/11/25
 software name: Tactigon Shapes
 project name: ONI107SHAP01
-release code: 5.2.0.3
+release code: 5.2.0.4-rc1
 
 ## REQUIREMENTS
 
@@ -20,10 +20,7 @@ release code: 5.2.0.3
 - TESTBOOK_tactigonShape_V5
 
 ## FEATURES
-release code: 5.2.0.3
-### ROS Blocks
-- Publishing: The application functions as a Node, broadcasting serialized data messages over named communication buses called Topics.
-- Receiving: The application implements subscriber logic to listen to specific Topics, capturing and deserializing messages broadcast by other Nodes.
+release code: 5.2.0.4-rc1
 
 ### MQTT Blocks
 - Publishing: The application connects to a central Broker and transmits data payloads to specific identification strings called Topics.
@@ -33,3 +30,7 @@ release code: 5.2.0.3
 "Ginos" represents the connection between Shapes ans AI.
 Thanks to Ginos it's possible to create AI Prompts directly from the "edit shape" menu, thanks to the "AI prompt" block.
 
+## BUGFIXES
+- end of file error in docker
+- "no connection" error with zion config
+- copiable demo Shapes creating othe readonly Shapes

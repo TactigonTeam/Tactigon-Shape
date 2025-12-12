@@ -51,7 +51,6 @@ class ZionInterface:
 
     def init_app(self, app: Flask):
         """inizialize app through flask
-
         Args:
             app (Flask): connects flask with zion
         """
@@ -79,13 +78,20 @@ class ZionInterface:
     def load_config(self):
         """loads configuration from Zionconfig JSON
         """
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                self.config = ZionConfig.FromJSON(json.load(f))
-                self.get_devices()
-        else:
+        try:
+            if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
+                with open(self.config_file, "r") as f:
+                    self.config = ZionConfig.FromJSON(json.load(f))
+                    self.get_devices()
+            else:
+                self.config = None
+                self.devices = []
+        except ConnectionError or ConnectionRefusedError as e:
+            print("connessione con zion fallita",e)
             self.config = None
             self.devices = []
+
+
 
     
     def save_config(self, config: ZionConfig):
@@ -151,12 +157,14 @@ class ZionInterface:
             "accept": APPLICATION_JSON,
             "X-Authorization": f"Bearer {self.token}"
         }
-
-        res = requests.post(
-            url,
-            json=payload,
-            headers=headers
-            )
+        try:
+            res = requests.post(
+                url,
+                json=payload,
+                headers=headers
+                )
+        except requests.exceptions.RequestException as e:
+            print(f"[WARN] POST error: {e}")
         
         if res.status_code == 401:
             token = self.refresh_token(self.config.url, self.config.username, self.config.password)
@@ -182,7 +190,6 @@ class ZionInterface:
 
         if not self.token:
             token = self.refresh_token(self.config.url, self.config.username, self.config.password)
-            
             if not token:
                 return None
             
@@ -193,10 +200,11 @@ class ZionInterface:
             "X-Authorization": f"Bearer {self.token}"
         }
 
-        res = requests.get(
-            url,
-            headers=headers
-        )
+        try:
+            res = requests.get(url, headers=headers, timeout=5)
+        except requests.exceptions.RequestException as e:
+            print(f"GET {url} failed: {e}")
+            return None
 
         if res.status_code == 401:
             token = self.refresh_token(self.config.url, self.config.username, self.config.password)
@@ -257,23 +265,33 @@ class ZionInterface:
         Returns:
             Optional[str]: auth token 
         """
-        headers = {
-            "Content-Type": APPLICATION_JSON,
-            "accept": APPLICATION_JSON,
-        }
-
-        res = requests.post(
-            f"{url}api/auth/login",
-            headers=headers,
-            json={"username": username, "password": password}
-        )
-        
-        if res.status_code != 200:
+        try:
+            headers = {
+                "Content-Type": APPLICATION_JSON,
+                "accept": APPLICATION_JSON,
+            }
+            try:
+                res = requests.post(
+                    f"{url}api/auth/login",
+                    headers=headers,
+                    json={"username": username, "password": password}
+                )
+            except requests.exceptions.ConnectionError:
+                print(f"[WARN] Unable to reach Zion login endpoint. Are you offline?")
+            except requests.exceptions.Timeout:
+                print(f"[WARN] Request to Zion login endpoint timed out.")
+            except requests.exceptions.RequestException as e:
+                print(f"[WARN] POST error: {e}")
+            
+            
+            if res.status_code != 200:
+                return None
+            
+            data = res.json()
+            return data["token"]
+        except requests.exceptions.RequestException as e:
+            print(f"Zion login error: {e}")
             return None
-        
-        data = res.json()
-        return data["token"]
-    
 
     def get_devices(self, size: int = 20, page: int = 0):
         """populate device list trough connection with Zion Devices
@@ -291,16 +309,18 @@ class ZionInterface:
         if not res:
             return False
         
-        self.devices = []
+        if page == 0:
+            self.devices = []
 
         for device in res["data"]:
             self.devices.append(
                 Device.FromZION(device)
             )
-
+            
         if res["hasNext"]:
             return self.get_devices(size, page+1)
         
+        print("Zion devices found = ", len(self.devices))
         return True
     
     def device_last_telemetry(self, device_id: str, keys: str = "") -> Optional[dict]:
@@ -385,7 +405,9 @@ class ZionInterface:
         if not alarms:
             return None
 
-        ret = []
+        if page == 0:
+            ret = []
+            
         for alarm in alarms["data"]:
             ret.append({"id": alarm["id"]["id"], "severity": alarm["severity"], "status": alarm["status"], "startTs": alarm["startTs"]})
 

@@ -16,6 +16,7 @@ from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import List, Optional, Union, Any
+from pathlib import Path
 
 
 def check_gesture(gesture: Optional[Gesture], gesture_to_find: str) -> bool:
@@ -234,6 +235,42 @@ def ginos_ai_prompt(ginos: Optional[GinosInterface], prompt: str, context: str =
 
     return ginos.prompt(prompt_object)
 
+def get_doc_content(file_path):
+    path = Path(file_path)
+    
+    if not path.exists():
+        return None
+        
+    extension = path.suffix.lower()
+    
+    try:
+        if extension == '.txt' or extension == '.md':
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        else:
+            return None
+        
+    except Exception as e:
+
+        return None
+
+def summarize_text(ginos: Optional[GinosInterface],file_path: str):
+
+    if not ginos:
+        return
+    
+    extracted_file_content = get_doc_content(file_path)
+    
+    if not extracted_file_content:
+        return None
+
+    prompt_per_riassunto = "summarize this text: " + extracted_file_content
+
+    response = ginos_ai_prompt(ginos, prompt_per_riassunto)
+
+    return response
+
+
 def mqtt_publish(mqtt: Optional[MQTTClient], topic: str, payload: Any):
     if not mqtt:
         return
@@ -277,8 +314,7 @@ def tactigon_shape_function(
 
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "SINGLE_TAP"):
-        debug(logging_queue, 'Tactigon')
+    debug(logging_queue, 'Tactigon')
 
 
 def tactigon_shape_close(
