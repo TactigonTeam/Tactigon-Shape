@@ -22,20 +22,22 @@ class GinosInterface:
 
     _version: Optional[str]
     _model_list: List[LLMModelRequest]
+    _logger: logging.Logger
 
     def __init__(self, url: str, model: str):
         self._url = url if url[-1] == "/" else f"{url}/"
         self._model = model
+        self._logger = logging.getLogger(GinosInterface.__name__)
 
         retries = 0
-        while retries < 3:
+        while retries < 6:
             self._version = self.get_version()
             if self._version is not None:
                 break
+            
+            self._logger.warning("Retrying Ollama connection")
+            time.sleep(0.5)
             retries += 1
-            if retries < 3:
-                print(f"Retrying Ollama connection")
-                time.sleep(5)
 
         self.get_models()
 
@@ -78,11 +80,11 @@ class GinosInterface:
             res = self._post("show", dict(model=model_name))
             response_json = res.json()
         except Exception as e:
-            logging.error(e)
+            self._logger.error(e)
             return None
 
         if response_json.get("error", False):
-            logging.error(response_json.get("error"))
+            self._logger.error(response_json.get("error"))
             return None
         
         return LLMModelShowRequest.FromJSON(response_json)
@@ -92,11 +94,11 @@ class GinosInterface:
             with self._stream("pull", LLMModelPullRequest(model_name).toJSON()) as res:
                 for line in res.iter_lines():
                     llm_model_pull_response = LLMModelPullResponse.FromJSON(json.loads(line))
-                    logging.debug("Response line: %s", llm_model_pull_response)
+                    self._logger.debug("Response line: %s", llm_model_pull_response)
                     yield llm_model_pull_response
 
         except Exception as e:
-            logging.error(e)
+            self._logger.error(e)
             return None
         
         self.get_models()
@@ -110,16 +112,16 @@ class GinosInterface:
         if not self.find_model(prompt.model):
             self.pull_model(prompt.model)
 
-        logging.info("Sending prompt %s", prompt)
+        self._logger.info("Sending prompt %s", prompt)
         try:
             with self._stream("generate", prompt.to_dict()) as res:
                 for line in res.iter_lines():
                     llm_prompt_response = LLMPromptResponse.FromJSON(json.loads(line))
-                    logging.debug("Response line: %s", llm_prompt_response)
+                    self._logger.debug("Response line: %s", llm_prompt_response)
                     yield llm_prompt_response
                 
         except Exception as e:
-            logging.error(e)
+            self._logger.error(e)
             return None
 
         return
@@ -128,15 +130,15 @@ class GinosInterface:
         if not self.find_model(chat.model):
             self.pull_model(chat.model)
 
-        logging.info("Sending chat %s", chat)
+        self._logger.info("Sending chat %s", chat)
         try:
             with self._stream("chat", chat.toJSON()) as res:
                 for line in res.iter_lines():
                     llm_chat_response = LLMChatResponse.FromJSON(json.loads(line))
-                    logging.debug("Response: %s", llm_chat_response)
+                    self._logger.debug("Response: %s", llm_chat_response)
                     yield llm_chat_response
         except Exception as e:
-            logging.error(e)
+            self._logger.error(e)
             return None
 
         return
@@ -148,7 +150,7 @@ class GinosInterface:
             res = httpx.get(url, headers=HEADERS)
             return res.json()
         except Exception as e:
-            logging.error(e)
+            self._logger.error(e)
 
         return {}
     
@@ -167,7 +169,7 @@ class GinosInterface:
             res = requests.delete(url, headers=HEADERS, json=payload)
             return res.status_code
         except Exception as e:
-            logging.error(e)
+            self._logger.error(e)
 
         return 500
 

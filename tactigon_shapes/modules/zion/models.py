@@ -86,7 +86,7 @@ class ZionConfig:
     username: str
     password: str
     url: str = "https://zion.nextind.eu/"
-    token: Optional[str] = None
+    token: str = ""
 
     @classmethod
     def Default(cls):

@@ -17,7 +17,7 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
+import logging
 import importlib.util
 import json
 import shutil
@@ -65,6 +65,7 @@ class ShapeThread(ExtensionThread):
     TOUCH_DEBOUCE_TIME: float = 0.05
     TOUCH_DEBOUNCE_TIMEOUT: float = 0.2
 
+    _logger: logging.Logger
     _tskin: TSkin
     _keyboard: KeyboardController
     _logging_queue: LoggingQueue
@@ -174,7 +175,7 @@ class ShapeThread(ExtensionThread):
                 self._logging_queue
             )
         except Exception as e:
-            print(e)
+            self._logger.error(e)
             self._logging_queue.error(str(e))
         
         ExtensionThread.run(self)
@@ -220,8 +221,7 @@ class ShapeThread(ExtensionThread):
                 self._logging_queue
             )
         except Exception as e:
-            print(e)
-            pass
+            self._logger.error(e)
 
         if self._ginos_interface:
             self._ginos_interface = None
@@ -240,6 +240,7 @@ class ShapesApp(ExtensionApp):
     current_id: Optional[UUID] = None
     logging_queue: LoggingQueue
 
+    _logger: logging.Logger
     _ironboy_interface: Optional[IronBoyInterface] = None
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
@@ -249,6 +250,7 @@ class ShapesApp(ExtensionApp):
         self.shapes_file_path = config_path
         self.keyboard = KeyboardController()
         self.logging_queue = LoggingQueue()
+        self._logger = logging.getLogger(ShapesApp.__name__)
         
         
         if sys.platform == "darwin":
@@ -307,10 +309,11 @@ class ShapesApp(ExtensionApp):
                 return json.load(state_json_file)
 
         except FileNotFoundError:
-            print(f"Error: The file {self.config_file_path} does not exist.")
+            self._logger.error("Error: The file %s does not exist.", self.config_file_path)
 
         except json.JSONDecodeError:
-            print("Error: The file is not a valid JSON document.")
+            self._logger.error("Error: The file is not a valid JSON document.")
+
 
         return None
 
@@ -441,7 +444,7 @@ class ShapesApp(ExtensionApp):
                     self.thread = ShapeThread(self.shapes_file_path, _config, tskin, self.keyboard, self.braccio_interface, self.zion_interface, self.ironboy_interface, self.logging_queue) 
                     self.thread.start()
                 except Exception as e:
-                    print(e)
+                    self._logger.error("Cannot start Shape %s", e)
                     self.current_id = None
                     if self.thread:
                         try:

@@ -1,5 +1,6 @@
 import time
 import json
+import logging
 from queue import Queue
 from typing import Optional, Callable
 
@@ -14,10 +15,12 @@ class MQTTClient:
     client: Optional[mqtt_client.Client] = None
 
     _can_reconnect: bool
+    _logger: logging.Logger
 
     def __init__(self, config: MQTTConfig, on_message: Optional[Callable[[mqtt_client.Client, dict, mqtt_client.MQTTMessage], None]] = None):
         self.config = config
         self._can_reconnect = True
+        self._logger = logging.getLogger(MQTTClient.__name__)
         
         self.userdata = {}
         self.client = mqtt_client.Client(
@@ -74,6 +77,7 @@ class MQTTClient:
         self.client = None
 
     def on_message(self, client: mqtt_client.Client, userdata: dict, message: mqtt_client.MQTTMessage):
+        self._logger.info("Message received on topic %s, %s", message.topic, message.payload)
         print(message.topic, message.payload)
 
     def subscribe(self, topic: str, qos: int = 0, timeout: float = 5):

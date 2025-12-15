@@ -21,7 +21,6 @@ COPY speech /app/speech
 COPY tactigon_shapes /app/tactigon_shapes
 COPY main.py /app/main.py
 COPY docs /docs
-COPY docker.py /app/docker.py   
 
 RUN pip install \
     flask==3.0.3 \
@@ -45,17 +44,8 @@ RUN pip install \
     langchain-community langchain pypdf chromadb \
     python-docx
 
-RUN python -m compileall -b -x "^/app/config" /app || true
-
-
-RUN find /app -path /app/config -prune -o -name "*.py" -type f -exec rm -f {} +
-
-RUN find /app -type d -name "__pycache__" -exec rm -rf {} +
-
-
-
 EXPOSE 5123
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD curl -f http://localhost:5123/ || exit 1
 
-CMD bash -c "xvfb-run --server-args='-screen 0 1024x768x24' python -u docker.pyc --address=0.0.0.0 --port 5123"
+CMD ["python", "-m", "tactigon_shapes", "--address 0.0.0.0", "--port 5123"]

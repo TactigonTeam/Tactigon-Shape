@@ -1,8 +1,8 @@
 import argparse
 import signal
-from tactigon_shapes import TactigonShapes
+from . import TactigonShapes
 
-if __name__ == "__main__":
+def run():
     parser = argparse.ArgumentParser("Tactigon Shapes")
     parser.add_argument("-A", "--address", help="Server address", type=str, default="0.0.0.0")
     parser.add_argument("-P", "--port", help="Server port", type=int, default=5123)
@@ -17,3 +17,6 @@ if __name__ == "__main__":
         server.serve()
     except KeyboardInterrupt:
         server.stop()
+
+if __name__ == "__main__":
+    run()
