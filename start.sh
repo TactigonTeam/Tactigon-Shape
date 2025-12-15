@@ -64,7 +64,7 @@ fi
 
 echo ""
 echo " Starting Tactigon Shapes container..."
-docker run -it \
+docker run \
   --name tactigon-shapes \
   --privileged \
   --network ollama-net \
@@ -76,9 +76,3 @@ docker run -it \
   -e SDL_AUDIODRIVER=dummy \
   tactigon-shapes
   # -v $(pwd):/app \
-
-echo ""
-echo "======================================================="
-echo "Tactigon Shapes running at: http://localhost:5123     |"
-echo "Ollama running at:          http://localhost:11434    |"
-echo "======================================================="

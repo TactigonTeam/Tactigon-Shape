@@ -48,4 +48,4 @@ EXPOSE 5123
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD curl -f http://localhost:5123/ || exit 1
 
-CMD ["python", "-m", "tactigon_shapes", "--address 0.0.0.0", "--port 5123"]
+CMD ["python", "-m", "tactigon_shapes", "--address=0.0.0.0", "--port=5123"]

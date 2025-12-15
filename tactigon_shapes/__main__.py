@@ -8,7 +8,7 @@ def run():
     parser.add_argument("-P", "--port", help="Server port", type=int, default=5123)
     args = parser.parse_args()
 
-    server = TactigonShapes(args.address, args.port, True)
+    server = TactigonShapes(args.address.strip(), args.port, True)
 
     signal.signal(signal.SIGTERM, lambda s, h: server.stop())
     signal.signal(signal.SIGINT, lambda s, h: server.stop())
