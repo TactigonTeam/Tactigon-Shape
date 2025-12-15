@@ -1,0 +1,9 @@
+camera_node:
+  ros__parameters:
+    camera_name: usb_camera
+    image_width: 640
+    image_height: 480
+    framerate: 30
+    pixel_format: rgb8
+    camera_info_url: ''
+    frame_id: camera_link

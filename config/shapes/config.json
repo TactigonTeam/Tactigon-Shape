@@ -6,6 +6,7 @@
     "modified_on": "2025-05-29T15:13:21.962525",
     "description": "",
     "readonly": true,
+    "ros2_config": null,
     "ginos_config": null,
     "mqtt_config": null
   },
@@ -16,6 +17,7 @@
     "modified_on": "2025-05-29T15:13:18.470372",
     "description": "",
     "readonly": true,
+    "ros2_config": null,
     "ginos_config": null,
     "mqtt_config": null
   },
@@ -26,6 +28,7 @@
     "modified_on": "2025-05-29T15:13:15.142440",
     "description": "",
     "readonly": true,
+    "ros2_config": null,
     "ginos_config": null,
     "mqtt_config": null
   },
@@ -36,6 +39,7 @@
     "modified_on": "2025-05-29T15:13:12.154595",
     "description": "",
     "readonly": true,
+    "ros2_config": null,
     "ginos_config": null,
     "mqtt_config": null
   },
@@ -46,6 +50,7 @@
     "modified_on": "2025-05-29T15:13:09.318731",
     "description": "",
     "readonly": true,
+    "ros2_config": null,
     "ginos_config": null,
     "mqtt_config": null
   },
@@ -56,6 +61,7 @@
     "modified_on": "2025-05-29T15:13:06.085193",
     "description": "",
     "readonly": true,
+    "ros2_config": null,
     "ginos_config": null,
     "mqtt_config": null
   },
@@ -66,6 +72,36 @@
     "modified_on": "2025-05-29T15:13:03.013949",
     "description": "",
     "readonly": true,
+    "ros2_config": null,
+    "ginos_config": null,
+    "mqtt_config": null
+  },
+  {
+    "id": "6d16550393134be7bf403955ca75d06e",
+    "name": "ros2_test",
+    "created_on": "2025-10-24T12:57:11.511441",
+    "modified_on": "2025-10-27T16:59:04.358808",
+    "description": "",
+    "readonly": false,
+    "ros2_config": {
+      "node_name": "ros2_test",
+      "publishers": [
+        {
+          "topic": "send/data",
+          "message_type": "String",
+          "qos_profile": 10
+        }
+      ],
+      "subscriptions": [
+        {
+          "topic": "recv/data",
+          "function": "recv_data",
+          "payload_reference": "payload",
+          "message_type": "String",
+          "qos_profile": 10
+        }
+      ]
+    },
     "ginos_config": null,
     "mqtt_config": null
   }

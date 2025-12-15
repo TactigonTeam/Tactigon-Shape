@@ -555,32 +555,36 @@
             </category>
         {% endif %}
         <sep></sep>
-        <category name="ROS 2" colour="#6665DD">
-            <block type="ros2_subscribe">
-                <value name="topic">
-                    <shadow type="text"></shadow>
-                </value>
-                <value name="message_type">
-                    <shadow type="ros2_message_type">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_publish">
-                <value name="payload">
-                    <shadow type="text">
-                    </shadow>
-                </value>
-                <value name="topic">
-                    <shadow type="text">
-                    </shadow>
-                </value>
-                <value name="message_type">
-                    <shadow type="ros2_message_type">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_type"></block>
-        </category>
+        {% if has_ros2 %}
+            <category name="ROS 2" colour="#6665DD">
+                <block type="ros2_command">
+                </block>
+                <block type="ros2_subscribe">
+                    <value name="topic">
+                        <shadow type="text"></shadow>
+                    </value>
+                    <value name="message_type">
+                        <shadow type="ros2_message_type">
+                        </shadow>
+                    </value>
+                </block>
+                <block type="ros2_publish">
+                    <value name="payload">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                    <value name="topic">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                    <value name="message_type">
+                        <shadow type="ros2_message_type">
+                        </shadow>
+                    </value>
+                </block>
+                <block type="ros2_message_type"></block>
+            </category>
+        {% endif %}
         {% if current_config.ginos_config %}
             <sep></sep>
             <category name="Ginos AI" colour="#6665DD">

@@ -11,6 +11,7 @@ from os import path
 from multiprocessing import Event, Process, Queue
 from flask import Flask, render_template, send_from_directory, request
 from gevent.pywsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
 
 from typing import Optional
 
@@ -26,6 +27,8 @@ from tactigon_shapes.modules.zion.manager import get_zion_interface
 from tactigon_shapes.modules.tskin.manager import load_tskin, start_tskin, TSKIN_EXTENSION
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.manager import get_ros2_interface
 
 class Server(Process):
     url: str
@@ -62,7 +65,7 @@ class Server(Process):
     def run(self):
         logging.getLogger("bleak").setLevel(logging.INFO)
         app = self.create_app(self.debug)
-        server = WSGIServer((self.url, self.port), app)
+        server = WSGIServer((self.url, self.port), app, handler_class=WebSocketHandler)
         self._ready_flag.set()
         server.serve_forever()
 
@@ -77,6 +80,7 @@ class Server(Process):
             braccio_interface = BraccioInterface(path.join(BASE_PATH, "config", "braccio"))
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
+            ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -84,10 +88,12 @@ class Server(Process):
             shapes_app.init_app(flask_app)
             socket_app.init_app(flask_app)
             ironboy_interface.init_app(flask_app)
+            ros2_interface.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
             shapes_app.zion_interface = zion_interface
             shapes_app.ironboy_interface = ironboy_interface
+            shapes_app.ros2_interface = ros2_interface
 
             socket_app.shapes_app = shapes_app
             socket_app.braccio_interface = braccio_interface
@@ -108,6 +114,7 @@ class Server(Process):
             from .modules.braccio.blueprint import bp as braccio_bp
             from .modules.zion.blueprint import bp as zion_bp
             from .modules.ironboy.blueprint import bp as ironboy_bp
+            from tactigon_shapes.modules.ros2.blueprint import bp as ros2_bp
 
             flask_app.register_blueprint(main.bp)
             flask_app.register_blueprint(tskin_bp)
@@ -115,6 +122,7 @@ class Server(Process):
             flask_app.register_blueprint(braccio_bp)
             flask_app.register_blueprint(zion_bp)
             flask_app.register_blueprint(ironboy_bp)
+            flask_app.register_blueprint(ros2_bp)
 
             @flask_app.route('/favicon.ico')
             def favicon():
@@ -131,6 +139,7 @@ class Server(Process):
                 braccio_interface = get_braccio_interface()
                 zion_interface = get_zion_interface()
                 ironboy_interface = get_ironboy_interface()
+                ros2_inferface = get_ros2_interface()
                 
                 if braccio_interface:
                     braccio_config = braccio_interface.config
@@ -155,6 +164,8 @@ class Server(Process):
                 else:
                     zion_config = None
 
+                has_ros2 = ros2_inferface is not None
+
                 return dict(
                     DEBUG=app_config.DEBUG,
                     BASE_PATH=BASE_PATH,
@@ -172,7 +183,8 @@ class Server(Process):
                     ironboy_config=ironboy_config,
                     has_ironboy=has_ironboy,
                     ironboy_status=ironboy_status,
-                    ironboy_connected=ironboy_connected
+                    ironboy_connected=ironboy_connected,
+                    has_ros2=has_ros2,
                 )
 
         return flask_app

@@ -1,0 +1,128 @@
+{
+  "DEBUG": true,
+  "SECRET_KEY": "change-me",
+  "SEND_FILE_MAX_AGE_DEFAULT": 1,
+  "MODELS": [
+    {
+      "name": "MODEL_01_LEFT",
+      "hand": "left",
+      "date": "2025-10-24T12:08:42.235175",
+      "gestures": [
+        {
+          "gesture": "up",
+          "label": "Up"
+        },
+        {
+          "gesture": "down",
+          "label": "Down"
+        },
+        {
+          "gesture": "push",
+          "label": "Push"
+        },
+        {
+          "gesture": "pull",
+          "label": "Pull"
+        },
+        {
+          "gesture": "twist",
+          "label": "Twist"
+        },
+        {
+          "gesture": "circle",
+          "label": "Circle"
+        },
+        {
+          "gesture": "swipe_r",
+          "label": "Swipe right"
+        },
+        {
+          "gesture": "swipe_l",
+          "label": "Swipe left"
+        }
+      ],
+      "touchs": [
+        {
+          "gesture": 1,
+          "label": "Tap"
+        },
+        {
+          "gesture": 2,
+          "label": "Tap and hold"
+        }
+      ]
+    },
+    {
+      "name": "MODEL_01_RIGHT",
+      "hand": "right",
+      "date": "2025-10-24T12:08:42.235181",
+      "gestures": [
+        {
+          "gesture": "up",
+          "label": "Up"
+        },
+        {
+          "gesture": "down",
+          "label": "Down"
+        },
+        {
+          "gesture": "push",
+          "label": "Push"
+        },
+        {
+          "gesture": "pull",
+          "label": "Pull"
+        },
+        {
+          "gesture": "twist",
+          "label": "Twist"
+        },
+        {
+          "gesture": "circle",
+          "label": "Circle"
+        },
+        {
+          "gesture": "swipe_r",
+          "label": "Swipe right"
+        },
+        {
+          "gesture": "swipe_l",
+          "label": "Swipe left"
+        }
+      ],
+      "touchs": [
+        {
+          "gesture": 1,
+          "label": "Tap"
+        },
+        {
+          "gesture": 2,
+          "label": "Tap and hold"
+        }
+      ]
+    }
+  ],
+  "TSKIN": {
+    "address": "C0:83:3F:39:21:57",
+    "hand": "right",
+    "name": "TSKIN50",
+    "touch_config": null,
+    "gesture_config": {
+      "model_path": "models/MODEL_01_RIGHT/model.pickle",
+      "encoder_path": "models/MODEL_01_RIGHT/encoder.pickle",
+      "name": "MODEL_01_RIGHT",
+      "created_at": "2025-10-24T12:08:42.235181",
+      "gestures": [
+        "up",
+        "down",
+        "push",
+        "pull",
+        "twist",
+        "circle",
+        "swipe_r",
+        "swipe_l"
+      ]
+    }
+  },
+  "TSKIN_VOICE": null
+}

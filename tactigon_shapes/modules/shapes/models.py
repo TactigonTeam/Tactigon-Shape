@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List, Optional, Tuple, Any
 from uuid import UUID
 
-from tactigon_shapes.modules.ros2.models import Ros2Config
+from tactigon_shapes.modules.ros2.models import Ros2ShapeConfig
 from tactigon_shapes.modules.ginos.models import GinosConfig
 from tactigon_shapes.modules.mqtt.models import MQTTConfig
 
@@ -36,7 +36,7 @@ class ShapeConfig:
     description: Optional[str] = None
     readonly: bool = False
     app_file: str = "program.py"
-    ros2_config: Optional[Ros2Config] = None
+    ros2_config: Optional[Ros2ShapeConfig] = None
     ginos_config: Optional[GinosConfig] = None
     mqtt_config: Optional[MQTTConfig] = None
 
@@ -54,7 +54,7 @@ class ShapeConfig:
             modified_on=datetime.fromisoformat(json["modified_on"]),
             description=json["description"],
             readonly=json["readonly"],
-            ros2_config=Ros2Config.FromJSON(ros2_config) if ros2_config else None,
+            ros2_config=Ros2ShapeConfig.FromJSON(ros2_config) if ros2_config else None,
             ginos_config=GinosConfig.FromJSON(ginos_config) if ginos_config else None,
             mqtt_config=MQTTConfig.FromJSON(mqtt_config) if mqtt_config else None,
         )

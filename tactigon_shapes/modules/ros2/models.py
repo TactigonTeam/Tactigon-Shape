@@ -96,9 +96,9 @@ class Ros2Subscription:
             "message_type": self.message_type.__name__,
             "qos_profile": self.qos_profile
         }
-
+    
 @dataclass
-class Ros2Config:
+class Ros2ShapeConfig:
     node_name: str
     publishers: list[Ros2Publisher] = field(default_factory=list)
     subscriptions: list[Ros2Subscription] = field(default_factory=list)
@@ -117,3 +117,66 @@ class Ros2Config:
             "publishers": [p.toJSON() for p in self.publishers],
             "subscriptions": [s.toJSON() for s in self.subscriptions],
         }
+    
+@dataclass
+class Ros2Command:
+    package_name: str
+    node_name: str
+    parameter_file: str
+
+    @staticmethod
+    def get_package_and_node_from_identifier(identifier: str) -> tuple[str, str]:
+        package_name, node_name = identifier.split("]-[")
+        package_name = package_name[1:]
+        node_name = node_name[:-1]
+
+        print(package_name, node_name)
+
+        return package_name, node_name
+
+    @classmethod
+    def FromJSON(cls, json: dict):
+        return cls(
+            json["package_name"],
+            json["node_name"],
+            json["parameter_file"],
+        )
+    
+    def toJSON(self) -> dict:
+        return dict(
+            package_name=self.package_name,
+            node_name=self.node_name,
+            parameter_file=self.parameter_file,
+        )
+    
+    @property
+    def identifier(self) -> str:
+        return f"[{self.package_name}]-[{self.node_name}]"
+    
+    @property
+    def name(self) -> str:
+        return f"{self.package_name}.{self.node_name}"
+    
+    def get_command(self) -> str:
+        return f"ros2 run {self.package_name} {self.node_name} --ros-args --params-file {self.parameter_file}"
+
+@dataclass
+class Ros2Config:
+    ros2_commands: list[Ros2Command] = field(default_factory=list)
+
+    @classmethod
+    def Default(cls):
+        return cls(
+            []
+        )
+
+    @classmethod
+    def FromJSON(cls, json: dict):
+        return cls(
+            [Ros2Command.FromJSON(c) for c in json.get("ros2_commands", [])]
+        )
+    
+    def toJSON(self) -> dict:
+        return dict(
+            ros2_commands=[c.toJSON() for c in self.ros2_commands]
+        )

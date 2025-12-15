@@ -942,6 +942,22 @@ function loadIronBoyBlocks(ironboy) {
 function loadRos2Blocks(ros2blocks){
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
+            "type": "ros2_command",
+            "message0": "ros2 run %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "command",
+                    "options": ros2blocks.commands
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "tooltip": "Start a ROS 2 process",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
             "type": "ros2_subscribe",
             "message0": "On topic %1 type %2 get values in %3",
             "args0": [
@@ -1385,6 +1401,12 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
     else:
         debug(logging_queue, "ironboy not configured")
 
+def ros2_run(ros2: Optional[Ros2Interface], command: str):
+    if not ros2:
+        return
+
+    ros2.run(command)
+
 def ros2_publish(ros2: Optional[Ros2Interface], topic: str, message_type: Any, message):
     if not ros2:
         return
@@ -1789,6 +1811,11 @@ function defineIronBoyGenerators(){
 }
 
 function defineRos2Generators(){
+    python.pythonGenerator.forBlock['ros2_command'] = function(block, generator) {
+        const command = block.getFieldValue('command');
+        return `ros2_run(ros2, "${command}")\n`;
+    };
+
     python.pythonGenerator.forBlock['ros2_subscribe'] = function(block, generator) {
         let variables = block.workspace.getAllVariables().map((v) => {
             return v.name;

@@ -20,7 +20,9 @@ from tactigon_shapes.models import ModelGesture
 from tactigon_shapes.utils.request_utils import get_from_request, check_empty_inputs
 
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2Config
+from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
+from tactigon_shapes.modules.ros2.manager import get_ros2_interface
+
 from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
 from tactigon_shapes.modules.mqtt.models import MQTTSubscription
 
@@ -79,7 +81,10 @@ def index(program_id: Optional[str] = None):
         blocks_config["ironboy"] = ironboy.get_shape_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
-    blocks_config["ros2"] = Ros2Interface.get_blocks()
+
+    ros2_interface = get_ros2_interface()
+    if ros2_interface:
+        blocks_config["ros2"] = ros2_interface.get_blocks()
     
     state = _shapes.get_state(current_config.id) if current_config else None
 
@@ -201,6 +206,8 @@ def edit(program_id: str):
 
     ironboy = get_ironboy_interface()
 
+    ros2 = get_ros2_interface()
+
     if ironboy:
         blocks_config["ironboy"] = ironboy.get_shape_blocks()       
 
@@ -208,7 +215,10 @@ def edit(program_id: str):
         blocks_config["zion"] = zion.get_shape_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
-    blocks_config["ros2"] = Ros2Interface.get_blocks()
+
+    ros2_interface = get_ros2_interface()
+    if ros2_interface:
+        blocks_config["ros2"] = ros2_interface.get_blocks()
 
     return render_template("shapes/edit.jinja",
                            current_config=current_config,
@@ -403,7 +413,7 @@ def save_program(program_id: str):
     print(ros2_subscriptions)
 
     if ros2_publishers or ros2_subscriptions:
-        ros2_config = Ros2Config(
+        ros2_config = Ros2ShapeConfig(
             config.name,
             [Ros2Publisher.FromJSON(p) for p in json.loads(ros2_publishers)] if ros2_publishers else [],
             [Ros2Subscription.FromJSON(s) for s in json.loads(ros2_subscriptions)] if ros2_subscriptions else [],

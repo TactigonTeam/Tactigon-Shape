@@ -21,7 +21,7 @@ class SocketApp(SocketIO):
     _last_connection_status: Optional[bool]
 
     def __init__(self, app: Optional[Flask] = None, **kwargs):
-        SocketIO.__init__(self, app, **kwargs)
+        SocketIO.__init__(self, app, async_mode="gevent", cors_allowed_origins="*", **kwargs)
 
         self.socket_thread = None
         self._stop_event = Event()

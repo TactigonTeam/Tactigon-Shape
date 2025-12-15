@@ -151,7 +151,13 @@ const show_toast = (el) => {
     new bootstrap.Toast(el, toast_option).show();
 };
 
-const socket = io();
+const socket = io("http://localhost:5123");
+
+const img_socket = io("http://localhost:5555");
+img_socket.on("frame", data => {
+    document.getElementById("feed").src = "data:image/jpeg;base64," + data.image;
+});
+
 const BATTERY_REFRESH_RATE = 1*2*1000;
 var last_battery_update_ts = 0;
 var last_battery_update_value = 0;

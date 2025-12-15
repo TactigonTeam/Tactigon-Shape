@@ -219,9 +219,14 @@
                     <i class="mi-round mi-extension" style="font-size: 24px"></i>
                 </a>
                 <div>
-                    {% if has_ironboy %}
-                        <a href="{{ url_for('ironboy.index') }}" class="btn btn-link text-decoration-none text-light" title="ironboy">
+                    {% if has_ros2 %}
+                        <a href="{{ url_for('ros2.index') }}" class="btn btn-link text-decoration-none text-light" title="ROS 2">
                             <i class="mi-round mi-smart-toy" style="font-size: 24px"></i>
+                        </a>
+                    {% endif %}
+                    {% if has_ironboy %}
+                        <a href="{{ url_for('ironboy.index') }}" class="btn btn-link text-decoration-none text-light" title="Ironboy">
+                            <i class="mi-round mi-accessibility" style="font-size: 24px"></i>
                         </a>
                     {% endif %}
                     <a href="{{ url_for('zion.index') }}" class="btn btn-link text-decoration-none text-light" title="Zion cloud">

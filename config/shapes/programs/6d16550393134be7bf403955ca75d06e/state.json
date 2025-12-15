@@ -1,0 +1,156 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "SvA];5ObndlbU{k@!J84",
+        "x": 30,
+        "y": 30,
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "ros2_command",
+              "id": "SH{PWu|[(F{ibEY71Rdf",
+              "fields": {
+                "command": "[camera_ros]-[camera_node]"
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "jVc_7BcJ8r)pACSP0:Fe",
+        "x": 30,
+        "y": 150,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "QZRp$8p:3ldoRmoW|)sx",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "tskin_gesture_list",
+                    "id": "QzOb*}ixe@MN5eqS3oDb",
+                    "fields": {
+                      "gesture": "swipe_r"
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "ros2_publish",
+                    "id": "X_[*f.Wq;2n{~axoH@#^",
+                    "inputs": {
+                      "payload": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "USBY*-:`#3yv.(!y+THA",
+                          "fields": {
+                            "TEXT": "Gesture Swipe right"
+                          }
+                        }
+                      },
+                      "message_type": {
+                        "shadow": {
+                          "type": "ros2_message_type",
+                          "id": "@#n.i!~J?IcRvEV1AtH}",
+                          "fields": {
+                            "message_type": "String"
+                          }
+                        }
+                      },
+                      "topic": {
+                        "shadow": {
+                          "type": "text",
+                          "id": ",j)-jHQC2Trg9-~jdk,=",
+                          "fields": {
+                            "TEXT": "send/data"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "@mw46s8WVSQxbZ{s_i7i",
+        "x": 30,
+        "y": 450,
+        "deletable": false
+      },
+      {
+        "type": "ros2_subscribe",
+        "id": ")M67Q[9,Yi5ij]QGfXu4",
+        "x": 350,
+        "y": 70,
+        "fields": {
+          "var_name": {
+            "id": "-W]i3hZ`0LnISs#(YG$o"
+          }
+        },
+        "inputs": {
+          "topic": {
+            "shadow": {
+              "type": "text",
+              "id": "#)SB)P7pQ^~l/2PY?z0@",
+              "fields": {
+                "TEXT": "recv/data"
+              }
+            }
+          },
+          "message_type": {
+            "shadow": {
+              "type": "ros2_message_type",
+              "id": "dbP1};w`Tb.l!Y2vdLL-",
+              "fields": {
+                "message_type": "String"
+              }
+            }
+          },
+          "function": {
+            "block": {
+              "type": "tactigon_shape_debug",
+              "id": "OL:AO$P.OJ;`3iS2_bMU",
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "*mVTtcgn?JBK6#6KV_9#",
+                    "fields": {
+                      "TEXT": "abc"
+                    }
+                  },
+                  "block": {
+                    "type": "variables_get",
+                    "id": ";c6?e|l_|V4tVqWNRf6[",
+                    "fields": {
+                      "VAR": {
+                        "id": "-W]i3hZ`0LnISs#(YG$o"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "payload",
+      "id": "-W]i3hZ`0LnISs#(YG$o"
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 import rclpy
-import time
+import os
+import json
+import subprocess
+import signal
 from rclpy.node import Node, QoSProfile
 from std_msgs.msg import String
 from threading import Thread, Event as ThreadEvent
@@ -7,10 +10,11 @@ from multiprocessing import Process, Queue, Event, Pipe
 from queue import Queue, Empty
 from functools import wraps
 from flask import Flask
+from werkzeug.datastructures import FileStorage
 
 from typing import Callable, Optional, Any
 
-from tactigon_shapes.modules.ros2.models import Ros2Config, RosMessage, NodeAction, NodeActions
+from tactigon_shapes.modules.ros2.models import Ros2Config, Ros2Command, Ros2ShapeConfig, RosMessage, NodeAction, NodeActions
 
 class ShapeNode(Node):
     TICK: float = 0.02
@@ -51,10 +55,59 @@ class ShapeNode(Node):
         return wrapper
 
 class Ros2Process(Process):
-    def __init__(self):
+    _thread: None | Thread = None
+    _thread_stop_event: ThreadEvent
+
+    def __init__(self, config: Ros2ShapeConfig, fn: Callable[[RosMessage], None] | None = None):
         Process.__init__(self, daemon=True)
+        self._config = config
+        self._callback = fn
         self._stop_event = Event()
         self._in, self._out = Pipe()
+
+    def wrap_callback(self, fn: Callable[[RosMessage], None]):
+        while not self._stop_event.is_set():
+            msg = self.get_msg()
+            if msg:
+                fn(msg)
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *attr):
+        self.stop()
+        
+    def start(self):
+        for p in self._config.publishers:
+            self.add_publisher(
+                p.topic,
+                p.message_type,
+                p.qos_profile
+            )
+
+        for s in self._config.subscriptions:
+            self.add_subscription(
+                s.topic,
+                s.message_type,
+                s.qos_profile
+            )
+
+        if self._callback:
+            self._thread = Thread(target=self.wrap_callback, args=(self._callback, ), daemon=True)
+            self._thread.start()
+
+        Process.start(self)
+
+    def stop(self):
+        self._stop_event.set()
+        self.join(10)
+          
+        if self._thread:
+            self._stop_event.set()
+            self._thread.join()
+
+        self._thread = None
 
     def run(self):
         rclpy.init()
@@ -99,7 +152,7 @@ class Ros2Process(Process):
         finally:
             rclpy.shutdown()
 
-    def send_command(self, cmd: NodeAction):
+    def _send_command(self, cmd: NodeAction):
         self._out.send(cmd)
 
     def get_msg(self) -> RosMessage | None:
@@ -108,24 +161,59 @@ class Ros2Process(Process):
         
         return None
 
-    def stop(self):
-        self._stop_event.set()
-        self.join(10)
+    def add_publisher(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
+        self._send_command(
+            NodeAction.AddPubblisher(
+                dict(topic=topic, message_type=message_type, qos_profile=qos_profile)
+            )
+        )
+
+    def add_subscription(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
+        self._send_command(
+            NodeAction.AddSubscription(
+                dict(topic=topic, message_type=message_type, qos_profile=qos_profile)
+            )
+        )
+
+    def unsubscribe(self, topic: str):
+        self._send_command(
+            NodeAction.Unsubscribe(
+                dict(topic=topic)
+            )
+        )
+
+    def publish(self, topic: str, message_type: Any, msg: Any) -> bool:
+        if message_type:
+            self._send_command(
+                NodeAction.Publish(
+                    dict(topic=topic, message_type=message_type, msg=msg)
+                )
+            )
+            return True
+        
+        return False
 
 class Ros2Interface:
+    _process: Ros2Process | None
+    _running_commands: list[subprocess.Popen]
+    ros2_path: str
     config: Ros2Config
-    _process: None | Ros2Process = None
-    _thread: None | Thread = None
-    _stop_event: ThreadEvent
 
-    def __init__(self, config: Ros2Config, fn: Callable[[RosMessage], None] | None = None):
-        self.config = config
+    def __init__(self, ros2_path: str, app: Flask | None = None):
+        self.ros2_path = ros2_path
+
+        self.load_config()
+
         self._process = None
-        self._callback = fn
-        self._stop_event = ThreadEvent()
+        self._running_commands = []
 
-    @staticmethod
-    def get_blocks():
+        if app:
+            self.init_app(app)
+
+    def init_app(self, app: Flask):
+        app.extensions[Ros2Interface.__name__] = self
+
+    def get_blocks(self):
         return {
             "default_types": [
                 ('Bool', 'Bool'),
@@ -136,100 +224,124 @@ class Ros2Interface:
                 ('UInt64', 'UInt64'),
                 ('String', 'String'),
                 ('ColorRGBA', 'ColorRGBA')
-            ]
+            ],
+            "commands": [(c.name, c.identifier) for c in self.config.ros2_commands]
         }
+    
+    @property
+    def is_running(self) -> bool:
+        return self._process.is_alive() if self._process else False
+    
+    @property
+    def config_file(self) -> str:
+        return os.path.join(self.ros2_path, "config.json")
+    
+    @property
+    def nodes_config_folder(self) -> str:
+        return os.path.join(self.ros2_path, "parameters")
+    
+    def load_config(self):
+        if os.path.exists(self.ros2_path) and os.path.exists(self.config_file):
+            with open(self.config_file, "r") as f:
+                config_data = json.load(f)
+                self.config = Ros2Config.FromJSON(config_data)
+        else:
+            self.config = Ros2Config.Default()
+            self.save_config()
 
-    @staticmethod
-    def on_message(message: RosMessage):
-        print(f"[DEFAULT] Messaggio ricevuto: {message}")
+    def save_config(self):
+        if not os.path.exists(self.ros2_path):
+            os.makedirs(self.ros2_path)
 
-    def wrap_callback(self, fn: Callable[[RosMessage], None]):
-        while not self._stop_event.is_set():
-            msg = self.get_msg()
-            if msg:
-                fn(msg)
+        with open(self.config_file, "w") as f:
+            json.dump(self.config.toJSON(), f, indent=2)
 
-    def __enter__(self):
-        self.start()
-        return self
+        self.load_config()
 
-    def __exit__(self, *attr):
+    def reset_config(self):
         self.stop()
         
-    def start(self):
+        if os.path.exists(self.ros2_path) and os.path.exists(self.config_file):
+            os.remove(self.config_file)
+
+        self.load_config()
+
+    def get_package_command(self, package_name: str, node_name: str) -> Ros2Command | None:
+        return next(
+            (c for c in self.config.ros2_commands 
+             if c.package_name == package_name and c.node_name == node_name), None)
+
+    def add(self, package_name: str, node_name: str, param_file: FileStorage) -> bool:
+        if not param_file.filename:
+            return False
+        
+        if not os.path.exists(self.nodes_config_folder):
+            os.makedirs(self.nodes_config_folder)
+        
+        filepath = os.path.join(self.nodes_config_folder, param_file.filename)
+        param_file.save(filepath)
+
+        self.config.ros2_commands.append(
+            Ros2Command(
+                package_name,
+                node_name,
+                param_file.filename
+            )
+        )
+
+        return True
+    
+    def remove(self, package_name: str, node_name: str) -> bool:
+        c = self.get_package_command(package_name, node_name)
+
+        if c:
+            filepath = os.path.join(self.nodes_config_folder, c.parameter_file)
+            os.remove(filepath)
+            self.config.ros2_commands.remove(c)
+
+        return True
+
+    def start(self, config: Ros2ShapeConfig, fn: Callable[[RosMessage], None] | None = None):
         if self._process:
             self.stop()
 
-        self._process = Ros2Process()
+        self._process = Ros2Process(config, fn)
         self._process.start()
-
-        for p in self.config.publishers:
-            self.add_publisher(
-                p.topic,
-                p.message_type,
-                p.qos_profile
-            )
-
-        for s in self.config.subscriptions:
-            self.add_subscription(
-                s.topic,
-                s.message_type,
-                s.qos_profile
-            )
-
-        if self._callback:
-            self._thread = Thread(target=self.wrap_callback, args=(self._callback, ), daemon=True)
-            self._thread.start()
-
+    
     def stop(self):
-        self._stop_event.set()
-
         if self._process:
             self._process.stop()
-        
-        if self._thread:
-            self._thread.join()
+            
+        for p in self._running_commands:
+            if p and p.poll() is None:
+                os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+                p.wait(timeout=5)
 
         self._process = None
-        self._thread = None
+        self._running_commands.clear()
 
-    def add_publisher(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
-        if self._process:
-            self._process.send_command(
-                NodeAction.AddPubblisher(
-                    dict(topic=topic, message_type=message_type, qos_profile=qos_profile)
-                )
-            )
-
-    def add_subscription(self, topic: str, message_type: Any, qos_profile: QoSProfile | int = 10):
-        if self._process:
-            self._process.send_command(
-                NodeAction.AddSubscription(
-                    dict(topic=topic, message_type=message_type, qos_profile=qos_profile)
-                )
-            )
-
-    def unsubscribe(self, topic: str):
-        if self._process:
-            self._process.send_command(
-                NodeAction.Unsubscribe(
-                    dict(topic=topic)
+    def run(self, command: str):
+        c = next((c for c in self.config.ros2_commands if c.identifier == command), None)
+        if c:
+            print(c, c.get_command())
+            cmd = c.get_command().split(" ")
+            self._running_commands.append(
+                subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    preexec_fn=os.setsid
                 )
             )
 
     def publish(self, topic: str, message_type: Any, msg: Any) -> bool:
-        if self._process and message_type:
-            self._process.send_command(
-                NodeAction.Publish(
-                    dict(topic=topic, message_type=message_type, msg=msg)
-                )
+        if self._process:
+            self._process.publish(
+                topic,
+                message_type,
+                msg,        
             )
             return True
         
         return False
-    
-    def get_msg(self) -> RosMessage | None:
-        if self._process:
-            return self._process.get_msg()
-        
-        return None

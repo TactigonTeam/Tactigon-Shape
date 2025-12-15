@@ -20,7 +20,7 @@ from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerG
 from tactigon_shapes.modules.tskin.manager import walk
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2.models import RosMessage
+from tactigon_shapes.modules.ros2.models import RosMessage, Ros2Subscription
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 
@@ -54,6 +54,7 @@ class ShapeThread(ExtensionThread):
     _zion_interface: Optional[ZionInterface] = None
     _ironboy_interface: Optional[IronBoyInterface] = None
     _ros2_interface: Optional[Ros2Interface] = None
+    _ros2_subscription: list[Ros2Subscription] = []
     _ginos_interface: Optional[GinosInterface] = None
     _mqtt_interface: Optional[MQTTClient] = None
     
@@ -66,6 +67,7 @@ class ShapeThread(ExtensionThread):
             braccio: Optional[BraccioInterface], 
             zion: Optional[ZionInterface], 
             ironboy: Optional[IronBoyInterface],
+            ros2_interface: Ros2Interface | None,
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -73,11 +75,12 @@ class ShapeThread(ExtensionThread):
         self._logging_queue = logging_queue
         self._braccio_interface = braccio
         self._zion_interface = zion
+        self._ros2_interface = ros2_interface
         self._ironboy_interface = ironboy
 
-        if app.ros2_config:
-            self._ros2_interface = Ros2Interface(app.ros2_config, self.on_ros2_message)
-            self._ros2_interface.start()
+        if self._ros2_interface and app.ros2_config:
+            self._ros2_subscription = app.ros2_config.subscriptions
+            self._ros2_interface.start(app.ros2_config, self.on_ros2_message)
         
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
@@ -114,6 +117,14 @@ class ShapeThread(ExtensionThread):
     def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
         self._ironboy_interface = ironboy_interface
 
+    @property
+    def ros2_interface(self) -> Optional[Ros2Interface]:
+        return self._ros2_interface
+
+    @ros2_interface.setter
+    def ros2_interface(self, ros2_interface: Optional[Ros2Interface]):
+        self._ros2_interface = ros2_interface
+
     @staticmethod
     def debouce(tskin: Optional[TSkin]) -> bool:
         debouce_time = 0
@@ -136,7 +147,7 @@ class ShapeThread(ExtensionThread):
         if not self._ros2_interface or not self.module:
             return
         
-        subscription = next((s for s in self._ros2_interface.config.subscriptions if s.topic == message.topic), None)
+        subscription = next((s for s in self._ros2_subscription if s.topic == message.topic), None)
 
         if not subscription:
             return  
@@ -231,7 +242,6 @@ class ShapeThread(ExtensionThread):
 
         if self._ros2_interface:
             self._ros2_interface.stop()
-            self._ros2_interface = None
 
         if self._ginos_interface:
             self._ginos_interface = None
@@ -254,6 +264,7 @@ class ShapesApp(ExtensionApp):
     _ironboy_interface: Optional[IronBoyInterface] = None
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
+    _ros2_interface: Ros2Interface | None = None
 
     def __init__(self, config_path: str, flask_app: Optional[Flask] = None):
         self.config_file_path = path.join(config_path, "config.json")
@@ -302,6 +313,15 @@ class ShapesApp(ExtensionApp):
     @ironboy_interface.setter
     def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
         self._ironboy_interface = ironboy_interface
+
+    @property
+    def ros2_interface(self) -> Optional[Ros2Interface]:
+        return self._ros2_interface
+
+    @ros2_interface.setter
+    def ros2_interface(self, ros2_interface: Optional[Ros2Interface]):
+        self._ros2_interface = ros2_interface
+
 
     def get_log(self) -> Optional[DebugMessage]:
         try:
@@ -444,7 +464,16 @@ class ShapesApp(ExtensionApp):
 
                 self.current_id = _config.id
                 try:
-                    self.thread = ShapeThread(self.shapes_file_path, _config, tskin, self.keyboard, self.braccio_interface, self.zion_interface, self.ironboy_interface, self.logging_queue) 
+                    self.thread = ShapeThread(
+                        self.shapes_file_path, 
+                        _config, tskin, 
+                        self.keyboard, 
+                        self.braccio_interface, 
+                        self.zion_interface, 
+                        self.ironboy_interface,
+                        self.ros2_interface,
+                        self.logging_queue
+                    ) 
                     self.thread.start()
                 except Exception as e:
                     print(e)
