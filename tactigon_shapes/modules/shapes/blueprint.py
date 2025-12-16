@@ -368,7 +368,7 @@ def clone_config(program_id: str):
         datetime.now(),
         datetime.now(),
         program_description,
-        original_config.readonly,
+        False,
         original_config.app_file,
         original_config.ginos_config,
         original_config.mqtt_config

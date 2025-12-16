@@ -161,12 +161,12 @@
                 </label>
             </div>
             <div class="btn-group">
-            {% if not current_config.readonly %}
                 <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#clone"
                     title="Clone Shape" {% if is_running and current_config.id==current_running_program %} disabled {%
                     endif %}>
                     <i class="bi bi-copy"></i>
                 </button>
+            {% if not current_config.readonly %}
                 <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#edit"
                     title="Edit Shape" {% if is_running and current_config.id==current_running_program %} disabled {%
                     endif %}>
