@@ -46,7 +46,7 @@ services:
     restart: "no"
 
   tactigon-shapes:
-    image: tactigon-shapes
+    image: nextdeveloper/tactigon-shapes
     container_name: tactigon-shapes
     restart: unless-stopped
     privileged: true
