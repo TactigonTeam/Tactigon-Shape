@@ -1,5 +1,5 @@
 {
-  "DEBUG": true,
+  "DEBUG": false,
   "SECRET_KEY": "change-me",
   "SEND_FILE_MAX_AGE_DEFAULT": 1,
   "MODELS": [
@@ -102,86 +102,6 @@
       ]
     }
   ],
-  "TSKIN": {
-    "address": "C0:83:4C:34:28:38",
-    "hand": "right",
-    "name": "TSKIN50",
-    "touch_config": null,
-    "gesture_config": {
-      "model_path": "models/MODEL_01_RIGHT/model.pickle",
-      "encoder_path": "models/MODEL_01_RIGHT/encoder.pickle",
-      "name": "MODEL_01_RIGHT",
-      "created_at": "2025-10-27T16:01:57.599950",
-      "gestures": [
-        "up",
-        "down",
-        "push",
-        "pull",
-        "twist",
-        "circle",
-        "swipe_r",
-        "swipe_l"
-      ]
-    }
-  },
-  "TSKIN_VOICE": {
-    "model": "speech/deepspeech-0.9.3-models.tflite",
-    "scorer": "speech/shapes.scorer",
-    "beam_width": 1024,
-    "voice_timeout": 8,
-    "silence_timeout": 3,
-    "voice_commands": {
-      "t_speech": [
-        {
-          "hotwords": [
-            {
-              "word": "pick",
-              "boost": 1
-            },
-            {
-              "word": "place",
-              "boost": 1
-            }
-          ],
-          "children": {
-            "t_speech": [
-              {
-                "hotwords": [
-                  {
-                    "word": "position",
-                    "boost": 1
-                  }
-                ],
-                "children": {
-                  "t_speech": [
-                    {
-                      "hotwords": [
-                        {
-                          "word": "star",
-                          "boost": 1
-                        },
-                        {
-                          "word": "circle",
-                          "boost": 1
-                        },
-                        {
-                          "word": "square",
-                          "boost": 1
-                        }
-                      ],
-                      "children": null
-                    }
-                  ],
-                  "feedback": ""
-                }
-              }
-            ],
-            "feedback": ""
-          }
-        }
-      ],
-      "feedback": ""
-    },
-    "voice_commands_notification": "config/audio/trigger.wav"
-  }
+  "TSKIN": null,
+  "TSKIN_VOICE": null
 }
