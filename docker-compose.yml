@@ -1,0 +1,66 @@
+networks:
+  tactigon-net:
+    name: tactigon-net
+    driver: bridge
+
+volumes:
+  ollama_data:
+  tactigon-config:
+
+services:
+  ollama:
+    image: ollama/ollama:0.12.10
+    container_name: ollama
+    restart: unless-stopped
+    networks:
+      - tactigon-net
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama-init:
+    image: ollama/ollama:0.12.10
+    container_name: ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - tactigon-net
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: >
+      sh -c "
+      if ollama list | grep -q mistral; then
+        echo '✔ Mistral già presente';
+      else
+        echo '⬇ Pulling mistral model...';
+        ollama pull mistral;
+      fi
+      "
+    restart: "no"
+
+  tactigon-shapes:
+    image: tactigon-shapes
+    container_name: tactigon-shapes
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - tactigon-net
+    ports:
+      - "5123:5123"
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+      SDL_AUDIODRIVER: dummy
+    volumes:
+      - tactigon-config:/app/config
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /var/run/dbus:/var/run/dbus
