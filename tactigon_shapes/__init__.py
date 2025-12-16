@@ -43,7 +43,7 @@ from .modules.tskin.manager import load_tskin, start_tskin, stop_tskin, TSKIN_EX
 from .modules.ironboy.extension import IronBoyInterface
 from .modules.ironboy.manager import get_ironboy_interface
 
-from .utils.extensions import stop_apps
+from .utils.extensions import force_stop_apps
 
 class TactigonShapes:
     url: str
@@ -191,7 +191,7 @@ class TactigonShapes:
     def stop(self):
         try:
             with self._app.app_context():
-                stop_apps()
+                force_stop_apps()
                 stop_tskin()
 
                 app = get_socket_app()
