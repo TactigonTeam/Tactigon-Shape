@@ -40,7 +40,6 @@ COPY models /app/models
 COPY speech /app/speech
 COPY tactigon_shapes /app/tactigon_shapes
 COPY main.py /app/main.py
-COPY docs /docs
 
 RUN pip install \
     flask==3.0.3 \
