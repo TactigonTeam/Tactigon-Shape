@@ -27,6 +27,7 @@ function loadCustomBlocks(response) {
     const gripperOptions = response ? response.gripperOptions : [];
     const speechs = response ? response.speechs : [];
     const zion = response ? response.zion : [];
+    const ros2 = response ? response.ros2 : {};
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos: {};
     
@@ -37,9 +38,10 @@ function loadCustomBlocks(response) {
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
+    loadRos2Blocks(ros2);
     loadIronBoyBlocks(ironboy);
     loadGinosAIBlocks(ginos);
-    loadGinosMQTTBlocks(ginos);
+    loadMQTTBlocks();
     loadDictionaryBlocks();
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
@@ -137,6 +139,68 @@ function loadDictionaryBlocks(){
             "helpUrl": "",
             "inputsInline": true
         },
+        {
+            "type": "dict_builder",
+            "message0": "Create map %1",
+            "args0": [
+                {
+                    "type": "input_statement",
+                    "name": "PAIRS"
+                }
+            ],
+            "output": "Dict",
+            "colour": 230,
+            "tooltip": "Create a dictionary",
+        },
+        {
+            "type": "dict_pair",
+            "message0": "Key %1 value %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "dict_key",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "dict_value"
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 200,
+            "tooltip": "Create a key-value pair for a dictionary",
+        },
+        {
+            "type": "dict_to_json",
+            "message0": "jsonify %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "dict",
+                    "check": "Dict"
+                }
+            ],
+            "output": "JSONString",
+            "colour": 200,
+            "tooltip": "Convert dictionary into json string",
+            "inputsInline": true
+        },
+        {
+            "type": "json_to_dict",
+            "message0": "Dict from json %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "json",
+                    "check": "String"
+                }
+            ],
+            "output": "Dict",
+            "colour": 200,
+            "tooltip": "Convert json string into dictionary",
+            "inputsInline": true
+        }
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -906,6 +970,294 @@ function loadZionBlocks(zion){
     };
 } 
 
+function loadRos2Blocks(ros2blocks){
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "ros2_command",
+            "message0": "ros2 run %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "command",
+                    "options": ros2blocks.commands
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "tooltip": "Start a ROS 2 process",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_subscribe",
+            "message0": "On topic %1 type %2 get values in %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "message_type",
+                    "check": "GenericRos2MessageType"
+                },
+                {
+                    "type": "field_variable",
+                    "name": "var_name",
+                    "variable": "payload"
+                }
+            ],
+            "message1": "do %1",
+            "args1": [
+                {
+                    "type": "input_statement",
+                    "name": "function"
+                }
+            ],
+            "tooltip": "Subscribe to a ROS 2 topic and trigger the call on message event",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_type",
+            "message0": "Type %1",
+            "args0": [
+                {
+                "type": "field_dropdown",
+                "name": "message_type",
+                "options": ros2blocks.default_types
+                }
+            ],
+            "output": "GenericRos2MessageType",
+            "tooltip": "Select a ROS 2 message type",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_publish",
+            "message0": "Publish message %1 on topic %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "message_type",
+                    "check": "Ros2MessageType"
+                },
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                }                
+            ],
+            "tooltip": "Publish a message to a ROS 2 topic",
+            "helpUrl": "",
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_String",
+            "message0": "String(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "String"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 String message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Bool",
+            "message0": "Bool(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Boolean"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Bool message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Int64",
+            "message0": "Int64(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Number"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Int64 message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Float64",
+            "message0": "Float64(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Number"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Float64 message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Action_type",
+            "message0": "Action type %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "type",
+                    "options": ros2blocks.action_types
+                }
+            ],
+            "output": "Ros2ActionType",
+            "tooltip": "Select a ROS 2 message type",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Action",
+            "message0": "Action(type=%1, payload=%2)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "type",
+                    "check": "Ros2ActionType"
+                },
+                {
+                    "type": "input_value",
+                    "name": "payload",
+                    "check": "JSONString"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Float64 message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Intent_type",
+            "message0": "Intent type %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "type",
+                    "options": ros2blocks.intent_types
+                }
+            ],
+            "output": "Ros2IntentType",
+            "tooltip": "Select a ROS 2 message type",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Intent",
+            "message0": "Intent(type=%1, payload=%2)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "type",
+                    "check": "Ros2IntentType"
+                },
+                {
+                    "type": "input_value",
+                    "name": "payload",
+                    "check": "JSONString"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Float64 message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Point2D",
+            "message0": "Point2D(x=%1, y=%2)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "x",
+                    "check": "Number"
+                },
+                {
+                    "type": "input_value",
+                    "name": "y",
+                    "check": "Number"
+                }
+            ],
+            "output": "Ros2Point2DType",
+            "tooltip": "Create a ROS 2 Point2D message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Marker",
+            "message0": "Marker",
+            "message1": "id=%1",
+            "message2": "p1=%1",
+            "message3": "p2=%1",
+            "message4": "p3=%1",
+            "message5": "p4=%1",
+            "args1": [
+                {
+                    "type": "input_value",
+                    "name": "marker_id",
+                    "check": "Number"
+                }
+            ],
+            "args2": [
+                {
+                    "type": "input_value",
+                    "name": "p1",
+                    "check": "Ros2Point2DType"
+                }
+            ],
+            "args3": [
+                {
+                    "type": "input_value",
+                    "name": "p2",
+                    "check": "Ros2Point2DType"
+                }
+            ],
+            "args4": [
+                {
+                    "type": "input_value",
+                    "name": "p3",
+                    "check": "Ros2Point2DType"
+                }
+            ],
+            "args5": [
+                {
+                    "type": "input_value",
+                    "name": "p4",
+                    "check": "Ros2Point2DType"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Marker message",
+            "helpUrl": "",
+            "colour": 225
+        },
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
 function loadIronBoyBlocks(ironboy) {
     Blockly.Blocks['ironboy_command'] = {
         init: function () {
@@ -1059,10 +1411,10 @@ function loadGinosAIBlocks(ginos){
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadGinosMQTTBlocks(ginos){
+function loadMQTTBlocks(){
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
-            "type": "ginos_mqtt_subscribe",
+            "type": "mqtt_subscribe",
             "message0": "On message from %1 get values in %2",
             "args0": [
                 {
@@ -1088,7 +1440,7 @@ function loadGinosMQTTBlocks(ginos){
             "colour": 225
         },
         {
-            "type": "ginos_mqtt_publish",
+            "type": "mqtt_publish",
 
             "message0": "publish payload %1 on topic %2",
             "args0": [
@@ -1109,7 +1461,7 @@ function loadGinosMQTTBlocks(ginos){
             "colour": 225
         },
         {
-            "type": "ginos_mqtt_register",
+            "type": "mqtt_register",
             "tooltip": "",
             "helpUrl": "",
             "message0": "Register the device",
@@ -1119,7 +1471,7 @@ function loadGinosMQTTBlocks(ginos){
             "colour": 225
         },
         {
-            "type": "ginos_mqtt_unregister",
+            "type": "mqtt_unregister",
             "tooltip": "",
             "helpUrl": "",
             "message0": "Unregister the device",
@@ -1147,7 +1499,9 @@ from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
-from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.models import RosMessageTypes
+from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
@@ -1181,52 +1535,6 @@ def check_touch(touch: Optional[Touch], finger_gesture: str) -> bool:
     except:
         pass
     return False
-
-def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union[HotWord, List[HotWord]]]):
-    def build_tspeech(hws: List[Union[HotWord, List[HotWord]]]) -> Optional[TSpeechObject]:
-        if not hws:
-            return None
-
-        hw, *rest = hws
-
-        return TSpeechObject(
-            [
-                TSpeech(hw, build_tspeech(rest))
-            ]
-        )
-
-    tspeech = build_tspeech(hotwords)
-
-    if tspeech and tskin.can_listen:
-        debug(logging_queue, f"Waiting for command...")
-        r = tskin.listen(tspeech)
-        if r:
-            debug(logging_queue, "Listening....")
-            text_so_far = ""
-            t = None
-            while True:
-                t = tskin.transcription
-
-                if t:
-                    break
-
-                if text_so_far != tskin.text_so_far:
-                    text_so_far = tskin.text_so_far
-                    debug(logging_queue, f"Listening: {text_so_far}")
-                time.sleep(tskin.TICK)
-
-            if t and t.path is not None:
-                debug(logging_queue, f"Command found: {[hw.word for hw in t.path]}")
-                return [hw.word for hw in t.path]
-
-    debug(logging_queue, "Cannot listen...")
-    return []
-
-def record_audio(tskin: TSkin, filename: str, seconds: float):
-    tskin.record(filename, seconds)
-
-    while tskin.is_recording:
-        time.sleep(tskin.TICK)
 
 def keyboard_press(keyboard: KeyboardController, commands: List[KeyCode]):
     for k in commands:
@@ -1349,10 +1657,6 @@ def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
     else:
         logging_queue.debug(str(msg).replace("\\n","<br>"))
 
-def reset_touch(tskin: TSkin):
-        if tskin.touch_preserve:
-            _ = tskin.touch
-
 def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
     if ironboy:
         command = ironboy.command(cmd,reps)
@@ -1408,6 +1712,17 @@ def summarize_text(ginos: Optional[GinosInterface],file_path: str):
 
     return response
 
+def ros2_run(ros2: Optional[Ros2Interface], command: str):
+    if not ros2:
+        return
+
+    ros2.run(command)
+
+def ros2_publish(ros2: Optional[Ros2Interface], topic: str, message: RosMessageTypes):
+    if not ros2:
+        return
+    
+    ros2.publish(topic, message)
 
 def mqtt_publish(mqtt: Optional[MQTTClient], topic: str, payload: Any):
     if not mqtt:
@@ -1426,6 +1741,7 @@ def mqtt_unregister(mqtt: Optional[MQTTClient]):
         return
     
     mqtt.unregister()
+
 
 # ---------- Generated code ---------------
 
@@ -1455,6 +1771,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Optional[Ros2Interface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
@@ -1484,6 +1801,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Optional[Ros2Interface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
@@ -1513,6 +1831,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Optional[Ros2Interface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
@@ -1536,9 +1855,10 @@ function defineCustomGenerators() {
     defineBraccioGenerators();
     defineDictionaryGenerators();
     defineZionGenerators();
+    defineRos2Generators();
     defineIronBoyGenerators();
     defineGinosAIGenerators();
-    defineGinosMQTTGenerators();
+    defineMQTTGenerators();
 }
 
 function defineTSkinGenerators(){
@@ -1679,6 +1999,36 @@ function defineDictionaryGenerators() {
         const code = `${dict}.get(${key}, None)`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
+
+    python.pythonGenerator.forBlock['dict_builder'] = function(block) {
+        const pairBlock = block.getInputTargetBlock('PAIRS');
+        const pairCode = Blockly.Python.blockToCode(pairBlock).slice(0, -2); // remove trailing comma and space
+        const code = "{" + pairCode + "}";
+
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['dict_pair'] = function (block) {
+        const key = Blockly.Python.valueToCode(block, 'dict_key', Blockly.Python.ORDER_ATOMIC) || "'data'";
+        const value = Blockly.Python.valueToCode(block, 'dict_value', Blockly.Python.ORDER_ATOMIC) || "''";
+
+        const code = `${key}: ${value}, `;
+        return code;
+    };
+
+    python.pythonGenerator.forBlock['dict_to_json'] = function (block, generator) {
+        const dict = Blockly.Python.valueToCode(block, 'dict', Blockly.Python.ORDER_ATOMIC) || "{}";
+
+        const code = `json.dumps(${dict})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['json_to_dict'] = function (block, generator) {
+        const dict = Blockly.Python.valueToCode(block, 'json', Blockly.Python.ORDER_ATOMIC) || "{}";
+
+        const code = `json.loads(${dict})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
 }
 
 function defineZionGenerators() {
@@ -1777,6 +2127,111 @@ function defineZionGenerators() {
     };
 }
 
+function defineRos2Generators(){
+    python.pythonGenerator.forBlock['ros2_command'] = function(block, generator) {
+        const command = block.getFieldValue('command');
+        return `ros2_run(ros2, "${command}")\n`;
+    };
+
+    python.pythonGenerator.forBlock['ros2_subscribe'] = function(block, generator) {
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0){
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+        // const message_type = generator.valueToCode(block, 'message_type', python.Order.ATOMIC);
+        const function_name = clean_topic_names(value_topic);
+        const statement_function = generator.statementToCode(block, 'function');
+
+        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables +  statement_function;
+        return code;
+    }
+
+    python.pythonGenerator.forBlock['ros2_publish'] = function(block, generator) {
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+        const message_type = generator.valueToCode(block, 'message_type', python.Order.ATOMIC);
+
+        const code = `ros2_publish(ros2, ${value_topic}, ${message_type})\n`
+        return code;
+    }
+
+    python.pythonGenerator.forBlock['ros2_message_type'] = function(block) {
+        const command = block.getFieldValue('message_type');
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_String'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `String(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Bool'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `Bool(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Int64'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `Int64(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Float64'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `Float64(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ros2_message_Action_type"] = function (block) {
+        var type = block.getFieldValue('type');
+        var code = `Action.${type}`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Action'] = function(block, generator) {
+        const type = generator.valueToCode(block, 'type', python.Order.ATOMIC);
+        const payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC) || "{}";
+        const command = `Action(type=${type}, payload=${payload})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ros2_message_Intent_type"] = function (block) {
+        var type = block.getFieldValue('type');
+        var code = `Intent.${type}`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Intent'] = function(block, generator) {
+        const type = generator.valueToCode(block, 'type', python.Order.ATOMIC);
+        const payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC) || "{}";
+        const command = `Intent(intent=${type}, data=${payload})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Point2D'] = function(block, generator) {
+        const x = generator.valueToCode(block, 'x', python.Order.ATOMIC);
+        const y = generator.valueToCode(block, 'y', python.Order.ATOMIC);
+        const command = `Point2D(x=${x}, y=${y})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Marker'] = function(block, generator) {
+        const id = generator.valueToCode(block, 'marker_id', python.Order.ATOMIC);
+        const p1 = generator.valueToCode(block, 'p1', python.Order.ATOMIC);
+        const p2 = generator.valueToCode(block, 'p2', python.Order.ATOMIC);
+        const p3 = generator.valueToCode(block, 'p3', python.Order.ATOMIC);
+        const p4 = generator.valueToCode(block, 'p4', python.Order.ATOMIC);
+        const command = `Marker(id=${id}, p1=${p1}, p2=${p2}, p3=${p3}, p4=${p4})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+}
+
 function defineIronBoyGenerators(){
     python.pythonGenerator.forBlock['ironboy_command'] = function(block,generator) {
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
@@ -1831,9 +2286,8 @@ function defineGinosAIGenerators(){
     }
 }
 
-
-function defineGinosMQTTGenerators(){
-    python.pythonGenerator.forBlock['ginos_mqtt_subscribe'] = function(block, generator) {
+function defineMQTTGenerators(){
+    python.pythonGenerator.forBlock['mqtt_subscribe'] = function(block, generator) {
         let variables = block.workspace.getAllVariables().map((v) => {
             return v.name;
         }).join(', ');
@@ -1850,7 +2304,7 @@ function defineGinosMQTTGenerators(){
         return code;
     }
 
-    python.pythonGenerator.forBlock['ginos_mqtt_publish'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_publish'] = function(block, generator) {
         const value_payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
         const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
 
@@ -1858,12 +2312,12 @@ function defineGinosMQTTGenerators(){
         return code;
     }
 
-    python.pythonGenerator.forBlock['ginos_mqtt_register'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_register'] = function(block, generator) {
         const code = `mqtt_register(mqtt)\n`
         return code;
     }
 
-    python.pythonGenerator.forBlock['ginos_mqtt_unregister'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_unregister'] = function(block, generator) {
         const code = `mqtt_unregister(mqtt)\n`
         return code;
     }

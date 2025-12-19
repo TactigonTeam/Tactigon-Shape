@@ -23,26 +23,22 @@ from uuid import UUID, uuid4
 from datetime import datetime
 from typing import List, Optional
 
-from anyio import Condition
 from flask import Blueprint, render_template, flash, redirect, url_for
 
+from tactigon_shapes.config import app_config, check_config
+from tactigon_shapes.models import ModelGesture
+from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program
+from tactigon_shapes.modules.shapes.manager import get_shapes_app
 from tactigon_shapes.modules.ginos.models import GinosConfig
-from tactigon_shapes.modules.mqtt.models import MQTTConfig
-
-from ..ironboy.manager import get_ironboy_interface
-
-from .extension import ShapeConfig, Program
-from .manager import get_shapes_app
-
-from ..tskin.manager import get_tskin
-from ..zion.manager import get_zion_interface
-
-from ..ginos.manager import get_ginos_blocks
-from ..mqtt.models import MQTTSubscription
-
-from ...config import app_config, check_config
-from ...models import ModelGesture
-from ...utils.request_utils import get_from_request, check_empty_inputs
+from tactigon_shapes.modules.mqtt.models import MQTTConfig, MQTTSubscription
+from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.tskin.manager import get_tskin
+from tactigon_shapes.modules.zion.manager import get_zion_interface
+from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
+from tactigon_shapes.modules.ros2.manager import get_ros2_interface
+from tactigon_shapes.utils.request_utils import get_from_request, check_empty_inputs
 
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")
@@ -81,18 +77,17 @@ def index(program_id: Optional[str] = None):
 
     blocks_config = _shapes.get_blocks_congfig(gesture_list)
 
-    if app_config.TSKIN_VOICE and app_config.TSKIN_VOICE.voice_commands:
-        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_VOICE.voice_commands)
-
     zion = get_zion_interface()
-
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
 
     ironboy = get_ironboy_interface()
-
     if ironboy:
         blocks_config["ironboy"] = ironboy.get_shape_blocks()
+
+    ros2_interface = get_ros2_interface()
+    if ros2_interface:
+        blocks_config["ros2"] = ros2_interface.get_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
     
@@ -201,7 +196,6 @@ def edit(program_id: str):
         return redirect(url_for("shapes.index"))
     
     state = _shapes.get_state(current_config.id)
-
     gesture_list: List[ModelGesture] = []
 
     if app_config.TSKIN and app_config.TSKIN.gesture_config:
@@ -211,12 +205,8 @@ def edit(program_id: str):
                 break
 
     blocks_config = _shapes.get_blocks_congfig(gesture_list)
-
-    if app_config.TSKIN_VOICE and app_config.TSKIN_VOICE.voice_commands:
-        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_VOICE.voice_commands)
-
     zion = get_zion_interface()
-
+    ros2_interface = get_ros2_interface()
     ironboy = get_ironboy_interface()
 
     if ironboy:
@@ -224,6 +214,9 @@ def edit(program_id: str):
 
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
+
+    if ros2_interface:
+        blocks_config["ros2"] = ros2_interface.get_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
 
@@ -363,15 +356,16 @@ def clone_config(program_id: str):
         return redirect(url_for("shapes.index", program_id=program_id))
     
     new_config = ShapeConfig(
-        uuid4(),
-        program_name,
-        datetime.now(),
-        datetime.now(),
-        program_description,
-        False,
-        original_config.app_file,
-        original_config.ginos_config,
-        original_config.mqtt_config
+        id=uuid4(),
+        name=program_name,
+        created_on=datetime.now(),
+        modified_on=datetime.now(),
+        description=program_description,
+        readonly=False,
+        app_file=original_config.app_file,
+        ginos_config=original_config.ginos_config,
+        mqtt_config=original_config.mqtt_config,
+        ros2_config=original_config.ros2_config,
     )
 
     program = _shapes.get_shape(UUID(program_id))
@@ -397,6 +391,8 @@ def save_program(program_id: str):
     code = get_from_request('generatedCode')
     state = get_from_request('state')
     subscriptions = get_from_request("subscriptions")
+    ros2_publishers = get_from_request("ros2_publishers")
+    ros2_subscriptions = get_from_request("ros2_subscriptions")
 
     # is_empty_input = check_empty_inputs(locals().items())
 
@@ -414,7 +410,15 @@ def save_program(program_id: str):
     config.modified_on = datetime.now()
     
     if subscriptions and config.mqtt_config:
-        config.mqtt_config.subscriptions = [MQTTSubscription.FromJSON(s) for s in json.loads(subscriptions)]   
+        config.mqtt_config.subscriptions = [MQTTSubscription.FromJSON(s) for s in json.loads(subscriptions)]
+
+    if ros2_publishers or ros2_subscriptions:
+        ros2_config = Ros2ShapeConfig(
+            config.name,
+            [Ros2Publisher.FromJSON(p) for p in json.loads(ros2_publishers)] if ros2_publishers else [],
+            [Ros2Subscription.FromJSON(s) for s in json.loads(ros2_subscriptions)] if ros2_subscriptions else [],
+        )
+        config.ros2_config = ros2_config
 
     is_success = _shapes.update(config, Program(code=code, state=json.loads(state)))
 

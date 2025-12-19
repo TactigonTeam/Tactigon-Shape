@@ -23,7 +23,7 @@ from functools import wraps
 from os import path
 from flask import redirect, url_for
 
-from .models import BASE_PATH, AppConfig
+from tactigon_shapes.models import BASE_PATH, AppConfig
 
 config_file_path = path.join(BASE_PATH, "config")
 config_file = path.join(config_file_path, "config.json")

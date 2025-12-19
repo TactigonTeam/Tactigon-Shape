@@ -21,7 +21,6 @@
 from enum import Enum
 from dataclasses import dataclass
 
-from typing import Optional, Any
 
 class Scope(Enum):
     SERVER = "SERVER_SCOPE"

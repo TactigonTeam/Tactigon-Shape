@@ -18,9 +18,13 @@
 #********************************************************************************/
 
 
-FROM python:3.8-slim
+FROM ros:jazzy-ros-core
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 RUN apt-get update && apt-get install -y \
+    python3-pip \
     bluetooth \
     bluez \
     libbluetooth-dev \
@@ -29,6 +33,9 @@ RUN apt-get update && apt-get install -y \
     libportaudio2 portaudio19-dev \
     xvfb xserver-xorg-core libice6 libxrender1 libfontconfig1 libglib2.0-0 \
     curl \
+    iproute2 \
+    net-tools \
+    bash \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
@@ -43,15 +50,14 @@ COPY main.py /app/main.py
 
 RUN pip install \
     flask==3.0.3 \
-    flask_socketio==5.3.6 \
+    flask-socketio==5.5.1 \
     gevent==24.2.1 \
-    tactigon_gear==5.3.1 \
+    gevent-websocket==0.10.1 \
+    tactigon_gear==5.5.0 \
     PyAudio==0.2.13 \
     pynput==1.7.7 \
     sympy==1.13.2 \
     tactigon_ironboy==1.0.0 && \
-    pip install deepspeech-tflite==0.9.3 --no-deps && \
-    pip install tactigon_speech==5.0.10 --no-deps \
     paho-mqtt \
     httpx \
     argparse \

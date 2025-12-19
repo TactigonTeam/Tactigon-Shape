@@ -18,19 +18,16 @@
 #********************************************************************************/
 
 
-import sys
 from threading import Thread, Event
 from flask import Flask
 from flask_socketio import SocketIO
 
 from typing import Optional
 
-from ..ironboy.extension import IronBoyInterface
-
-from ..braccio.extension import BraccioInterface
-from ..shapes.extension import ShapesApp
-
-from ..tskin.models import TSkin
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.braccio.extension import BraccioInterface
+from tactigon_shapes.modules.shapes.extension import ShapesApp
+from tactigon_shapes.modules.tskin.models import TSkin
 
 class SocketApp(SocketIO):
     name: str = "socket_app"
