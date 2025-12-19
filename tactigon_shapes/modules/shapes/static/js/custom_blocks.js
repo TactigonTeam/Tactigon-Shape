@@ -2237,7 +2237,7 @@ function defineIronBoyGenerators(){
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
         const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
         const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
-        return [code, Blockly.Python.ORDER_ATOMIC];
+        return code;
     };
 
     python.pythonGenerator.forBlock['command_list'] = function(block) {
