@@ -137,7 +137,7 @@ class Ros2ShapeConfig:
     @classmethod
     def FromJSON(cls, json: dict):
         return cls(
-            json.get("node_name", "sunrise_node"),
+            json.get("node_name", "node_name"),
             [Ros2Publisher.FromJSON(json) for json in json.get("publishers", [])],
             [Ros2Subscription.FromJSON(json) for json in json.get("subscriptions", [])]
         )

@@ -34,7 +34,7 @@ class ShapeNode(Node):
     TICK: float = 0.02
 
     def __init__(self):
-        Node.__init__(self, "sunrise_app")
+        Node.__init__(self, ShapeNode.__name__)
 
     def add_publisher(self, topic: str, message_type: RosMessageTypes, qos_profile: QoSProfile | int):
         publisher = self.create_publisher(message_type, topic, qos_profile)

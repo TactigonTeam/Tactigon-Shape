@@ -37,6 +37,8 @@
         <input id="generatedCode" type="hidden" name="generatedCode" />
         <input id="state" type="hidden" name="state" />
         <input id="subscriptions" type="hidden" name="subscriptions" />
+        <input id="ros2_subscriptions" type="hidden" name="ros2_subscriptions" />
+        <input id="ros2_publishers" type="hidden" name="ros2_publishers" />
         <a href="{{ url_for('shapes.index', program_id=current_config.id) }}" class="btn btn-outline-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
@@ -523,93 +525,6 @@
                 <value name="data">
                     <shadow type="math_number">
                         <field name="NUM">1.5</field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_Action_type">
-            </block>
-            <block type="ros2_message_Action">
-                <value name="type">
-                    <shadow type="ros2_message_Action_type">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_Intent_type">
-            </block>
-            <block type="ros2_message_Intent">
-                <value name="type">
-                    <shadow type="ros2_message_Intent_type">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_Point2D">
-                <value name="x">
-                    <shadow type="math_number">
-                    </shadow>
-                </value>
-                <value name="y">
-                    <shadow type="math_number">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_Marker">
-                <value name="marker_id">
-                    <shadow type="math_number"></shadow>
-                </value>
-                <value name="p1">
-                    <shadow type="ros2_message_Point2D">
-                        <value name="x">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
-                        <value name="y">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
-                    </shadow>
-                </value>
-                <value name="p2">
-                    <shadow type="ros2_message_Point2D">
-                        <value name="x">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
-                        <value name="y">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
-                    </shadow>
-                </value>
-                <value name="p3">
-                    <shadow type="ros2_message_Point2D">
-                        <value name="x">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
-                        <value name="y">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
-                    </shadow>
-                </value>
-                <value name="p4">
-                    <shadow type="ros2_message_Point2D">
-                        <value name="x">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
-                        <value name="y">
-                            <shadow type="math_number">
-                                <field name="NUM">0</field>
-                            </shadow>
-                        </value>
                     </shadow>
                 </value>
             </block>

@@ -1115,144 +1115,6 @@ function loadRos2Blocks(ros2blocks){
             "helpUrl": "",
             "colour": 225
         },
-        {
-            "type": "ros2_message_Action_type",
-            "message0": "Action type %1",
-            "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "type",
-                    "options": ros2blocks.action_types
-                }
-            ],
-            "output": "Ros2ActionType",
-            "tooltip": "Select a ROS 2 message type",
-            "helpUrl": "",
-            "colour": 225
-        },
-        {
-            "type": "ros2_message_Action",
-            "message0": "Action(type=%1, payload=%2)",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "type",
-                    "check": "Ros2ActionType"
-                },
-                {
-                    "type": "input_value",
-                    "name": "payload",
-                    "check": "JSONString"
-                }
-            ],
-            "output": "Ros2MessageType",
-            "tooltip": "Create a ROS 2 Float64 message",
-            "helpUrl": "",
-            "colour": 225
-        },
-        {
-            "type": "ros2_message_Intent_type",
-            "message0": "Intent type %1",
-            "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "type",
-                    "options": ros2blocks.intent_types
-                }
-            ],
-            "output": "Ros2IntentType",
-            "tooltip": "Select a ROS 2 message type",
-            "helpUrl": "",
-            "colour": 225
-        },
-        {
-            "type": "ros2_message_Intent",
-            "message0": "Intent(type=%1, payload=%2)",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "type",
-                    "check": "Ros2IntentType"
-                },
-                {
-                    "type": "input_value",
-                    "name": "payload",
-                    "check": "JSONString"
-                }
-            ],
-            "output": "Ros2MessageType",
-            "tooltip": "Create a ROS 2 Float64 message",
-            "helpUrl": "",
-            "colour": 225
-        },
-        {
-            "type": "ros2_message_Point2D",
-            "message0": "Point2D(x=%1, y=%2)",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "x",
-                    "check": "Number"
-                },
-                {
-                    "type": "input_value",
-                    "name": "y",
-                    "check": "Number"
-                }
-            ],
-            "output": "Ros2Point2DType",
-            "tooltip": "Create a ROS 2 Point2D message",
-            "helpUrl": "",
-            "colour": 225
-        },
-        {
-            "type": "ros2_message_Marker",
-            "message0": "Marker",
-            "message1": "id=%1",
-            "message2": "p1=%1",
-            "message3": "p2=%1",
-            "message4": "p3=%1",
-            "message5": "p4=%1",
-            "args1": [
-                {
-                    "type": "input_value",
-                    "name": "marker_id",
-                    "check": "Number"
-                }
-            ],
-            "args2": [
-                {
-                    "type": "input_value",
-                    "name": "p1",
-                    "check": "Ros2Point2DType"
-                }
-            ],
-            "args3": [
-                {
-                    "type": "input_value",
-                    "name": "p2",
-                    "check": "Ros2Point2DType"
-                }
-            ],
-            "args4": [
-                {
-                    "type": "input_value",
-                    "name": "p3",
-                    "check": "Ros2Point2DType"
-                }
-            ],
-            "args5": [
-                {
-                    "type": "input_value",
-                    "name": "p4",
-                    "check": "Ros2Point2DType"
-                }
-            ],
-            "output": "Ros2MessageType",
-            "tooltip": "Create a ROS 2 Marker message",
-            "helpUrl": "",
-            "colour": 225
-        },
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1388,7 +1250,6 @@ function loadGinosAIBlocks(ginos){
             "tooltip": "",
             "helpUrl": ""
         },
-        //----------------------------
         {
             "type": "read_static_file",
             "tooltip": "read from file.csv",
@@ -1500,7 +1361,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2.models import RosMessageTypes
+from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
@@ -1718,7 +1579,7 @@ def ros2_run(ros2: Optional[Ros2Interface], command: str):
 
     ros2.run(command)
 
-def ros2_publish(ros2: Optional[Ros2Interface], topic: str, message: RosMessageTypes):
+def ros2_publish(ros2: Optional[Ros2Interface], topic: str, message: ros2_models.RosMessageTypes):
     if not ros2:
         return
     
@@ -2166,68 +2027,25 @@ function defineRos2Generators(){
 
     python.pythonGenerator.forBlock['ros2_message_String'] = function(block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `String(data=${data})`;
+        const command = `ros2_models.String(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Bool'] = function(block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `Bool(data=${data})`;
+        const command = `ros2_models.Bool(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Int64'] = function(block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `Int64(data=${data})`;
+        const command = `ros2_models.Int64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Float64'] = function(block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `Float64(data=${data})`;
-        return [command, Blockly.Python.ORDER_ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock["ros2_message_Action_type"] = function (block) {
-        var type = block.getFieldValue('type');
-        var code = `Action.${type}`;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock['ros2_message_Action'] = function(block, generator) {
-        const type = generator.valueToCode(block, 'type', python.Order.ATOMIC);
-        const payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC) || "{}";
-        const command = `Action(type=${type}, payload=${payload})`;
-        return [command, Blockly.Python.ORDER_ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock["ros2_message_Intent_type"] = function (block) {
-        var type = block.getFieldValue('type');
-        var code = `Intent.${type}`;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock['ros2_message_Intent'] = function(block, generator) {
-        const type = generator.valueToCode(block, 'type', python.Order.ATOMIC);
-        const payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC) || "{}";
-        const command = `Intent(intent=${type}, data=${payload})`;
-        return [command, Blockly.Python.ORDER_ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock['ros2_message_Point2D'] = function(block, generator) {
-        const x = generator.valueToCode(block, 'x', python.Order.ATOMIC);
-        const y = generator.valueToCode(block, 'y', python.Order.ATOMIC);
-        const command = `Point2D(x=${x}, y=${y})`;
-        return [command, Blockly.Python.ORDER_ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock['ros2_message_Marker'] = function(block, generator) {
-        const id = generator.valueToCode(block, 'marker_id', python.Order.ATOMIC);
-        const p1 = generator.valueToCode(block, 'p1', python.Order.ATOMIC);
-        const p2 = generator.valueToCode(block, 'p2', python.Order.ATOMIC);
-        const p3 = generator.valueToCode(block, 'p3', python.Order.ATOMIC);
-        const p4 = generator.valueToCode(block, 'p4', python.Order.ATOMIC);
-        const command = `Marker(id=${id}, p1=${p1}, p2=${p2}, p3=${p3}, p4=${p4})`;
+        const command = `ros2_models.Float64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 }
