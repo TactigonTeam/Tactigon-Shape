@@ -2233,7 +2233,7 @@ function defineRos2Generators(){
 }
 
 function defineIronBoyGenerators(){
-    python.pythonGenerator.forBlock['ironboy_command'] = function(block,generator) {
+    python.pythonGenerator.forBlock['ironboy_command'] = function(block, generator) {
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
         const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
         const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
@@ -2255,35 +2255,35 @@ function defineGinosAIGenerators(){
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
-        // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
-        // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-        // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
-        var code = ``;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
+    // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
+    //     // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
+    //     // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
+    //     // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
+    //     var code = ``;
+    //     return [code, Blockly.Python.ORDER_ATOMIC];
+    // };
 
-    python.pythonGenerator.forBlock["ginos_ai_chat_message"] = function(block, generator) {
-        var code = ``;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
-    python.pythonGenerator.forBlock["ginos_ai_chat_message_role"] = function(block, generator) {
-        var code = ``;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
+    // python.pythonGenerator.forBlock["ginos_ai_chat_message"] = function(block, generator) {
+    //     var code = ``;
+    //     return [code, Blockly.Python.ORDER_ATOMIC];
+    // };
+
+    // python.pythonGenerator.forBlock["ginos_ai_chat_message_role"] = function(block, generator) {
+    //     var code = ``;
+    //     return [code, Blockly.Python.ORDER_ATOMIC];
+    // };
     
     python.pythonGenerator.forBlock['ginos_summarize_text'] = function(block, generator) {
     const text = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
         var code = `summarize_text(ginos,${text},logging_queue)`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     }
-    //------------
-    python.pythonGenerator.forBlock['read_static_file'] = function(block, generator) {
 
-    const filepath = generator.valueToCode(block, 'path', python.Order.ATOMIC);
-    var code = `extract_data(${filepath},logging_queue)`
-    return code;
-    }
+    // python.pythonGenerator.forBlock['read_static_file'] = function(block, generator) {
+    //     const filepath = generator.valueToCode(block, 'path', python.Order.ATOMIC);
+    //     var code = `extract_data(${filepath},logging_queue)`
+    //     return code;
+    // }
 }
 
 function defineMQTTGenerators(){
