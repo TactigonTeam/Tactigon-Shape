@@ -28,7 +28,7 @@ from flask import Flask
 
 from typing import Iterator, Optional, List
 
-from .models import LLMChatResponse, LLMModelPullRequest, LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, LLMPromptRequest, LLMChatRequest, LLMPromptResponse
+from tactigon_shapes.modules.ginos.models import LLMChatResponse, LLMModelPullRequest, LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, LLMPromptRequest, LLMChatRequest, LLMPromptResponse
 
 APPLICATION_JSON = 'application/json'
 

@@ -18,7 +18,7 @@
 #********************************************************************************/
 
 
-from .models import LLMMessageRole
+from tactigon_shapes.modules.ginos.models import LLMMessageRole
 
 def get_ginos_blocks():
     return dict(

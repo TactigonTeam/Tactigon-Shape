@@ -7,6 +7,7 @@
     "description": "",
     "readonly": true,
     "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": null
   },
   {
@@ -17,6 +18,7 @@
     "description": "",
     "readonly": true,
     "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": null
   },
   {
@@ -27,6 +29,7 @@
     "description": "",
     "readonly": true,
     "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": null
   },
   {
@@ -37,6 +40,7 @@
     "description": "",
     "readonly": true,
     "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": null
   },
   {
@@ -47,6 +51,7 @@
     "description": "",
     "readonly": true,
     "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": null
   },
   {
@@ -57,6 +62,7 @@
     "description": "",
     "readonly": true,
     "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": null
   },
   {
@@ -67,6 +73,7 @@
     "description": "",
     "readonly": true,
     "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": null
   }
 ]

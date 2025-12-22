@@ -26,7 +26,7 @@ from typing import Optional, Callable
 
 import paho.mqtt.client as mqtt_client
 
-from .models import MQTTConfig
+from tactigon_shapes.modules.mqtt.models import MQTTConfig
 
 class MQTTClient:
     config: MQTTConfig

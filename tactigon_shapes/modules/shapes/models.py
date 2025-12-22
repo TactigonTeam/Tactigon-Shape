@@ -25,8 +25,9 @@ from datetime import datetime
 
 from typing import Any, Optional
 
-from ..ginos.models import GinosConfig
-from ..mqtt.models import MQTTConfig
+from tactigon_shapes.modules.ginos.models import GinosConfig
+from tactigon_shapes.modules.mqtt.models import MQTTConfig
+from tactigon_shapes.modules.ros2.models import Ros2ShapeConfig
 
 
 class Severity(Enum):
@@ -57,12 +58,15 @@ class ShapeConfig:
     readonly: bool = False
     app_file: str = "program.py"
     ginos_config: Optional[GinosConfig] = None
+    ros2_config: Optional[Ros2ShapeConfig] = None
     mqtt_config: Optional[MQTTConfig] = None
+
 
     @classmethod
     def FromJSON(cls, json):
         ginos_config = json.get("ginos_config", None)
         mqtt_config = json.get("mqtt_config", None)
+        ros2_config = json.get("ros2_config", None)
         
         return cls(
             id=UUID(json["id"]),
@@ -72,6 +76,7 @@ class ShapeConfig:
             description=json["description"],
             readonly=json["readonly"],
             ginos_config=GinosConfig.FromJSON(ginos_config) if ginos_config else None,
+            ros2_config=Ros2ShapeConfig.FromJSON(ros2_config) if ros2_config else None,
             mqtt_config=MQTTConfig.FromJSON(mqtt_config) if mqtt_config else None,
         )
 
@@ -84,6 +89,7 @@ class ShapeConfig:
             description=self.description,
             readonly=self.readonly,
             ginos_config=self.ginos_config.toJSON() if self.ginos_config else None,
+            ros2_config=self.ros2_config.toJSON() if self.ros2_config else None,
             mqtt_config=self.mqtt_config.toJSON() if self.mqtt_config else None
         )
     

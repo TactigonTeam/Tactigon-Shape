@@ -37,6 +37,8 @@
         <input id="generatedCode" type="hidden" name="generatedCode" />
         <input id="state" type="hidden" name="state" />
         <input id="subscriptions" type="hidden" name="subscriptions" />
+        <input id="ros2_subscriptions" type="hidden" name="ros2_subscriptions" />
+        <input id="ros2_publishers" type="hidden" name="ros2_publishers" />
         <a href="{{ url_for('shapes.index', program_id=current_config.id) }}" class="btn btn-outline-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
@@ -356,7 +358,33 @@
             <block type="get_dict_property">
                 <value name="key">
                     <shadow type="text">
-                        <field name="key"></field>
+                        <field name="TEXT">key</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="dict_builder">
+            </block>
+            <block type="dict_pair">
+                <value name="dict_key">
+                    <shadow type="text">
+                        <field name="TEXT">key</field>
+                    </shadow>
+                </value>
+                <value name="dict_value">
+                    <shadow type="text">
+                        <field name="TEXT">value</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="dict_to_json">
+                <value name="dict">
+                    <shadow type="dict_builder">
+                    </shadow>
+                </value>
+            </block>
+            <block type="json_to_dict">
+                <value name="json">
+                    <shadow type="text">
                     </shadow>
                 </value>
             </block>
@@ -445,6 +473,62 @@
                 <block type="command_list"></block>
             </category>
         {% endif %}
+        <sep></sep>
+        <category name="ROS 2" colour="#6665DD">
+            <block type="ros2_command">
+            </block>
+            <block type="ros2_subscribe">
+                <value name="topic">
+                    <shadow type="text"></shadow>
+                </value>
+                <value name="message_type">
+                    <shadow type="ros2_message_type">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_type"></block>
+            <block type="ros2_publish">
+                <value name="message_type">
+                    <shadow type="ros2_message_String">
+                        <value name="data">
+                            <shadow type="text">
+                            </shadow>
+                        </value>
+                    </shadow>
+                </value>
+                <value name="topic">
+                    <shadow type="text">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_String">
+                <value name="data">
+                    <shadow type="text">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_Bool">
+                <value name="data">
+                    <shadow type="logic_boolean">
+                        <field name="BOOL">TRUE</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_Int64">
+                <value name="data">
+                    <shadow type="math_number">
+                        <field name="NUM">1</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_Float64">
+                <value name="data">
+                    <shadow type="math_number">
+                        <field name="NUM">1.5</field>
+                    </shadow>
+                </value>
+            </block>
+        </category>
         {% if zion_config %}
             <sep></sep>
             <category name="Zion API" colour="#6665DD">
@@ -620,13 +704,13 @@
         {% if current_config.mqtt_config %}
             <sep></sep>
             <category name="Ginos MQTT" colour="#6665DD">
-                <block type="ginos_mqtt_subscribe">
+                <block type="mqtt_subscribe">
                     <value name="topic">
                         <shadow type="text">
                         </shadow>
                     </value>
                 </block>
-                <block type="ginos_mqtt_publish">
+                <block type="mqtt_publish">
                     <value name="payload">
                         <shadow type="text">
                         </shadow>
@@ -639,9 +723,9 @@
                 <!--commentati i blocchi in sviluppo-->
                 {#
                 </block>
-                <block type="ginos_mqtt_register">
+                <block type="mqtt_register">
                 </block>
-                <block type="ginos_mqtt_unregister">
+                <block type="mqtt_unregister">
                 </block>
                 #}
 
@@ -733,7 +817,7 @@
 
         for (i in topBlocks){           
             if (functionBlockNames.indexOf(topBlocks[i].type) == -1){ 
-                return "Make sure all blocks are inside Tactigon Main or another function";
+                return "Make sure all blocks are inside Loop or another function";
             }
         }
         return "";
@@ -770,12 +854,54 @@
     }
 
     function getSubscriptions(workspace){
-        const functions = workspace.getBlocksByType("ginos_mqtt_subscribe");
+        const functions = workspace.getBlocksByType("mqtt_subscribe");
 
         return functions.map(block => {
             const topic = block.getInputTargetBlock("topic").getFieldValue("TEXT");
             const payload_reference = block.getField("var_name").getVariable().name;
             return {"topic": topic, "function": clean_topic_names(topic), "payload_reference": payload_reference};
+        });
+    }
+
+    function getVariableSet(workspace, VAR){
+        const set_blocks = workspace.getBlocksByType("variables_set");
+        for (let i = 0; i< set_blocks.length; i++){
+            const block_var = set_blocks[i].getFieldValue("VAR");
+            const target_block = set_blocks[i].getInputTargetBlock('VALUE')
+            if (block_var == VAR && target_block.type.startsWith("ros2_message_")){
+                return target_block;
+            }
+        }
+    }
+
+    function getRos2Publishers(workspace){
+        const functions = workspace.getBlocksByType("ros2_publish");
+
+        return functions.map(block => {
+            const topic = block.getInputTargetBlock("topic").getFieldValue("TEXT");
+            let message_type_block = block.getInputTargetBlock("message_type");
+
+            let message_type = "String";
+
+            if (message_type_block.type.startsWith("ros2_message_")){
+                message_type = message_type_block.type.replace("ros2_message_", "");
+            } else if (message_type_block.type == "variables_get"){
+                message_type_block = getVariableSet(workspace, message_type_block.getFieldValue("VAR"));
+                message_type = message_type_block.type.replace("ros2_message_", "");
+            }
+
+            return {"topic": topic, "message_type": message_type};
+        });
+    }
+
+    function getRos2Subscriptions(workspace){
+        const functions = workspace.getBlocksByType("ros2_subscribe");
+
+        return functions.map(block => {
+            const topic = block.getInputTargetBlock("topic").getFieldValue("TEXT");
+            const message_type = block.getInputTargetBlock("message_type").getFieldValue("message_type");
+            const payload_reference = block.getField("var_name").getVariable().name;
+            return {"topic": topic, "function": clean_topic_names(topic), "message_type": message_type, "payload_reference": payload_reference};
         });
     }
     
@@ -818,7 +944,7 @@
     }
 
     const reservedWords = ["tactigon_shape_function","zion","code","logging_queue","debug","data", "main","tskin","tspeech","gesture","ironboy","touch","braccio"];
-    const functionBlockNames = ["tactigon_shape_function", "tactigon_shape_setup", "tactigon_shape_close", "procedures_defnoreturn", "variables_set", "procedures_defreturn", "ginos_mqtt_subscribe"];
+    const functionBlockNames = ["tactigon_shape_function", "tactigon_shape_setup", "tactigon_shape_close", "procedures_defnoreturn", "variables_set", "procedures_defreturn", "mqtt_subscribe", "ros2_subscribe"];
 
     $(document).ready(async function () {
 
@@ -836,12 +962,20 @@
                 }
                 
                 const subscriptions = getSubscriptions(workspace);
+                const ros2subscriptions = getRos2Subscriptions(workspace);
+                const ros2publishers = getRos2Publishers(workspace);
+
                 setGeneratedCode(workspace);
                 setState(workspace);
                 setSubscriptions(subscriptions);
+
+                $('#subscriptions').val(JSON.stringify(subscriptions));
+                $('#ros2_subscriptions').val(JSON.stringify(ros2subscriptions));
+                $('#ros2_publishers').val(JSON.stringify(ros2publishers));
             }
             catch(ex){
                 e.preventDefault();
+                toast(`Exception while saving shape. ${ex.message}`, "danger");
                 console.log(ex);
                 return false;
             }

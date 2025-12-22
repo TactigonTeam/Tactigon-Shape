@@ -21,7 +21,7 @@
 from platform import system
 
 platform_name = system()
-__version__ = f"5.2.0.2-rc1"
+__version__ = f"5.5.0.0-rc1"
 
 import sys
 import sys
@@ -29,21 +29,23 @@ import logging
 from os import path
 from flask import Flask, render_template, send_from_directory, request, current_app
 from gevent.pywsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
 
-from .config import app_config
-from .models import BASE_PATH, TACTIGON_SPEECH, TACTIGON_GEAR
+from tactigon_shapes.config import app_config
+from tactigon_shapes.models import BASE_PATH, TACTIGON_GEAR
 
-from .modules.socketio import SocketApp, get_socket_app
-from .modules.braccio.extension import BraccioInterface
-from .modules.braccio.manager import get_braccio_interface
-from .modules.shapes.extension import ShapesApp
-from .modules.zion.extension import ZionInterface
-from .modules.zion.manager import get_zion_interface
-from .modules.tskin.manager import load_tskin, start_tskin, stop_tskin, TSKIN_EXTENSION
-from .modules.ironboy.extension import IronBoyInterface
-from .modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.socketio import SocketApp, get_socket_app
+from tactigon_shapes.modules.braccio.extension import BraccioInterface
+from tactigon_shapes.modules.braccio.manager import get_braccio_interface
+from tactigon_shapes.modules.shapes.extension import ShapesApp
+from tactigon_shapes.modules.zion.extension import ZionInterface
+from tactigon_shapes.modules.zion.manager import get_zion_interface
+from tactigon_shapes.modules.tskin.manager import load_tskin, start_tskin, stop_tskin, TSKIN_EXTENSION
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
 
-from .utils.extensions import force_stop_apps
+from tactigon_shapes.utils.extensions import force_stop_apps
 
 class TactigonShapes:
     url: str
@@ -73,17 +75,20 @@ class TactigonShapes:
             shapes_app = ShapesApp(path.join(BASE_PATH, "config", "shapes"))
             braccio_interface = BraccioInterface(path.join(BASE_PATH, "config", "braccio"))
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
+            ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
             zion_interface.init_app(flask_app)
+            ros2_interface.init_app(flask_app)
             shapes_app.init_app(flask_app)
             socket_app.init_app(flask_app)
             ironboy_interface.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
             shapes_app.zion_interface = zion_interface
+            shapes_app.ros2_interface = ros2_interface
             shapes_app.ironboy_interface = ironboy_interface
 
             socket_app.shapes_app = shapes_app
@@ -93,24 +98,26 @@ class TactigonShapes:
             flask_app.extensions[TSKIN_EXTENSION] = None
             tskin = None
             if app_config.TSKIN:
-                load_tskin(app_config.TSKIN, app_config.TSKIN_VOICE)
+                load_tskin(app_config.TSKIN)
                 tskin = start_tskin()
 
             if tskin:
                 socket_app.setTSkin(tskin)
 
-            from . import main
-            from .modules.tskin.blueprint import bp as tskin_bp
-            from .modules.shapes.blueprint import bp as shapes_bp
-            from .modules.braccio.blueprint import bp as braccio_bp
-            from .modules.zion.blueprint import bp as zion_bp
-            from .modules.ironboy.blueprint import bp as ironboy_bp
+            from tactigon_shapes import main
+            from tactigon_shapes.modules.tskin.blueprint import bp as tskin_bp
+            from tactigon_shapes.modules.shapes.blueprint import bp as shapes_bp
+            from tactigon_shapes.modules.braccio.blueprint import bp as braccio_bp
+            from tactigon_shapes.modules.zion.blueprint import bp as zion_bp
+            from tactigon_shapes.modules.ros2.blueprint import bp as ros2_bp
+            from tactigon_shapes.modules.ironboy.blueprint import bp as ironboy_bp
 
             flask_app.register_blueprint(main.bp)
             flask_app.register_blueprint(tskin_bp)
             flask_app.register_blueprint(shapes_bp)
             flask_app.register_blueprint(braccio_bp)
             flask_app.register_blueprint(zion_bp)
+            flask_app.register_blueprint(ros2_bp)
             flask_app.register_blueprint(ironboy_bp)
 
             @flask_app.route('/favicon.ico')
@@ -162,7 +169,6 @@ class TactigonShapes:
                     braccio_config=braccio_config,
                     braccio_status=braccio_status,
                     braccio_connected=braccio_connected,
-                    tactigon_speech=TACTIGON_SPEECH,
                     tactigon_gear=TACTIGON_GEAR,
                     has_braccio=has_braccio,
                     zion_config=zion_config,
@@ -170,7 +176,6 @@ class TactigonShapes:
                     has_ironboy=has_ironboy,
                     ironboy_status=ironboy_status,
                     ironboy_connected=ironboy_connected,
-                    voice_config=app_config.TSKIN_VOICE
                 )
 
         return flask_app
@@ -181,6 +186,7 @@ class TactigonShapes:
             self._server = WSGIServer(
                 listener=(self.url, self.port), 
                 application=self._app,
+                handler_class=WebSocketHandler,
                 log=self._app.logger,
             )
             self._server.serve_forever()

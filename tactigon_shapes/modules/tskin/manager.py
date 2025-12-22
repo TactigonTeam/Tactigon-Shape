@@ -23,12 +23,12 @@ from os import path
 from flask import current_app
 from typing import Optional, Union
 
-from .models import TSkin, TSkinConfig, GestureConfig, TSkinModel, VoiceConfig, Hand, TSpeech, TSpeechObject, HotWord
+from tactigon_shapes.modules.tskin.models import TSkin, TSkinConfig, GestureConfig, TSkinModel, Hand
 
 TSKIN_EXTENSION = "tskin"
 
-def load_tskin(config: TSkinConfig, voice: Optional[VoiceConfig]):
-    current_app.extensions[TSKIN_EXTENSION] = TSkin(config, voice)
+def load_tskin(config: TSkinConfig):
+    current_app.extensions[TSKIN_EXTENSION] = TSkin(config)
 
 def start_tskin():
     tskin = get_tskin()
@@ -65,55 +65,5 @@ def get_tskin_default_config(address: str, hand: Hand, name: str, model: TSkinMo
             encoder_path=path.join("models", model.name, "encoder.pickle"),
             name=model.name,
             created_at=model.date,
-            gestures=[g.gesture for g in model.gestures]
         )
     )
-
-if sys.platform != "darwin":
-    def walk(args, s: TSpeech, level: int = 0, parent: str = "_init_"):
-        if level > len(args) - 1:
-            args.append(dict())
-
-        if parent not in args[level]:
-            args[level][parent] = list(["---"] if level > 0 else [])
-
-        for hw in s.hotwords:
-            if hw.word not in args[level][parent]:
-                args[level][parent].append(hw.word)
-            if s.children:
-                for child in s.children.t_speech:
-                    walk(args, child, level + 1, hw.word)
-
-    def get_voice_default_config() -> Optional[VoiceConfig]:
-        return VoiceConfig(
-            path.join("speech", "deepspeech-0.9.3-models.tflite"),
-            path.join("speech", "shapes.scorer"),
-            voice_timeout=8,
-            silence_timeout=3,
-            voice_commands=TSpeechObject(
-                [
-                    TSpeech(
-                        [HotWord("pick"), HotWord("place")],
-                        TSpeechObject(
-                            [
-                                TSpeech(
-                                    [HotWord("position")],
-                                    TSpeechObject(
-                                        [
-                                            TSpeech([HotWord("star"), HotWord("circle"), HotWord("square")])
-                                        ]
-                                    )       
-                                )
-                            ]
-                        )
-                    )
-                ]
-            )
-        )
-
-else:
-    def walk (*args, **kwargs):
-        return []
-    
-    def get_voice_default_config() -> Optional[VoiceConfig]:
-        return None

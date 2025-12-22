@@ -26,13 +26,13 @@ from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from typing import Optional
 
-from .manager import get_tskin_default_config, get_voice_default_config, start_tskin, load_tskin, stop_tskin, get_tskin
-from .models import TSkinModel, VoiceConfig, TSkinConfig, Hand, GestureConfig, TSpeechObject, TSpeech, HotWord
+from tactigon_shapes.modules.tskin.manager import get_tskin_default_config, start_tskin, load_tskin, stop_tskin, get_tskin
+from tactigon_shapes.modules.tskin.models import TSkinModel, TSkinConfig, Hand, GestureConfig
 
-from ..socketio import get_socket_app
-from ...config import app_config
-from ...utils.extensions import stop_apps
-from ...utils.request_utils import get_from_request
+from tactigon_shapes.modules.socketio import get_socket_app
+from tactigon_shapes.config import app_config
+from tactigon_shapes.utils.extensions import stop_apps
+from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint('tskin', __name__, url_prefix="/tskin", template_folder="templates")
 
@@ -44,28 +44,16 @@ def manage():
 def add():
     return render_template("tskin/add.jinja")
 
-if sys.platform == "darwin":
-    @bp.route("scan", methods=["GET"])
-    def scan():
-        async def find_devices():
-            devices = await BleakScanner.discover(cb=dict(use_bdaddr=True))
-            return filter(lambda d: str(d.name).startswith("TSKIN") or str(d.name).startswith("TACTI"), devices)
+@bp.route("scan", methods=["GET"])
+def scan():
+    async def find_devices():
+        devices = await BleakScanner.discover()
+        return filter(lambda d: str(d.name).startswith("TSKIN") , devices)
 
-        devices = asyncio.run(find_devices())
-        tskins = [{"name": d.name, "id": d.address, "address": str(d.details[0].identifier())} for d in devices]
-        
-        return json.dumps(tskins)
-else:
-    @bp.route("scan", methods=["GET"])
-    def scan():
-        async def find_devices():
-            devices = await BleakScanner.discover()
-            return filter(lambda d: str(d.name).startswith("TSKIN") , devices)
+    devices = asyncio.run(find_devices())
+    tskins = [{"name": d.name, "id": d.address, "address": d.address} for d in devices]
 
-        devices = asyncio.run(find_devices())
-        tskins = [{"name": d.name, "id": d.address, "address": d.address} for d in devices]
-
-        return json.dumps(tskins)
+    return json.dumps(tskins)
 
 @bp.route("hand", methods=["POST"])
 def hand():
@@ -115,7 +103,6 @@ def remove():
     stop_tskin()
 
     app_config.TSKIN = None
-    app_config.TSKIN_VOICE = None
     
     app_config.save()
     current_app.config.from_object(app_config)
@@ -162,22 +149,17 @@ def save():
         # return redirect(url_for("tskin.add"))
     
     tskin_config = get_tskin_default_config(tskin_mac, hand, tskin_name, current_model)
-    voice_config = get_voice_default_config()
-
-    if voice_config:
-        voice_config.stop_hotword = None
 
     if socket_app:
         socket_app.stop()
 
     stop_tskin()
     app_config.TSKIN = tskin_config
-    app_config.TSKIN_VOICE = voice_config
 
     app_config.save()
     current_app.config.from_object(app_config)
 
-    load_tskin(tskin_config, voice_config)
+    load_tskin(tskin_config)
     tskin = start_tskin()
 
     if socket_app and tskin:
@@ -185,33 +167,29 @@ def save():
 
     return json.dumps(tskin_config.toJSON()), 200
 
-if sys.platform != "darwin":
-    @bp.route("play", methods=["POST"])
-    def play(base_path = ""):
-        tskin = get_tskin()
+@bp.route("play", methods=["POST"])
+def play(base_path = ""):
+    tskin = get_tskin()
 
-        if not tskin:
-            return "Error: TSkin not present"
-        
-        data = request.get_json(force=True)
+    if not tskin:
+        return "Error: TSkin not present"
+    
+    data = request.get_json(force=True)
 
-        if not data:
-            return "Error: No JSON in request"
-        
-        audio_file = data.get("audio_file")
+    if not data:
+        return "Error: No JSON in request"
+    
+    audio_file = data.get("audio_file")
 
-        if not audio_file:
-            return "Error: No audio_file in JSON"
-        
-        base_path = data.get("base_path")
+    if not audio_file:
+        return "Error: No audio_file in JSON"
+    
+    base_path = data.get("base_path")
 
-        if base_path:
-            audio_file = path.join(base_path, audio_file)
+    if base_path:
+        audio_file = path.join(base_path, audio_file)
 
-        tskin.play(audio_file)
+    # tskin.play(audio_file)
+    # TODO: implement play
 
-        return "Ok"
-else:
-    @bp.route("play", methods=["POST"])
-    def play(base_path = ""):
-        return "Not Implemented", 500
+    return "Ok"

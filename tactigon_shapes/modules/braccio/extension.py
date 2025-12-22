@@ -29,8 +29,8 @@ from queue import Queue
 
 from typing import Optional, Tuple
 
-from .middleware import Solver
-from .models import BraccioConfig, BraccioCommand, BraccioPosition, CommandStatus, Wrist, Gripper
+from tactigon_shapes.modules.braccio.middleware import Solver
+from tactigon_shapes.modules.braccio.models import BraccioConfig, BraccioCommand, BraccioPosition, CommandStatus, Wrist, Gripper
 
 class Braccio(Thread):
     _TICK: float = 0.1

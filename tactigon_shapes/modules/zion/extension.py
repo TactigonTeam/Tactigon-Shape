@@ -25,7 +25,7 @@ import requests
 from flask import Flask
 from typing import Optional, List
 
-from .models import AlarmStatus, ZionConfig, Device, Scope, AlarmSearchStatus, AlarmSeverity
+from tactigon_shapes.modules.zion.models import AlarmStatus, ZionConfig, Device, Scope, AlarmSearchStatus, AlarmSeverity
 
 APPLICATION_JSON = 'application/json'
 

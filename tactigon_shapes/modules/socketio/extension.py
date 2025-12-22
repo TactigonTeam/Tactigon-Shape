@@ -18,19 +18,16 @@
 #********************************************************************************/
 
 
-import sys
 from threading import Thread, Event
 from flask import Flask
 from flask_socketio import SocketIO
 
 from typing import Optional
 
-from ..ironboy.extension import IronBoyInterface
-
-from ..braccio.extension import BraccioInterface
-from ..shapes.extension import ShapesApp
-
-from ..tskin.models import TSkin
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.braccio.extension import BraccioInterface
+from tactigon_shapes.modules.shapes.extension import ShapesApp
+from tactigon_shapes.modules.tskin.models import TSkin
 
 class SocketApp(SocketIO):
     name: str = "socket_app"
@@ -101,12 +98,20 @@ class SocketApp(SocketIO):
 
     @property
     def ironboy_interface(self) -> Optional[IronBoyInterface]:
+        """
+        Get the IronBoyInterface reference
 
+        :return: IronBoyInterface if present
+        """
         return self._ironboy_interface
     
     @ironboy_interface.setter
     def ironboy_interface(self, app: IronBoyInterface) -> None:
+        """
+        Set the IronBoyInterface reference
 
+        :app: IronBoyInterface
+        """
         self._ironboy_interface = app
     
     def setTSkin(self, tskin: TSkin) -> None:
@@ -158,6 +163,6 @@ class SocketApp(SocketIO):
             if self._shapes_app and self._shapes_app.is_running:
                 msg = self._shapes_app.get_log()
                 if msg:
-                    self.emit("logging", msg.toJSON())
+                    self.emit("logging", msg.toJSON(), callback=self._shapes_app.logging_read)
                 
             self.sleep(SocketApp._TICK)  # type: ignore
