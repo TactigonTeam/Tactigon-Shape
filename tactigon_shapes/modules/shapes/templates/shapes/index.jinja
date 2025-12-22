@@ -424,32 +424,35 @@
         })
 
         {% if current_config.id == current_running_program %}
-        socket.on("logging", (event) => {
-            if (terminal.find("span.ERROR").length > 0){
-                return;
-            }
-
-            if (event.message_type === "string"){
-                terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message}`));
-                return;
-            }
-
-            if (event.message_type === "prompt"){
-                const last_child = terminal.children().first();
-                if (last_child.attr('name') == event.message_type){
-                    const html = last_child.html();
-                    last_child.html(html+event.message.message);
+            socket.on("logging", (event, callback) => {
+                callback();
+                if (terminal.find("span.ERROR").length > 0){
                     return;
                 }
 
-                terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message.message}`));
-                return;
-            }
-        });
-        resizeTerminal(terminal);
-        $(window).resize(() => {
-            resizeTerminal(terminal)
-        });
+                if (event.message_type === "string"){
+                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message}`));
+                    return;
+                }
+
+                if (event.message_type === "prompt"){
+                    const last_child = terminal.children().first();
+                    if (last_child.attr('name') == event.message_type){
+                        const html = last_child.html();
+                        last_child.html(html+event.message.message);
+                        return;
+                    }
+
+                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message.message}`));
+                    return;
+                }
+            });
+
+            resizeTerminal(terminal);
+            
+            $(window).resize(() => {
+                resizeTerminal(terminal)
+            });
         {% endif %}
 
         loadCustomBlocks({{ blocks_config | tojson | safe }});

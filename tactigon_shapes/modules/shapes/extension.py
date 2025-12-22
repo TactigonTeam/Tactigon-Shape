@@ -282,6 +282,7 @@ class ShapesApp(ExtensionApp):
     keyboard: KeyboardController
     current_id: Optional[UUID] = None
     logging_queue: LoggingQueue
+    in_flight_log: Optional[DebugMessage] = None
 
     _logger: logging.Logger
     _ironboy_interface: Optional[IronBoyInterface] = None
@@ -340,10 +341,18 @@ class ShapesApp(ExtensionApp):
         self._ironboy_interface = ironboy_interface
 
     def get_log(self) -> Optional[DebugMessage]:
+        if self.in_flight_log:
+            return self.in_flight_log
+        
         try:
-            return self.logging_queue.get_nowait()
+            self.in_flight_log = self.logging_queue.get_nowait()
+            return self.in_flight_log
         except:
             return None
+        
+    def logging_read(self):
+        self._logger.debug("Logging read acknowledged")
+        self.in_flight_log = None
 
     def get_state(self, program_id: UUID) -> Optional[dict]:
         try:
