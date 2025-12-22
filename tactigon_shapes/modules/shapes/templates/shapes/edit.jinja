@@ -1060,6 +1060,7 @@
             }
             catch(ex){
                 e.preventDefault();
+                toast(`Exception while saving shape. ${ex.message}`, "danger");
                 console.log(ex);
                 return false;
             }
