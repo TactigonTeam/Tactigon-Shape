@@ -18,7 +18,7 @@
 #********************************************************************************/
 
 
-FROM ros:jazzy-ros-core
+FROM ros:kilted-ros-core
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
