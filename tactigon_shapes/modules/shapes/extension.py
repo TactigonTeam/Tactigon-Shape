@@ -204,21 +204,24 @@ class ShapeThread(ExtensionThread):
         setattr(self.module, subscription.payload_reference, None)
 
     def run(self):
-        try:
-            self.module.tactigon_shape_setup(
-                self._tskin, 
-                self._keyboard, 
-                self.braccio_interface, 
-                self.zion_interface, 
-                self._ros2_interface,
-                self._ironboy_interface, 
-                self._ginos_interface,
-                self._mqtt_interface,
-                self._logging_queue
-            )
-        except Exception as e:
-            self._logger.error(e)
-            self._logging_queue.error(str(e))
+        shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
+
+        if shape_setup_fn:
+            try:
+                self.module.tactigon_shape_setup(
+                    self._tskin, 
+                    self._keyboard, 
+                    self.braccio_interface, 
+                    self.zion_interface, 
+                    self._ros2_interface,
+                    self._ironboy_interface, 
+                    self._ginos_interface,
+                    self._mqtt_interface,
+                    self._logging_queue
+                )
+            except Exception as e:
+                self._logger.error(e)
+                self._logging_queue.error(str(e))
         
         ExtensionThread.run(self)
 
@@ -252,20 +255,23 @@ class ShapeThread(ExtensionThread):
         spec.loader.exec_module(self.module)  # type: ignore
 
     def stop(self):
-        try:
-            self.module.tactigon_shape_close(
-                self._tskin, 
-                self._keyboard, 
-                self.braccio_interface, 
-                self.zion_interface, 
-                self._ros2_interface,
-                self._ironboy_interface, 
-                self._ginos_interface,
-                self._mqtt_interface,
-                self._logging_queue
-            )
-        except Exception as e:
-            self._logger.error(e)
+        shape_close_fn = getattr(self.module, "tactigon_shape_close", None)
+
+        if shape_close_fn:
+            try:
+                self.module.tactigon_shape_close(
+                    self._tskin, 
+                    self._keyboard, 
+                    self.braccio_interface, 
+                    self.zion_interface, 
+                    self._ros2_interface,
+                    self._ironboy_interface, 
+                    self._ginos_interface,
+                    self._mqtt_interface,
+                    self._logging_queue
+                )
+            except Exception as e:
+                self._logger.error(e)
 
         if self._ros2_interface:
             self._ros2_interface.stop()
