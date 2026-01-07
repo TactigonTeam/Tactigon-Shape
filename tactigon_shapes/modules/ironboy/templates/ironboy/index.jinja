@@ -1,0 +1,168 @@
+{# #********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/ #}
+
+
+{% extends "base.jinja" %}
+
+{% block style %}
+{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-fill scrollarea">
+    <div class="container my-3">
+        <div class="card">
+            <div class="card-header">
+                IronBoy configurations
+                {% if configured and not ironboy_status %}
+                    <div class="float-end">
+                        <button type="button" class="btn btn-link text-decoration-none p-0 text-danger" data-bs-toggle="modal" data-bs-target="#remove_ironboy" title="Delete">
+                            <i class="mi-round mi-delete-forever"></i>
+                        </button>
+                    </div>
+                    <div class="modal fade" id="remove_ironboy" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content text-dark">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="staticBackdropLabel">Iron Boy</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body d-flex flex-column gap-3">
+                                    <h4>Warning!</h4>
+                                    You are about to remove Iron Boy. Are you sure?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                    <a href="{{ url_for('ironboy.remove')}}" class="btn btn-primary">
+                                        Remove
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-body pb-4">
+                <div class="d-flex flex-column align-items-center gap-3">
+                      <div class="mi-outlined mi-smart-toy" style="font-size: 124px;"></div>
+                    {% if configured %}
+                        {% if not ironboy_status %}
+                            <a href="{{ url_for('ironboy.start') }}" class="btn btn-primary">Start Iron Boy</a>
+                        {% else %}
+                            <a href="{{ url_for('ironboy.stop') }}" class="btn btn-outline-secondary">Stop Iron Boy</a>
+                        {% endif %}
+                        <p>
+                            Status: {% if ironboy_status %}Running{% else %}Stopped{% endif %} <br>
+                            Name: {{ config.name }} <br>
+                            Address: {{ config.address }}
+                        </p>
+                        {% if not ironboy_status %}
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#remove_ironboy">Remove Iron Boy</button>
+                        {% endif %}
+                    {% else %}
+                        <p class="mx-auto" id="searching">
+                            We are looking for your Iron Boy...
+                        </p>
+                        <div class="spinner-border text-primary mx-auto" id="loading" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <form action="{{ url_for('ironboy.save') }}" class="d-none" id="add_form" method="POST">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" aria-describedby="emailHelp" name="name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Bluetooth address</label>
+                                <div class="input-group">
+                                    <select id="address" name="address" class="form-select">
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" id="refresh_button_form">Refresh</button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Save</button>
+                        </form>
+                        <div class="d-flex flex-column justify-content-center gap-3 d-none mb-3" id="refresh">
+                            <p class="mx-auto">Ops, we couldn't find any Iron Boy.</p>
+                            <div class="d-flex flex-column">
+                                <small class="mx-auto text-muted">Check that the Bluetooth is enabled</small>
+                                <small class="mx-auto text-muted">and Iron Boy is nearby</small>
+                            </div>
+                        </div>
+                        <button type="button" class="mx-auto btn btn-outline-tskin d-none" id="refresh_button">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Search again
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    function scan(){
+        $("#loading, #searching").removeClass("d-none");
+        $("#add_form, #refresh, #refresh_button").addClass("d-none");
+        
+        $.getJSON("{{ url_for('ironboy.scan') }}")
+            .then(function(data){
+                console.log(data)
+                if (data.length == 0){
+                    $("#refresh").removeClass("d-none");
+                    return false;
+                }
+
+                return data;
+            })
+            .fail(function(err){
+                $("#loading, #searching").addClass("d-none");
+                $("#refresh").removeClass("d-none");
+            })
+            .done(function(result){
+                $("#loading, #searching, #refresh").addClass("d-none");
+                
+                if (!result){
+                    $("#loading, #searching").addClass("d-none");
+                    $("#refresh, #refresh_button").removeClass("d-none");
+                    return;
+                }
+
+                const options = $.map(result, function(device, i){
+                    return $("<option/>", {value: device.address}).html(device.name + " (" + device.id + ")");
+                });
+
+                $("#address").html(options);
+                $("#add_form").removeClass("d-none");
+
+            });
+    }
+
+
+    $(()=>{
+        {% if not configured %}
+            scan();
+        {% endif %}
+
+        $("#refresh_button, #refresh_button_form").click(function(e){
+            scan();
+        })
+    });
+</script>
+{% endblock %}

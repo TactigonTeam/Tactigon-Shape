@@ -17,9 +17,6 @@
             "width": 160
           }
         },
-        "fields": {
-          "NAME": "app"
-        },
         "inputs": {
           "BODY": {
             "block": {

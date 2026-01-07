@@ -1,3 +1,23 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
 import time
 import asyncio
 import json
@@ -6,12 +26,11 @@ from flask import Flask
 from bleak import BleakClient
 from threading import Thread, Event
 from queue import Queue
-from dataclasses import dataclass
 
 from typing import Optional, Tuple
 
-from .middleware import Solver
-from .models import BraccioConfig, BraccioCommand, BraccioPosition, CommandStatus, Wrist, Gripper
+from tactigon_shapes.modules.braccio.middleware import Solver
+from tactigon_shapes.modules.braccio.models import BraccioConfig, BraccioCommand, BraccioPosition, CommandStatus, Wrist, Gripper
 
 class Braccio(Thread):
     _TICK: float = 0.1
@@ -276,7 +295,7 @@ class BraccioInterface:
     def wrist(self, wrist: Wrist):
         if self._thread:
             return self._thread.wrist(wrist)
-        
+
         return None
     
     def gripper(self, gripper: Gripper):
@@ -284,7 +303,7 @@ class BraccioInterface:
             return self._thread.gripper(gripper)
         
         return None
-
+    
     def move(self, x: float, y: float, z: float, timeout: float = 10):
         if self._thread:
             return self._thread.move(x, y, z, self._thread.wrist_position, self._thread.gripper_position, timeout)

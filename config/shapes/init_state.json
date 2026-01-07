@@ -1,52 +1,42 @@
 {
-    "blocks": {
-      "languageVersion": 0,
-      "blocks": [
-        {
-          "type": "tactigon_shape_function",
-          "id": "0!($UF`7TQyU:=g^AFaC",
-          "editable": false,
-          "deletable": false,
-          "x": 130,
-          "y": 130,
-          "fields": {
-            "NAME": "app"
-          },
-          "inputs": {
-            "BODY": {
-              "block": {
-                "type": "tactigon_shape_debug",
-                "id": "@$LhpCpQ;TfY6FfGF+B4",
-                "inputs": {
-                  "TEXT": {
-                    "shadow": {
-                      "type": "text",
-                      "id": "!#2/E}:(Di7nu7pL=yJY",
-                      "fields": {
-                        "TEXT": "abc"
-                      }
-                    },
-                    "block": {
-                      "type": "text",
-                      "id": "?qVAry!/a6pR}E]Dw2*O",
-                      "fields": {
-                        "TEXT": "Tactigon"
-                      }
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "x": 30,
+        "y": 30,
+        "deletable": false
+      },
+      {
+        "type": "tactigon_shape_function",
+        "x": 30,
+        "y": 150,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "tactigon_shape_debug",
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "fields": {
+                      "TEXT": "Tactigon"
                     }
                   }
                 }
               }
             }
-          },
-          "icons": {
-            "comment": {
-              "text": "This is the main function that runs your code. Any code blocks you add to this section will be executed.",
-              "pinned": false,
-              "height": 80,
-              "width": 160
-            }
           }
         }
-      ]
-    }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "x": 30,
+        "y": 300,
+        "deletable": false
+      }
+    ]
   }
+}

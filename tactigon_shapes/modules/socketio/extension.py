@@ -1,14 +1,33 @@
-import sys
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
 from threading import Thread, Event
 from flask import Flask
 from flask_socketio import SocketIO
 
 from typing import Optional
 
-from ..braccio.extension import BraccioInterface
-from ..shapes.extension import ShapesApp
-
-from ..tskin.models import TSkin
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.braccio.extension import BraccioInterface
+from tactigon_shapes.modules.shapes.extension import ShapesApp
+from tactigon_shapes.modules.tskin.models import TSkin
 
 class SocketApp(SocketIO):
     name: str = "socket_app"
@@ -17,6 +36,7 @@ class SocketApp(SocketIO):
     _stop_event: Event
     _shapes_app: Optional[ShapesApp] = None
     _braccio_interface: Optional[BraccioInterface] = None
+    _ironboy_interface: Optional[IronBoyInterface] = None
     _last_connection_status: Optional[bool]
 
     def __init__(self, app: Optional[Flask] = None, **kwargs):
@@ -75,6 +95,24 @@ class SocketApp(SocketIO):
         :app: BraccioInterface
         """
         self._braccio_interface = app
+
+    @property
+    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+        """
+        Get the IronBoyInterface reference
+
+        :return: IronBoyInterface if present
+        """
+        return self._ironboy_interface
+    
+    @ironboy_interface.setter
+    def ironboy_interface(self, app: IronBoyInterface) -> None:
+        """
+        Set the IronBoyInterface reference
+
+        :app: IronBoyInterface
+        """
+        self._ironboy_interface = app
     
     def setTSkin(self, tskin: TSkin) -> None:
         """
@@ -97,9 +135,17 @@ class SocketApp(SocketIO):
             braccio_status = False
             braccio_connection = False
 
+            ironboy_status = False
+            ironboy_connection = False
+
             if self.braccio_interface:
                 braccio_status = self.braccio_interface.running
                 braccio_connection = self.braccio_interface.connected
+
+            if self.ironboy_interface:
+                ironboy_status = self.ironboy_interface.running
+                ironboy_connection = self.ironboy_interface.connected
+
 
             payload = {
                 "selector": tskin.selector.value if tskin.selector else None,
@@ -107,6 +153,9 @@ class SocketApp(SocketIO):
                 "battery": tskin.battery,
                 "braccio_status": braccio_status,
                 "braccio_connection": braccio_connection,
+                "ironboy_status": ironboy_status,
+                "ironboy_connection": ironboy_connection
+
             }
 
             self.emit("state", payload)
@@ -114,6 +163,6 @@ class SocketApp(SocketIO):
             if self._shapes_app and self._shapes_app.is_running:
                 msg = self._shapes_app.get_log()
                 if msg:
-                    self.emit("logging", msg.toJSON())
+                    self.emit("logging", msg.toJSON(), callback=self._shapes_app.logging_read)
                 
             self.sleep(SocketApp._TICK)  # type: ignore

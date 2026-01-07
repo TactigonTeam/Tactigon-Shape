@@ -1,3 +1,23 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
 import sys
 import json
 from os import getcwd
@@ -6,18 +26,11 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 
 from tactigon_gear import  __version__ as tactigon_gear_version
-
-if sys.platform != "darwin":
-    from tactigon_speech import __version__ as tactigon_speech_version
-else:
-    tactigon_speech_version = None
-
-from .modules.tskin.models import Hand, TSkinModel, TSkinConfig, VoiceConfig, ModelGesture, ModelTouch, OneFingerGesture
+from .modules.tskin.models import Hand, TSkinModel, TSkinConfig, ModelGesture, ModelTouch, OneFingerGesture
 
 BASE_PATH = getcwd()
 
 TACTIGON_GEAR = tactigon_gear_version
-TACTIGON_SPEECH = tactigon_speech_version
 
 @dataclass
 class AppConfig(object):
@@ -26,7 +39,6 @@ class AppConfig(object):
     SEND_FILE_MAX_AGE_DEFAULT: int = 1
     MODELS: List[TSkinModel] = field(default_factory=list)
     TSKIN: Optional[TSkinConfig] = None
-    TSKIN_VOICE: Optional[VoiceConfig] = None
     file_path: Optional[str] = None
 
     @classmethod
@@ -68,7 +80,6 @@ class AppConfig(object):
             json["SEND_FILE_MAX_AGE_DEFAULT"],
             [TSkinModel.FromJSON(f) for f in json["MODELS"]],
             TSkinConfig.FromJSON(json["TSKIN"]) if "TSKIN" in json and json["TSKIN"] is not None else None,
-            VoiceConfig.FromJSON(json["TSKIN_VOICE"]) if "TSKIN_VOICE" in json and json["TSKIN_VOICE"] is not None and sys.platform != "darwin" else None,
             file_path
             )
     
@@ -79,7 +90,6 @@ class AppConfig(object):
             "SEND_FILE_MAX_AGE_DEFAULT": self.SEND_FILE_MAX_AGE_DEFAULT,
             "MODELS": [m.toJSON() for m in self.MODELS],
             "TSKIN": self.TSKIN.toJSON() if self.TSKIN else None,
-            "TSKIN_VOICE": self.TSKIN_VOICE.toJSON() if self.TSKIN_VOICE else None
         }
     
     def save(self):

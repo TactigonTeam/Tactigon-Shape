@@ -1,160 +1,125 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
+import logging
 import importlib.util
 import json
 import shutil
 import sys
 import time
-from queue import Queue
+import re
+import zipfile
+
 from uuid import UUID, uuid4
-from datetime import datetime
-from dataclasses import dataclass, field
-from enum import Enum
-from os import path, makedirs, environ, walk, chmod, remove
+from queue import Queue
+from os import path, makedirs, remove
 from typing import List, Optional, Tuple, Any
 from pathlib import Path
-import platform
-import zipfile
 from shutil import make_archive
-
 from flask import Flask
 from pynput.keyboard import Controller as KeyboardController
 
-from ..braccio.extension import BraccioInterface, Wrist, Gripper
-from ..zion.extension import ZionInterface
-from ..tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
-from ..tskin.manager import walk
-
-from ...extensions.base import ExtensionThread, ExtensionApp
-
-import re
+from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
+from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
+from tactigon_shapes.modules.zion.extension import ZionInterface
+from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.ginos.extension import GinosInterface
+from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
+from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 EXPORT_FOLDER_NAME = 'export'
 IMPORT_FOLDER_NAME = 'import'
 IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
 
-class Severity(Enum):
-    DEBUG = 0
-    INFO = 1
-    WARNING = 2
-    ERROR = 3
-
-class ShapesPostAction(Enum):
-    READ_TOUCH = 1
-
-@dataclass
-class Program:
-    state: object
-    code: Optional[str] = None
-
-@dataclass
-class ShapeConfig:
-    id: UUID
-    name: str
-    created_on: datetime
-    modified_on: datetime
-    description: Optional[str] = None
-    readonly: bool = False
-    app_file: str = "program.py"
-
-    @classmethod
-    def FromJSON(cls, json):
-        return cls(
-            UUID(json["id"]),
-            json["name"],
-            datetime.fromisoformat(json["created_on"]),
-            datetime.fromisoformat(json["modified_on"]),
-            json["description"],
-            json["readonly"]
-        )
-
-    def toJSON(self) -> dict:
-        return dict(
-            id=self.id.hex,
-            name=self.name,
-            created_on=self.created_on.isoformat(),
-            modified_on=self.modified_on.isoformat(),
-            description=self.description,
-            readonly=self.readonly
-        )
-    
-@dataclass
-class DebugMessage:
-    severity: Severity
-    date: datetime
-    message: str
-
-    @classmethod
-    def Debug(cls, message: str):
-        return cls(
-            Severity.DEBUG,
-            datetime.now(),
-            message
-        )
-
-    @classmethod
-    def Info(cls, message: str):
-        return cls(
-            Severity.INFO,
-            datetime.now(),
-            message
-        )
-    
-    @classmethod
-    def Warning(cls, message: str):
-        return cls(
-            Severity.WARNING,
-            datetime.now(),
-            message
-        )
-    
-    @classmethod
-    def Error(cls, message: str):
-        return cls(
-            Severity.ERROR,
-            datetime.now(),
-            message
-        )
-    
-    def toJSON(self) -> dict:
-        return dict(
-            severity=self.severity.name,
-            date=self.date.isoformat(),
-            message=self.message
-        )
-
 class LoggingQueue(Queue):
-    def debug(self, msg):
+    def debug(self, msg: str):
         self.put_nowait(DebugMessage.Debug(msg))
 
-    def info(self, msg):
+    def info(self, msg: str):
         self.put_nowait(DebugMessage.Info(msg))
 
-    def warning(self, msg):
+    def warning(self, msg: str):
         self.put_nowait(DebugMessage.Warning(msg))
 
-    def error(self, msg):
+    def error(self, msg: str):
         self.put_nowait(DebugMessage.Error(msg))
+
+    def prompt(self, msg: Any):
+        self.put_nowait(DebugMessage.Prompt(msg))
 
 class ShapeThread(ExtensionThread):
     MODULE_NAME: str = "ShapeThreadModule"
     TOUCH_DEBOUCE_TIME: float = 0.05
     TOUCH_DEBOUNCE_TIMEOUT: float = 0.2
 
+    _logger: logging.Logger
     _tskin: TSkin
     _keyboard: KeyboardController
     _logging_queue: LoggingQueue
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
-
-    def __init__(self, base_path: str, app: ShapeConfig, keyboard: KeyboardController, braccio: Optional[BraccioInterface], zion: Optional[ZionInterface], logging_queue: LoggingQueue, tskin: TSkin):
+    _ironboy_interface: Optional[IronBoyInterface] = None
+    _ginos_interface: Optional[GinosInterface] = None
+    _mqtt_interface: Optional[MQTTClient] = None
+    _ros2_interface: Optional[Ros2Interface] = None
+    _ros2_subscription: list[Ros2Subscription] = []
+    
+    def __init__(
+            self, 
+            base_path: str, 
+            app: ShapeConfig, 
+            tskin: TSkin,
+            keyboard: KeyboardController, 
+            braccio: Optional[BraccioInterface], 
+            zion: Optional[ZionInterface], 
+            ros2: Ros2Interface | None,
+            ironboy: Optional[IronBoyInterface],
+            logging_queue: LoggingQueue,
+        ):
         self._keyboard = keyboard
         self._tskin = tskin
         self._logging_queue = logging_queue
         self._braccio_interface = braccio
         self._zion_interface = zion
+        self._ros2_interface = ros2
+        self._ironboy_interface = ironboy
+
+        if app.ginos_config:
+            self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
+
+        if app.mqtt_config:
+            self._mqtt_interface = MQTTClient(app.mqtt_config, self.on_message)
+
+        if self._ros2_interface and app.ros2_config:
+            self._ros2_subscription = app.ros2_config.subscriptions
+            self._ros2_interface.start(app.ros2_config, self.on_ros2_message)
+
+        self._logger = logging.getLogger(ShapeThread.__name__)
 
         ExtensionThread.__init__(self)
 
         self.load_module(path.join(base_path, "programs", app.id.hex, "program.py"))
+
 
     @property
     def braccio_interface(self) -> Optional[BraccioInterface]:
@@ -171,6 +136,22 @@ class ShapeThread(ExtensionThread):
     @zion_interface.setter
     def zion_interface(self, zion_interface: Optional[ZionInterface]):
         self._zion_interface = zion_interface
+
+    @property
+    def ros2_interface(self) -> Optional[Ros2Interface]:
+        return self._ros2_interface
+
+    @ros2_interface.setter
+    def ros2_interface(self, ros2_interface: Optional[Ros2Interface]):
+        self._ros2_interface = ros2_interface
+
+    @property
+    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+        return self.ironboy_interface
+
+    @ironboy_interface.setter
+    def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
+        self._ironboy_interface = ironboy_interface
 
     @staticmethod
     def debouce(tskin: Optional[TSkin]) -> bool:
@@ -189,11 +170,71 @@ class ShapeThread(ExtensionThread):
             timeout += ShapeThread.TICK
             
         return False
+    
+    def on_ros2_message(self, message: RosMessage):
+        if not self._ros2_interface or not self.module:
+            return
+        
+        subscription = next((s for s in self._ros2_subscription if s.topic == message.topic), None)
 
-    def main(self):       
-        actions: List[Tuple[ShapesPostAction, Any]] = []
+        if not subscription:
+            return  
+        
+        # Set the payload reference first
+        setattr(self.module, subscription.payload_reference, get_message_data(message.msg))
+        # Execute the function
+        getattr(self.module, subscription.function)(self._logging_queue)
+        # Clear the payload
+        setattr(self.module, subscription.payload_reference, None)
+    
+    def on_message(self, client: mqtt_client.Client, userdata: dict, message: mqtt_client.MQTTMessage):
+        if not self._mqtt_interface or not self.module:
+            return
+        
+        subscription = next((s for s in self._mqtt_interface.config.subscriptions if s.topic == message.topic), None)
+
+        if not subscription:
+            return
+        
+        # Set the payload reference first
+        setattr(self.module, subscription.payload_reference, json.loads(message.payload))
+        # Execute the function
+        getattr(self.module, subscription.function)(self._logging_queue)
+        # Clear the payload
+        setattr(self.module, subscription.payload_reference, None)
+
+    def run(self):
         try:
-            self.module.app(self._tskin, self._keyboard, self.braccio_interface, self.zion_interface, actions, self._logging_queue)
+            self.module.tactigon_shape_setup(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ros2_interface,
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
+        except Exception as e:
+            self._logger.error(e)
+            self._logging_queue.error(str(e))
+        
+        ExtensionThread.run(self)
+
+    def main(self):
+        try:
+            self.module.tactigon_shape_function(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ros2_interface,
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
         except Exception as e:
             self._logging_queue.error(str(e))
 
@@ -210,6 +251,34 @@ class ShapeThread(ExtensionThread):
         sys.modules[self.MODULE_NAME] = self.module
         spec.loader.exec_module(self.module)  # type: ignore
 
+    def stop(self):
+        try:
+            self.module.tactigon_shape_close(
+                self._tskin, 
+                self._keyboard, 
+                self.braccio_interface, 
+                self.zion_interface, 
+                self._ros2_interface,
+                self._ironboy_interface, 
+                self._ginos_interface,
+                self._mqtt_interface,
+                self._logging_queue
+            )
+        except Exception as e:
+            self._logger.error(e)
+
+        if self._ros2_interface:
+            self._ros2_interface.stop()
+
+        if self._ginos_interface:
+            self._ginos_interface = None
+            
+        if self._mqtt_interface:
+            self._mqtt_interface.disconnect()
+            self._mqtt_interface = None
+
+        ExtensionThread.stop(self)
+
 
 class ShapesApp(ExtensionApp):
     config_file_path: str
@@ -218,23 +287,22 @@ class ShapesApp(ExtensionApp):
     keyboard: KeyboardController
     current_id: Optional[UUID] = None
     logging_queue: LoggingQueue
+    in_flight_log: Optional[DebugMessage] = None
 
+    _logger: logging.Logger
+    _ironboy_interface: Optional[IronBoyInterface] = None
     _braccio_interface: Optional[BraccioInterface] = None
     _zion_interface: Optional[ZionInterface] = None
+    _ros2_interface: Ros2Interface | None = None
 
     def __init__(self, config_path: str, flask_app: Optional[Flask] = None):
         self.config_file_path = path.join(config_path, "config.json")
         self.shapes_file_path = config_path
         self.keyboard = KeyboardController()
         self.logging_queue = LoggingQueue()
+        self._logger = logging.getLogger(ShapesApp.__name__)
 
-        if sys.platform == "darwin":
-            self.hotkey_list = [("<ctrl>+", "ctrl"), ("<cmd>+", "cmd"), ("<shift>+", "shift"), ("<alt>+", "alt"), ("<cmd>+<alt>+", "cmd+alt"), ("<cmd>+<shift>+", "cmd+shift")]
-        elif sys.platform != "darwin":
-            self.hotkey_list = [("<ctrl>+", "ctrl"), ("<shift>+", "shift"), ("<alt>+", "alt"), ("<ctrl>+<alt>+", "ctrl+alt"), ("<ctrl>+<shift>+", "ctrl+shift")]
-        else:
-            self.hotkey_list = []
-        
+        self.hotkey_list = [("<ctrl>+", "ctrl"), ("<shift>+", "shift"), ("<alt>+", "alt"), ("<ctrl>+<alt>+", "ctrl+alt"), ("<ctrl>+<shift>+", "ctrl+shift")]        
         self.function_list = [("Left arrow", "<left>"), ("Right arrow", "<right>"), ("Up arrow", "<up>"), ("Down arrow", "<down>"), ("Del", "<delete>"), ("Esc", "<esc>"), ("Enter", "<enter>")] + [(F"f{k+1}", F"<f{k+1}>") for k in range(12)]
         self.wristOptions = [[e.name.capitalize(), e.name] for e in Wrist]
         self.gripperOptions = [[e.name.capitalize(), e.name] for e in Gripper]
@@ -251,6 +319,7 @@ class ShapesApp(ExtensionApp):
     @braccio_interface.setter
     def braccio_interface(self, braccio_interface: Optional[BraccioInterface]):
         self._braccio_interface = braccio_interface
+    
 
     @property
     def zion_interface(self) -> Optional[ZionInterface]:
@@ -260,11 +329,35 @@ class ShapesApp(ExtensionApp):
     def zion_interface(self, zion_interface: Optional[ZionInterface]):
         self._zion_interface = zion_interface
 
+    @property
+    def ros2_interface(self) -> Optional[Ros2Interface]:
+        return self._ros2_interface
+
+    @ros2_interface.setter
+    def ros2_interface(self, ros2_interface: Optional[Ros2Interface]):
+        self._ros2_interface = ros2_interface
+
+    @property
+    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+        return self._ironboy_interface
+
+    @ironboy_interface.setter
+    def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
+        self._ironboy_interface = ironboy_interface
+
     def get_log(self) -> Optional[DebugMessage]:
+        if self.in_flight_log:
+            return self.in_flight_log
+        
         try:
-            return self.logging_queue.get_nowait()
+            self.in_flight_log = self.logging_queue.get_nowait()
+            return self.in_flight_log
         except:
             return None
+        
+    def logging_read(self):
+        self._logger.debug("Logging read acknowledged")
+        self.in_flight_log = None
 
     def get_state(self, program_id: UUID) -> Optional[dict]:
         try:
@@ -275,10 +368,11 @@ class ShapesApp(ExtensionApp):
                 return json.load(state_json_file)
 
         except FileNotFoundError:
-            print(f"Error: The file {self.config_file_path} does not exist.")
+            self._logger.error("Error: The file %s does not exist.", self.config_file_path)
 
         except json.JSONDecodeError:
-            print("Error: The file is not a valid JSON document.")
+            self._logger.error("Error: The file is not a valid JSON document.")
+
 
         return None
 
@@ -330,7 +424,6 @@ class ShapesApp(ExtensionApp):
         shutil.rmtree(folder_path)
         
     def create_export_folder(self, config: ShapeConfig, export_file_path: str) -> bool:
-
         try:
 
             config_output_path = path.join(export_file_path, "config.json")
@@ -348,20 +441,11 @@ class ShapesApp(ExtensionApp):
             shutil.copy(source_state_file, export_file_path)
             return True
         except Exception as e:
-            print(f"Error creating temp file for export: {e}")
+            self._logger.error("Error creating temp file for export: %s", e)
             return False
 
     def get_downloads_path(self) -> str:
-        system = platform.system()
-
-        if system == "Windows":
-            return path.join(environ["USERPROFILE"], "Downloads")
-        elif system == "Darwin":
             return str(Path.home() / "Downloads")
-        elif system == "Linux":
-            return str(Path.home() / "Downloads")
-        else:
-            raise Exception("Unsupported operating system")
     
     def export(self, config: ShapeConfig) -> bool:
         unique_id = hex(int(time.time()))[2:]
@@ -377,15 +461,16 @@ class ShapesApp(ExtensionApp):
                 shutil.rmtree(path.join(self.shapes_file_path, EXPORT_FOLDER_NAME))
                 return True
             except Exception as e:
-                print(f"Error exporting: {e}")
-                return False
+                self._logger.error("Error exporting: %s", e)
+        
+        return False
 
     def unzip_file(self, zip_file_path, extract_to_path):
         """Unzips a zip file to a specified directory."""
         try:
             with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_to_path)
-            return True, None
+            return True, f"Successfully unzipped {zip_file_path} to {extract_to_path}"
         except FileNotFoundError:
             return False, f"Error: Zip file not found at '{zip_file_path}'"
         except zipfile.BadZipFile:
@@ -393,8 +478,7 @@ class ShapesApp(ExtensionApp):
         except Exception as e:
             return False, f"An error occurred during unzipping: {e}"
         
-    
-    def import_shape(self, file: any) -> str:
+    def import_shape(self, file) -> str:
         import_file_path = path.join(self.shapes_file_path, IMPORT_FOLDER_NAME)
 
         if not path.exists(import_file_path):
@@ -427,7 +511,6 @@ class ShapesApp(ExtensionApp):
 
             config.id = uuid4()
 
-
             import_pattern = r" - imported(?: \(\d+\))?$"
 
             count = 0
@@ -449,7 +532,7 @@ class ShapesApp(ExtensionApp):
             shutil.move(state_file_path, destination)
 
             shutil.rmtree(import_file_path)
-            return None
+            return f"Shape '{config.name}' imported successfully."
 
         except Exception as e:
             shutil.rmtree(import_file_path)
@@ -482,22 +565,6 @@ class ShapesApp(ExtensionApp):
         }
 
         return data
-    
-    def get_speech_block_config(self, tspeechobject: TSpeechObject) -> list:
-        args = []
-
-        for s in tspeechobject.t_speech:
-            walk(args, s)
-
-        return args
-
-    
-    # def get_next_speechs_blocks(self, tree: Optional[List[HotWords]], *levels) -> dict:
-    #     next_speechs = [(hotword.word, f"{i}_{hotword.word}_{hotword.boost}") for i, hotword in enumerate(get_next_remaining_branch(tree, *levels if levels else 0))]
-
-    #     return {
-    #         "next_speechs": [("---","")] + next_speechs,
-    #     }
     
     def get_shape(self, uuid: Optional[UUID] = None) -> Program:
         code = None
@@ -535,9 +602,20 @@ class ShapesApp(ExtensionApp):
 
                 self.current_id = _config.id
                 try:
-                    self.thread = ShapeThread(self.shapes_file_path, _config, self.keyboard, self.braccio_interface, self.zion_interface, self.logging_queue, tskin)
+                    self.thread = ShapeThread(
+                        base_path=self.shapes_file_path, 
+                        app=_config, 
+                        tskin=tskin, 
+                        keyboard=self.keyboard,
+                        braccio=self.braccio_interface, 
+                        zion=self.zion_interface, 
+                        ros2=self.ros2_interface,
+                        ironboy=self.ironboy_interface, 
+                        logging_queue=self.logging_queue
+                    ) 
                     self.thread.start()
                 except Exception as e:
+                    self._logger.error("Cannot start Shape %s", e)
                     self.current_id = None
                     if self.thread:
                         try:
@@ -570,5 +648,6 @@ class ShapesApp(ExtensionApp):
 
         with open(state_file_path, "w") as state_json_file:
             json.dump(program.state, state_json_file, indent=2)
+        
 
         return True

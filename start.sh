@@ -1,4 +1,9 @@
 #!/bin/bash
+set -e
 
-source ./venv/bin/activate
-python ./main.py
+echo "======================================"
+echo "  TACTIGON SHAPES — START             "
+echo "======================================"
+
+xhost +local:docker
+docker compose up -d

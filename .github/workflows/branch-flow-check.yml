@@ -1,0 +1,30 @@
+name: Enforce Branch Flow
+
+on:
+  pull_request:
+    branches:
+      - qa
+      - prod
+
+jobs:
+  check-branch-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        run: |
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          echo "PR from $HEAD to $BASE"
+
+          if [[ "$BASE" == "qa" && "$HEAD" != "master" ]]; then
+            echo "❌ Only master can merge into qa"
+            exit 1
+          fi
+
+          if [[ "$BASE" == "prod" && "$HEAD" != "qa" ]]; then
+            echo "❌ Only qa can merge into prod"
+            exit 1
+          fi
+
+          echo "✅ Branch flow is valid"

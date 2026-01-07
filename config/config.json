@@ -1,0 +1,106 @@
+{
+  "DEBUG": false,
+  "SECRET_KEY": "change-me",
+  "SEND_FILE_MAX_AGE_DEFAULT": 1,
+  "MODELS": [
+    {
+      "name": "MODEL_01_LEFT",
+      "hand": "left",
+      "date": "2025-10-27T16:01:57.599945",
+      "gestures": [
+        {
+          "gesture": "up",
+          "label": "Up"
+        },
+        {
+          "gesture": "down",
+          "label": "Down"
+        },
+        {
+          "gesture": "push",
+          "label": "Push"
+        },
+        {
+          "gesture": "pull",
+          "label": "Pull"
+        },
+        {
+          "gesture": "twist",
+          "label": "Twist"
+        },
+        {
+          "gesture": "circle",
+          "label": "Circle"
+        },
+        {
+          "gesture": "swipe_r",
+          "label": "Swipe right"
+        },
+        {
+          "gesture": "swipe_l",
+          "label": "Swipe left"
+        }
+      ],
+      "touchs": [
+        {
+          "gesture": 1,
+          "label": "Tap"
+        },
+        {
+          "gesture": 2,
+          "label": "Tap and hold"
+        }
+      ]
+    },
+    {
+      "name": "MODEL_01_RIGHT",
+      "hand": "right",
+      "date": "2025-10-27T16:01:57.599950",
+      "gestures": [
+        {
+          "gesture": "up",
+          "label": "Up"
+        },
+        {
+          "gesture": "down",
+          "label": "Down"
+        },
+        {
+          "gesture": "push",
+          "label": "Push"
+        },
+        {
+          "gesture": "pull",
+          "label": "Pull"
+        },
+        {
+          "gesture": "twist",
+          "label": "Twist"
+        },
+        {
+          "gesture": "circle",
+          "label": "Circle"
+        },
+        {
+          "gesture": "swipe_r",
+          "label": "Swipe right"
+        },
+        {
+          "gesture": "swipe_l",
+          "label": "Swipe left"
+        }
+      ],
+      "touchs": [
+        {
+          "gesture": 1,
+          "label": "Tap"
+        },
+        {
+          "gesture": 2,
+          "label": "Tap and hold"
+        }
+      ]
+    }
+  ],
+  "TSKIN": null
+}

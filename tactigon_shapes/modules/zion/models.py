@@ -1,7 +1,26 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
 from enum import Enum
 from dataclasses import dataclass
 
-from typing import Optional, Any
 
 class Scope(Enum):
     SERVER = "SERVER_SCOPE"
@@ -66,7 +85,7 @@ class ZionConfig:
     username: str
     password: str
     url: str = "https://zion.nextind.eu/"
-    token: Optional[str] = None
+    token: str = ""
 
     @classmethod
     def Default(cls):

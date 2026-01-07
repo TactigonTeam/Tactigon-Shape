@@ -1,0 +1,121 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "CNWf}M)Rb-P;Cg!7Q=8A",
+        "x": 30,
+        "y": 30,
+        "deletable": false
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": ".i:}_0~B$5w-Y4xuWWFa",
+        "x": 150,
+        "y": 110,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "tactigon_shape_debug",
+              "id": "2P6_nncRf,Ye;MoC5RMt",
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "id": ".QB{|:/!~o8Fs)y_~T(T",
+                    "fields": {
+                      "TEXT": "Tactigon"
+                    }
+                  },
+                  "block": {
+                    "type": "device_last_telemetry",
+                    "id": "hFwI5?t!?Hz.)Qk~r|gd",
+                    "inputs": {
+                      "device": {
+                        "shadow": {
+                          "type": "device_list",
+                          "id": "PY~1dbbIsSzL`9%harJ5",
+                          "fields": {
+                            "device": "0da7fff0-d70b-11ee-82e8-99e13cb12b3b"
+                          }
+                        }
+                      },
+                      "keys": {
+                        "shadow": {
+                          "type": "text",
+                          "id": ":c$YTtqB9zZnx@}caKv3",
+                          "fields": {
+                            "TEXT": ""
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "tactigon_shape_debug",
+                  "id": "x]qaBg8-o`pLRC%WuCm9",
+                  "inputs": {
+                    "TEXT": {
+                      "shadow": {
+                        "type": "text",
+                        "id": "o=WTD%0y_FTTzXy~KMmS",
+                        "fields": {
+                          "TEXT": "abc"
+                        }
+                      },
+                      "block": {
+                        "type": "device_attr",
+                        "id": "qeB}iSv$be8zsN9e/kL0",
+                        "inputs": {
+                          "device": {
+                            "shadow": {
+                              "type": "device_list",
+                              "id": "6^Y9n*6V!9#|QwpC#fmK",
+                              "fields": {
+                                "device": "0da7fff0-d70b-11ee-82e8-99e13cb12b3b"
+                              }
+                            }
+                          },
+                          "scope": {
+                            "shadow": {
+                              "type": "scope_list",
+                              "id": "EJ5C@Qq!4}Cw?:Y[Xz,3",
+                              "fields": {
+                                "scope": "SERVER_SCOPE"
+                              }
+                            }
+                          },
+                          "keys": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "o8mPDUa|w^T}xfq+ILV7",
+                              "fields": {
+                                "TEXT": ""
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "W0}^,.Ql4rPg1:oFg*;|",
+        "x": 30,
+        "y": 300,
+        "deletable": false
+      }
+    ]
+  }
+}

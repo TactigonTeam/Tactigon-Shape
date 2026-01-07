@@ -1,11 +1,31 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
 from tabnanny import check
 from flask import Blueprint, redirect, render_template, flash, url_for
 
-from .manager import get_zion_interface
-from .models import ZionConfig
+from tactigon_shapes.modules.zion.manager import get_zion_interface
+from tactigon_shapes.modules.zion.models import ZionConfig
 
-from ...config import app_config, check_config
-from ...utils.request_utils import get_from_request
+from tactigon_shapes.config import app_config, check_config
+from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint("zion", __name__, url_prefix="/zion", template_folder="templates", static_folder="static")
 
