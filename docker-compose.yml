@@ -6,6 +6,7 @@ networks:
 volumes:
   ollama_data:
   tactigon-config:
+  open-webui:
 
 services:
   ollama:
@@ -57,3 +58,16 @@ services:
       - tactigon-config:/app/config
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: always
+    networks:
+      - tactigon-net
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui:/app/backend/data
