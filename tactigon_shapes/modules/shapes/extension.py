@@ -24,17 +24,19 @@ import json
 import shutil
 import sys
 import time
-from uuid import UUID
-from queue import Queue
+import zipfile
 
+from io import BytesIO
+from uuid import UUID, uuid4
+from queue import Queue
 from os import path, makedirs
 from typing import List, Optional, Tuple, Any
-
+from pathlib import Path
 from flask import Flask
+from werkzeug.datastructures import FileStorage
 from pynput.keyboard import Controller as KeyboardController
 
 from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
-
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface
 from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture
@@ -43,8 +45,10 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
-
 from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
+
+IMPORT_FOLDER_NAME = 'import'
+IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
 
 class LoggingQueue(Queue):
     def debug(self, msg: str):
@@ -199,21 +203,24 @@ class ShapeThread(ExtensionThread):
         setattr(self.module, subscription.payload_reference, None)
 
     def run(self):
-        try:
-            self.module.tactigon_shape_setup(
-                self._tskin, 
-                self._keyboard, 
-                self.braccio_interface, 
-                self.zion_interface, 
-                self._ros2_interface,
-                self._ironboy_interface, 
-                self._ginos_interface,
-                self._mqtt_interface,
-                self._logging_queue
-            )
-        except Exception as e:
-            self._logger.error(e)
-            self._logging_queue.error(str(e))
+        shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
+
+        if shape_setup_fn:
+            try:
+                self.module.tactigon_shape_setup(
+                    self._tskin, 
+                    self._keyboard, 
+                    self.braccio_interface, 
+                    self.zion_interface, 
+                    self._ros2_interface,
+                    self._ironboy_interface, 
+                    self._ginos_interface,
+                    self._mqtt_interface,
+                    self._logging_queue
+                )
+            except Exception as e:
+                self._logger.error(e)
+                self._logging_queue.error(str(e))
         
         ExtensionThread.run(self)
 
@@ -247,20 +254,23 @@ class ShapeThread(ExtensionThread):
         spec.loader.exec_module(self.module)  # type: ignore
 
     def stop(self):
-        try:
-            self.module.tactigon_shape_close(
-                self._tskin, 
-                self._keyboard, 
-                self.braccio_interface, 
-                self.zion_interface, 
-                self._ros2_interface,
-                self._ironboy_interface, 
-                self._ginos_interface,
-                self._mqtt_interface,
-                self._logging_queue
-            )
-        except Exception as e:
-            self._logger.error(e)
+        shape_close_fn = getattr(self.module, "tactigon_shape_close", None)
+
+        if shape_close_fn:
+            try:
+                self.module.tactigon_shape_close(
+                    self._tskin, 
+                    self._keyboard, 
+                    self.braccio_interface, 
+                    self.zion_interface, 
+                    self._ros2_interface,
+                    self._ironboy_interface, 
+                    self._ginos_interface,
+                    self._mqtt_interface,
+                    self._logging_queue
+                )
+            except Exception as e:
+                self._logger.error(e)
 
         if self._ros2_interface:
             self._ros2_interface.stop()
@@ -377,7 +387,7 @@ class ShapesApp(ExtensionApp):
         if not program:
             program = self.get_shape()
 
-        return self.__create_or_update_files(config.id, program)
+        return self._save_files(config.id, program)
     
     def save_config(self, config: Optional[ShapeConfig] = None):
         if config:
@@ -401,8 +411,11 @@ class ShapesApp(ExtensionApp):
             json.dump([cfg.toJSON() for cfg in self.config], config_file, indent=2)
 
     def update(self, config: ShapeConfig, program: Program) -> bool:
+        if config.description == IMPORT_DESCRIPTION:
+            config.description = ""
+
         self.save_config(config)
-        return self.__create_or_update_files(config.id, program)
+        return self._save_files(config.id, program)
 
     def remove(self, program_id: UUID):
         filtered_programs = [c for c in self.config if c.id != program_id]
@@ -414,6 +427,85 @@ class ShapesApp(ExtensionApp):
 
         folder_path = path.join(self.shapes_file_path, "programs", program_id.hex)
         shutil.rmtree(folder_path)
+        
+    def create_export_folder(self, config: ShapeConfig, export_file_path: str) -> bool:
+        try:
+
+            config_output_path = path.join(export_file_path, "config.json")
+            
+            if not path.exists(export_file_path):
+                makedirs(export_file_path)
+
+            # source_python_file = path.join(self.shapes_file_path, "programs", config.id.hex, "program.py")
+            source_state_file = path.join(self.shapes_file_path, "programs", config.id.hex, "state.json")
+
+            with open(config_output_path, "w") as config_file:
+                json.dump(config.toJSON(), config_file, indent=2)
+
+            # shutil.copy(source_python_file, temp_file_path)
+            shutil.copy(source_state_file, export_file_path)
+            return True
+        except Exception as e:
+            self._logger.error("Error creating temp file for export: %s", e)
+            return False
+
+    def get_downloads_path(self) -> str:
+            return str(Path.home() / "Downloads")
+    
+    def export(self, config: ShapeConfig) -> BytesIO:
+        memory_file = BytesIO()
+
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            with open(path.join(self.shapes_file_path, "programs", config.id.hex, "state.json")) as state:
+                zf.writestr("state.json", state.read())
+            
+            zf.writestr("config.json", json.dumps(config.toJSON(), indent=2))
+
+        memory_file.seek(0)
+        return memory_file
+
+    def unzip_file(self, zip_file_path, extract_to_path):
+        """Unzips a zip file to a specified directory."""
+        try:
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_to_path)
+            return True, f"Successfully unzipped {zip_file_path} to {extract_to_path}"
+        except FileNotFoundError:
+            return False, f"Error: Zip file not found at '{zip_file_path}'"
+        except zipfile.BadZipFile:
+            return False, f"Error: '{zip_file_path}' is not a valid zip file"
+        except Exception as e:
+            return False, f"An error occurred during unzipping: {e}"
+        
+    def import_shape(self, file: FileStorage) -> tuple[ShapeConfig | None, str]:
+
+        zip_bytes = file.read()
+        zip_buffer = BytesIO(zip_bytes)
+        
+        try:
+            with zipfile.ZipFile(zip_buffer, "r") as zf:
+                file_list = zf.namelist()
+
+                if "config.json" not in file_list or "state.json" not in file_list:
+                    return None, "Invalid shape format"
+                
+                with zf.open("config.json") as config_file, zf.open("state.json") as state_file:
+                    data = json.load(config_file)
+                    config = ShapeConfig.FromJSON(data)
+
+                    config.id = uuid4()
+                    state_data = json.load(state_file)
+                    program = Program(
+                        state=state_data,
+                        code=None,
+                    )
+
+                self.add(config, program)
+
+                return config, f"Shape '{config.name}' imported successfully."
+        except Exception as e:
+            self._logger.error("Error importing shape: %s", e)
+            return None, f"Error importing shape: {e}"
 
     def find_shape_by_id(self, config_id: UUID) -> Optional[ShapeConfig]:
         return next(filter(lambda x: x.id == config_id, self.config), None)
@@ -511,7 +603,7 @@ class ShapesApp(ExtensionApp):
             if not self.get_log():
                 break
 
-    def __create_or_update_files(self, config_id: UUID, program: Program) -> bool:
+    def _save_files(self, config_id: UUID, program: Program) -> bool:
         folder_path = path.join(self.shapes_file_path, "programs", config_id.hex)
         python_file_path = path.join(folder_path, 'program.py')
         state_file_path = path.join(folder_path, 'state.json')
@@ -526,5 +618,4 @@ class ShapesApp(ExtensionApp):
         with open(state_file_path, "w") as state_json_file:
             json.dump(program.state, state_json_file, indent=2)
         
-
         return True
