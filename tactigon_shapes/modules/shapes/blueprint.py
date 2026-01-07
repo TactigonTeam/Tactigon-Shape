@@ -23,9 +23,9 @@ from uuid import UUID, uuid4
 from datetime import datetime
 from typing import List, Optional
 
-from flask import Blueprint, render_template, flash, redirect, url_for,request
+from flask import Blueprint, render_template, flash, redirect, url_for,request, send_file
 
-from tactigon_shapes.config import app_config, check_config
+from tactigon_shapes.config import app_config, check_config, allowed_extensions
 from tactigon_shapes.models import ModelGesture
 from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program
 from tactigon_shapes.modules.shapes.manager import get_shapes_app
@@ -38,7 +38,7 @@ from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
 from tactigon_shapes.modules.ros2.manager import get_ros2_interface
-from tactigon_shapes.utils.request_utils import get_from_request, check_empty_inputs
+from tactigon_shapes.utils.request_utils import get_from_request
 
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")
@@ -515,28 +515,29 @@ def delete(program_id: str):
 @check_config
 def import_shape():
     _shapes = get_shapes_app()
-    allowed_extensions = ["zip"]
 
-    if 'file' not in request.files or request.files['file'].filename == '':
+    if not _shapes:
+        flash(f"Shapes app not found!", category="danger")
+        return redirect(url_for("main.index"))
+    
+    zip_file = request.files['file']
+
+    if not zip_file or not zip_file.filename:
         flash("Shape file not found!", category="danger")
         return redirect(url_for("shapes.index"))
-    
-    file = request.files['file']
-
-    is_valid_file = '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
-    if not is_valid_file:
+        
+    if not zip_file.filename.endswith(tuple(allowed_extensions)):
         flash(f"Invalid file type. Allowed types: {', '.join(allowed_extensions)}", category="danger")
         return redirect(url_for("shapes.index"))
     
-    error =_shapes.import_shape(file)
+    config, message =_shapes.import_shape(zip_file)
 
-    if error:
-        flash(error, category="danger")
+    if not config:
+        flash(message, category="danger")
         return redirect(url_for("shapes.index"))
 
-    flash("Shape imported successfully.", category="success")
-    return redirect(url_for("shapes.index"))
+    flash(message, category="success")
+    return redirect(url_for("shapes.edit", program_id=config.id))
 
 @bp.route("/<string:program_id>/export")
 @check_config
@@ -553,7 +554,11 @@ def export_shape(program_id: str):
         flash("Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
 
-    _shapes.export(config)
+    exported_file = _shapes.export(config)
 
-    flash("Shape exported to Downloads folder.", category="success")
-    return redirect(url_for("shapes.index"))
+    return send_file(
+        exported_file,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"{config.name}_export.zip"
+    )

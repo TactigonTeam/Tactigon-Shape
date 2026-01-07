@@ -27,6 +27,7 @@ from tactigon_shapes.models import BASE_PATH, AppConfig
 
 config_file_path = path.join(BASE_PATH, "config")
 config_file = path.join(config_file_path, "config.json")
+allowed_extensions = ["zip"]
 
 if path.exists(config_file_path) and path.exists(config_file):
     with open(config_file, "r") as cf:
