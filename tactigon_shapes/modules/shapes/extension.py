@@ -24,13 +24,12 @@ import json
 import shutil
 import sys
 import time
-import re
 import zipfile
 
 from io import BytesIO
 from uuid import UUID, uuid4
 from queue import Queue
-from os import path, makedirs, remove
+from os import path, makedirs
 from typing import List, Optional, Tuple, Any
 from pathlib import Path
 from flask import Flask
