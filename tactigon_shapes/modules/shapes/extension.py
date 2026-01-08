@@ -82,6 +82,8 @@ class ShapeThread(ExtensionThread):
     _mqtt_interface: Optional[MQTTClient] = None
     _ros2_interface: Optional[Ros2Interface] = None
     _ros2_subscription: list[Ros2Subscription] = []
+
+    in_flight_log: Optional[DebugMessage] = None
     
     def __init__(
             self, 
@@ -93,11 +95,10 @@ class ShapeThread(ExtensionThread):
             zion: Optional[ZionInterface], 
             ros2: Ros2Interface | None,
             ironboy: Optional[IronBoyInterface],
-            logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
         self._tskin = tskin
-        self._logging_queue = logging_queue
+        self._logging_queue = LoggingQueue()
         self._braccio_interface = braccio
         self._zion_interface = zion
         self._ros2_interface = ros2
@@ -186,6 +187,7 @@ class ShapeThread(ExtensionThread):
         # Clear the payload
         setattr(self.module, subscription.payload_reference, None)
     
+    #MQTT
     def on_message(self, client: mqtt_client.Client, userdata: dict, message: mqtt_client.MQTTMessage):
         if not self._mqtt_interface or not self.module:
             return
@@ -201,6 +203,21 @@ class ShapeThread(ExtensionThread):
         getattr(self.module, subscription.function)(self._logging_queue)
         # Clear the payload
         setattr(self.module, subscription.payload_reference, None)
+
+    def get_log(self) -> Optional[DebugMessage]:
+        if self.in_flight_log:
+            return self.in_flight_log
+        
+        try:
+            self.in_flight_log = self._logging_queue.get_nowait()
+
+            return self.in_flight_log
+        except:
+            return None
+        
+    def logging_read(self):
+        self._logger.debug("Logging read acknowledged")
+        self.in_flight_log = None
 
     def run(self):
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
@@ -290,9 +307,8 @@ class ShapesApp(ExtensionApp):
     config: List[ShapeConfig]
     shapes_file_path: str
     keyboard: KeyboardController
+    thread: ShapeThread | None = None
     current_id: Optional[UUID] = None
-    logging_queue: LoggingQueue
-    in_flight_log: Optional[DebugMessage] = None
 
     _logger: logging.Logger
     _ironboy_interface: Optional[IronBoyInterface] = None
@@ -304,7 +320,6 @@ class ShapesApp(ExtensionApp):
         self.config_file_path = path.join(config_path, "config.json")
         self.shapes_file_path = config_path
         self.keyboard = KeyboardController()
-        self.logging_queue = LoggingQueue()
         self._logger = logging.getLogger(ShapesApp.__name__)
 
         self.hotkey_list = [("<ctrl>+", "ctrl"), ("<shift>+", "shift"), ("<alt>+", "alt"), ("<ctrl>+<alt>+", "ctrl+alt"), ("<ctrl>+<shift>+", "ctrl+shift")]        
@@ -351,18 +366,15 @@ class ShapesApp(ExtensionApp):
         self._ironboy_interface = ironboy_interface
 
     def get_log(self) -> Optional[DebugMessage]:
-        if self.in_flight_log:
-            return self.in_flight_log
+        if self.thread:
+            msg = self.thread.get_log()
+            return msg
         
-        try:
-            self.in_flight_log = self.logging_queue.get_nowait()
-            return self.in_flight_log
-        except:
-            return None
+        return None
         
     def logging_read(self):
-        self._logger.debug("Logging read acknowledged")
-        self.in_flight_log = None
+        if self.thread:
+            self.thread.logging_read()
 
     def get_state(self, program_id: UUID) -> Optional[dict]:
         try:
@@ -580,7 +592,6 @@ class ShapesApp(ExtensionApp):
                         zion=self.zion_interface, 
                         ros2=self.ros2_interface,
                         ironboy=self.ironboy_interface, 
-                        logging_queue=self.logging_queue
                     ) 
                     self.thread.start()
                 except Exception as e:
@@ -599,9 +610,6 @@ class ShapesApp(ExtensionApp):
     
     def stop(self):
         ExtensionApp.stop(self)
-        while True:
-            if not self.get_log():
-                break
 
     def _save_files(self, config_id: UUID, program: Program) -> bool:
         folder_path = path.join(self.shapes_file_path, "programs", config_id.hex)
