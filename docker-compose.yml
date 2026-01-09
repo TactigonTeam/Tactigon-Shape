@@ -6,6 +6,7 @@ networks:
 volumes:
   ollama_data:
   tactigon-config:
+  open-webui:
 
 services:
   ollama:
@@ -66,10 +67,8 @@ services:
     restart: unless-stopped
     networks:
       - tactigon-net
-    ports:
-      - "50006:50006"
     environment:
-      TSS_ADDRESS: 0.0.0.0
+      TSS_ADDRESS: tactigon-shapes
       TSS_PORT: 50006
       TSS_CONFIG: config.json
 
