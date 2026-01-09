@@ -44,6 +44,14 @@ def manage():
 def add():
     return render_template("tskin/add.jinja")
 
+@bp.route("socket_settings", methods=["GET"])
+def socket_settings():
+    return render_template("tskin/socket_settings.jinja")
+
+@bp.route("speech_settings", methods=["GET"])
+def speech_settings():
+    return render_template("tskin/speech_settings.jinja")
+
 @bp.route("scan", methods=["GET"])
 def scan():
     async def find_devices():
@@ -94,6 +102,9 @@ def remove():
     tskin = get_tskin()
 
     if tskin is None:
+        # TODO: Handle case where TSKIN object does not exists but has somewhat valid configuration
+        
+
         flash(F"Tactigon skin {hand} not configured!", "danger")
         return redirect(url_for("main.index"))
 
