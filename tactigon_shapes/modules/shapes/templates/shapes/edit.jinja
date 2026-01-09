@@ -407,7 +407,6 @@
                 <field name="gyro">x</field>
             </block>
         </category>
-        {% if voice_config %}
         <category name="Voice" colour="#EB6152">
             <block type="tskin_listen">
             </block>
@@ -423,15 +422,14 @@
                     </shadow>
                 </value>
             </block>
-            <block type="tskin_play">
+            {# <block type="tskin_play">
                 <value name="filename">
                     <shadow type="text">
                         <field name="TEXT">audio.wav</field>
                     </shadow>
                 </value>
-            </block>
+            </block> #}
         </category>
-        {% endif %}
         {% if braccio_config %}
             <sep></sep>
             <category name="Braccio" colour="#cb6434">

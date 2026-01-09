@@ -97,8 +97,8 @@ class TactigonShapes:
 
             flask_app.extensions[TSKIN_EXTENSION] = None
             tskin = None
-            if app_config.TSKIN:
-                load_tskin(app_config.TSKIN)
+            if app_config.TSKIN and app_config.TSKIN_SOCKET:
+                load_tskin(app_config.TSKIN, app_config.TSKIN_SOCKET)
                 tskin = start_tskin()
 
             if tskin:

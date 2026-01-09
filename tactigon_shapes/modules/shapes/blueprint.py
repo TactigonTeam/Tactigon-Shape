@@ -76,6 +76,9 @@ def index(program_id: Optional[str] = None):
                 break
 
     blocks_config = _shapes.get_blocks_congfig(gesture_list)
+    
+    if app_config.TSKIN_SPEECH:
+        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_SPEECH)
 
     zion = get_zion_interface()
     if zion and zion.devices:

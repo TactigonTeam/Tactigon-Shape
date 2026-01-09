@@ -6,7 +6,6 @@ networks:
 volumes:
   ollama_data:
   tactigon-config:
-  open-webui:
 
 services:
   ollama:
@@ -58,6 +57,21 @@ services:
       - tactigon-config:/app/config
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
+
+  speech:
+    build:
+      context: ./speech
+      dockerfile: Dockerfile
+    container_name: tactigon-speech-socket
+    restart: unless-stopped
+    networks:
+      - tactigon-net
+    ports:
+      - "50006:50006"
+    environment:
+      TSS_ADDRESS: 0.0.0.0
+      TSS_PORT: 50006
+      TSS_CONFIG: config.json
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main

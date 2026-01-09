@@ -148,18 +148,20 @@ def save():
         return {"error": "model error"}, 500
         # return redirect(url_for("tskin.add"))
     
-    tskin_config = get_tskin_default_config(tskin_mac, hand, tskin_name, current_model)
+    tskin_config, socket_config, tspeech_object = get_tskin_default_config(tskin_mac, hand, tskin_name, current_model)
 
     if socket_app:
         socket_app.stop()
 
     stop_tskin()
     app_config.TSKIN = tskin_config
+    app_config.TSKIN_SOCKET = socket_config
+    app_config.TSKIN_SPEECH = tspeech_object
 
     app_config.save()
     current_app.config.from_object(app_config)
 
-    load_tskin(tskin_config)
+    load_tskin(tskin_config, socket_config)
     tskin = start_tskin()
 
     if socket_app and tskin:

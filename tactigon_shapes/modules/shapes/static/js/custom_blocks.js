@@ -32,9 +32,7 @@ function loadCustomBlocks(response) {
     const ginos = response ? response.ginos: {};
     
     loadTSkinBlocks(gestures, taps);
-    if (speechs) {
-        loadSpeechBlocks(speechs);
-    }
+    loadSpeechBlocks(speechs);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
@@ -387,26 +385,26 @@ function loadSpeechBlocks(speechs) {
         }
     };
 
-    Blockly.Blocks['tskin_play'] = {
-        init: function () {
-            this.jsonInit({
-                "type": "tskin_play",
-                "message0": "Play file audio %1",
-                "args0": [
-                    {
-                        "type": "input_value",
-                        "name": "filename",
-                        "check": "String"
-                    }
-                ],
-                "previousStatement": null,
-                "nextStatement": null,
-                "colour": "#EB6152",
-                "tooltip": "Use Tactigon Skin to play audio",
-                "helpUrl": ""
-            });
-        }
-    };
+    // Blockly.Blocks['tskin_play'] = {
+    //     init: function () {
+    //         this.jsonInit({
+    //             "type": "tskin_play",
+    //             "message0": "Play file audio %1",
+    //             "args0": [
+    //                 {
+    //                     "type": "input_value",
+    //                     "name": "filename",
+    //                     "check": "String"
+    //                 }
+    //             ],
+    //             "previousStatement": null,
+    //             "nextStatement": null,
+    //             "colour": "#EB6152",
+    //             "tooltip": "Use Tactigon Skin to play audio",
+    //             "helpUrl": ""
+    //         });
+    //     }
+    // };
 }
 
 // Carica i blocchi relativi a Keyboard
@@ -1773,11 +1771,11 @@ function defineSpeechGenerators(){
         return `record_audio(tskin, ${filename}, ${seconds})\n`
     };
 
-    python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
-        let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
+    // python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
+    //     let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
 
-        return `tskin.play(${filename})\n`
-    };
+    //     return `tskin.play(${filename})\n`
+    // };
 }
 
 function defineKeyboardGenerators(){

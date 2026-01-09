@@ -39,7 +39,8 @@ from pynput.keyboard import Controller as KeyboardController
 from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface
-from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture
+from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
+from tactigon_shapes.modules.tskin.manager import walk
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
@@ -534,6 +535,14 @@ class ShapesApp(ExtensionApp):
         }
 
         return data
+    
+    def get_speech_block_config(self, tspeechobject: TSpeechObject) -> list:
+        args = []
+
+        for s in tspeechobject.t_speech:
+            walk(args, s)
+
+        return args
     
     def get_shape(self, uuid: Optional[UUID] = None) -> Program:
         code = None

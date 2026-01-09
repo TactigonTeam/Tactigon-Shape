@@ -25,8 +25,9 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Iterable
 
-from tactigon_gear import TSkin, TSkinConfig, GestureConfig
+from tactigon_gear import TSkinSocket as TSkin, TSkinConfig, GestureConfig, SocketConfig
 from tactigon_gear.models.tskin import Gesture, Hand, Angle, Touch, OneFingerGesture, TwoFingerGesture
+from tactigon_gear.models.audio import TSpeechObject, TSpeech, HotWord
 
 
 @dataclass
