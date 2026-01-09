@@ -840,13 +840,14 @@
             .concat(
                 workspace.getBlocksByType("procedures_defreturn")
             );
-        const errors = [];
 
-        for (n in functions){
-            if (reservedWords.indexOf(functions[n]) > -1){
-                errors.push(functions[n])
+        const errors = [];
+        functions.forEach((block) => {
+            const blockName = block.getFieldValue('NAME')
+            if (blockName && reservedWords.includes(blockName.toLowerCase())) {
+                errors.push(`You cannot name a function <b>${blockName}</b>, please rename it.`);
             }
-        }
+        });
 
         return errors;
     }
