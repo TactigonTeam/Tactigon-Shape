@@ -51,7 +51,7 @@ RUN pip install --no-cache-dir \
     flask-socketio==5.5.1 \
     gevent==24.2.1 \
     gevent-websocket==0.10.1 \
-    tactigon-gear==5.5.0 \
+    tactigon-gear==5.5.2 \
     PyAudio==0.2.14 \
     pynput==1.7.7 \
     sympy==1.13.2 \
@@ -60,6 +60,7 @@ RUN pip install --no-cache-dir \
     httpx
 
 EXPOSE 5123
+EXPOSE 50006
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD curl -f http://localhost:5123/ || exit 1
 

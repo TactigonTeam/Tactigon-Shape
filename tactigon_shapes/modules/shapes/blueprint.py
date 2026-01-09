@@ -77,6 +77,9 @@ def index(program_id: Optional[str] = None):
 
     blocks_config = _shapes.get_blocks_congfig(gesture_list)
 
+    if app_config.TSKIN_SPEECH:
+        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_SPEECH)
+
     zion = get_zion_interface()
     if zion and zion.devices:
         blocks_config["zion"] = zion.get_shape_blocks()
@@ -205,6 +208,10 @@ def edit(program_id: str):
                 break
 
     blocks_config = _shapes.get_blocks_congfig(gesture_list)
+
+    if app_config.TSKIN_SPEECH:
+        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_SPEECH)
+
     zion = get_zion_interface()
     ros2_interface = get_ros2_interface()
     ironboy = get_ironboy_interface()

@@ -32,9 +32,7 @@ function loadCustomBlocks(response) {
     const ginos = response ? response.ginos: {};
     
     loadTSkinBlocks(gestures, taps);
-    if (speechs) {
-        loadSpeechBlocks(speechs);
-    }
+    loadSpeechBlocks(speechs);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
@@ -387,26 +385,26 @@ function loadSpeechBlocks(speechs) {
         }
     };
 
-    Blockly.Blocks['tskin_play'] = {
-        init: function () {
-            this.jsonInit({
-                "type": "tskin_play",
-                "message0": "Play file audio %1",
-                "args0": [
-                    {
-                        "type": "input_value",
-                        "name": "filename",
-                        "check": "String"
-                    }
-                ],
-                "previousStatement": null,
-                "nextStatement": null,
-                "colour": "#EB6152",
-                "tooltip": "Use Tactigon Skin to play audio",
-                "helpUrl": ""
-            });
-        }
-    };
+    // Blockly.Blocks['tskin_play'] = {
+    //     init: function () {
+    //         this.jsonInit({
+    //             "type": "tskin_play",
+    //             "message0": "Play file audio %1",
+    //             "args0": [
+    //                 {
+    //                     "type": "input_value",
+    //                     "name": "filename",
+    //                     "check": "String"
+    //                 }
+    //             ],
+    //             "previousStatement": null,
+    //             "nextStatement": null,
+    //             "colour": "#EB6152",
+    //             "tooltip": "Use Tactigon Skin to play audio",
+    //             "helpUrl": ""
+    //         });
+    //     }
+    // };
 }
 
 // Carica i blocchi relativi a Keyboard
@@ -1355,6 +1353,7 @@ function defineImportsAndLibraries(){
 import time
 import random
 import types
+import json
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -1362,7 +1361,7 @@ from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandS
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2 import models as ros2_models
-from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture
+from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
@@ -1396,6 +1395,46 @@ def check_touch(touch: Optional[Touch], finger_gesture: str) -> bool:
     except:
         pass
     return False
+
+def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union[HotWord, List[HotWord]]]):
+    def build_tspeech(hws: List[Union[HotWord, List[HotWord]]]) -> Optional[TSpeechObject]:
+        if not hws:
+            return None
+
+        hw, *rest = hws
+
+        return TSpeechObject(
+            [
+                TSpeech(hw, build_tspeech(rest))
+            ]
+        )
+
+    tspeech = build_tspeech(hotwords)
+
+    if tspeech and tskin.can_listen:
+        debug(logging_queue, f"Waiting for command...")
+        r = tskin.listen(tspeech)
+        if r:
+            debug(logging_queue, "Listening....")
+            t = None
+            while True:
+                t = tskin.transcription
+
+                if t:
+                    break
+
+                text_so_far = tskin.text_so_far
+                if text_so_far:
+                    debug(logging_queue, f"Listening: {text_so_far}")
+                    
+                time.sleep(tskin.TICK)
+
+            if t and t.path is not None:
+                debug(logging_queue, f"Command found: {[hw.word for hw in t.path]}")
+                return [hw.word for hw in t.path]
+
+    debug(logging_queue, "Cannot listen...")
+    return []
 
 def keyboard_press(keyboard: KeyboardController, commands: List[KeyCode]):
     for k in commands:
@@ -1773,11 +1812,11 @@ function defineSpeechGenerators(){
         return `record_audio(tskin, ${filename}, ${seconds})\n`
     };
 
-    python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
-        let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
+    // python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
+    //     let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
 
-        return `tskin.play(${filename})\n`
-    };
+    //     return `tskin.play(${filename})\n`
+    // };
 }
 
 function defineKeyboardGenerators(){

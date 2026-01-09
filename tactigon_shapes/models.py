@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 
 from tactigon_gear import  __version__ as tactigon_gear_version
-from .modules.tskin.models import Hand, TSkinModel, TSkinConfig, ModelGesture, ModelTouch, OneFingerGesture
+from .modules.tskin.models import Hand, TSkinModel, TSkinConfig, SocketConfig, ModelGesture, ModelTouch, OneFingerGesture, TSpeechObject
 
 BASE_PATH = getcwd()
 
@@ -39,6 +39,8 @@ class AppConfig(object):
     SEND_FILE_MAX_AGE_DEFAULT: int = 1
     MODELS: List[TSkinModel] = field(default_factory=list)
     TSKIN: Optional[TSkinConfig] = None
+    TSKIN_SOCKET: Optional[SocketConfig] = None
+    TSKIN_SPEECH: Optional[TSpeechObject] = None
     file_path: Optional[str] = None
 
     @classmethod
@@ -80,9 +82,10 @@ class AppConfig(object):
             json["SEND_FILE_MAX_AGE_DEFAULT"],
             [TSkinModel.FromJSON(f) for f in json["MODELS"]],
             TSkinConfig.FromJSON(json["TSKIN"]) if "TSKIN" in json and json["TSKIN"] is not None else None,
+            SocketConfig.FromJSON(json["TSKIN_SOCKET"]) if "TSKIN_SOCKET" in json and json["TSKIN_SOCKET"] is not None else None,
+            TSpeechObject.FromJSON(json["TSKIN_SPEECH"]) if "TSKIN_SPEECH" in json and json["TSKIN_SPEECH"] is not None else None,
             file_path
             )
-    
     def toJSON(self) -> object:
         return {
             "DEBUG": self.DEBUG,
@@ -90,6 +93,8 @@ class AppConfig(object):
             "SEND_FILE_MAX_AGE_DEFAULT": self.SEND_FILE_MAX_AGE_DEFAULT,
             "MODELS": [m.toJSON() for m in self.MODELS],
             "TSKIN": self.TSKIN.toJSON() if self.TSKIN else None,
+            "TSKIN_SOCKET": self.TSKIN_SOCKET.toJSON() if self.TSKIN_SOCKET else None,
+            "TSKIN_SPEECH": self.TSKIN_SPEECH.toJSON() if self.TSKIN_SPEECH else None,
         }
     
     def save(self):
