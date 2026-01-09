@@ -472,6 +472,8 @@
         terminal.outerHeight(container_h-siblings_h);
     }
 
+    const log_buffer = [];
+
     $(document).ready(() => {
         const terminal = $("#terminal");
 
@@ -492,12 +494,25 @@
         {% if current_config.id == current_running_program %}
             socket.on("logging", (event, callback) => {
                 callback();
+                
                 if (terminal.find("span.ERROR").length > 0){
                     return;
                 }
 
+                const log_string = `[${event.date}] ${event.severity}: ${event.message}`;
+
+                if (log_buffer.length >= 100){
+                    log_buffer.shift();
+                }
+
+                if (log_buffer.indexOf(log_string) > -1){
+                    return;
+                }
+
+                log_buffer.push(log_string);
+
                 if (event.message_type === "string"){
-                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message}`));
+                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(log_string));
                     return;
                 }
 
@@ -509,7 +524,7 @@
                         return;
                     }
 
-                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message.message}`));
+                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(log_string));
                     return;
                 }
             });
