@@ -599,8 +599,11 @@ class ShapesApp(ExtensionApp):
     
     def stop(self):
         ExtensionApp.stop(self)
+        self.in_flight_log = None
         while True:
-            if not self.get_log():
+            try:
+                _ = self.logging_queue.get_nowait()
+            except:
                 break
 
     def _save_files(self, config_id: UUID, program: Program) -> bool:
