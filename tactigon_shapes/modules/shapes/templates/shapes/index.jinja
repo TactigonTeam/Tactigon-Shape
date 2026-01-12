@@ -82,7 +82,7 @@
         <div class="text-center pb-3 pt-5 border-bottom">
             <h5>Shapes</h5>
         </div>
-        <div class="list-group list-group-flush flex-grow-1 sidebar" style="max-height: 70vh;">
+        <div class="list-group list-group-flush flex-grow-1 sidebar">
             {% for config in shapes_config %}
             <a href="{{ url_for('shapes.index', program_id=config.id) }}" class="list-group-item list-group-item-action
                 {% if config.id == current_config.id %}active{% endif %}
@@ -476,6 +476,11 @@
 
     $(document).ready(() => {
         const terminal = $("#terminal");
+
+        $(".active")[0].scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
 
         $("#run_application").change(function () {
             if (this.checked) {

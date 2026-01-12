@@ -60,7 +60,7 @@ RUN pip install --no-cache-dir \
     httpx
 
 EXPOSE 5123
-EXPOSE 50006
+EXPOSE 50007
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD curl -f http://localhost:5123/ || exit 1
 

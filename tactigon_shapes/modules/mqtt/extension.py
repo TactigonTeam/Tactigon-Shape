@@ -21,8 +21,7 @@
 import time
 import json
 import logging
-from queue import Queue
-from typing import Optional, Callable
+from typing import Callable
 
 import paho.mqtt.client as mqtt_client
 
@@ -32,12 +31,12 @@ class MQTTClient:
     config: MQTTConfig
     userdata: dict
 
-    client: Optional[mqtt_client.Client] = None
+    client: mqtt_client.Client | None = None
 
     _can_reconnect: bool
     _logger: logging.Logger
 
-    def __init__(self, config: MQTTConfig, on_message: Optional[Callable[[mqtt_client.Client, dict, mqtt_client.MQTTMessage], None]] = None):
+    def __init__(self, config: MQTTConfig, on_message: Callable[[mqtt_client.Client, dict, mqtt_client.MQTTMessage], None] | None = None):
         self.config = config
         self._can_reconnect = True
         self._logger = logging.getLogger(MQTTClient.__name__)

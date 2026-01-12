@@ -3,77 +3,105 @@
     "id": "3bbc7b4a2aeb4cc2a4e7efe7517a78c3",
     "name": "Powerpoint",
     "created_on": "2024-07-23T10:58:08.563701",
-    "modified_on": "2025-12-10T15:23:38.991412",
+    "modified_on": "2026-01-12T12:25:39.606386",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "Powerpoint",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": null
   },
   {
     "id": "b195acffd6fe41b699ac0107298d8008",
     "name": "Braccio Gesture&Touch",
     "created_on": "2024-09-12T14:45:45.568267",
-    "modified_on": "2025-12-10T15:23:35.955787",
+    "modified_on": "2026-01-12T12:12:32.517976",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "Braccio Gesture&Touch",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": null
   },
   {
     "id": "7eda6f5bc0a14abc9df6c114ce50b975",
     "name": "Braccio movement",
     "created_on": "2024-09-12T15:00:18.895327",
-    "modified_on": "2025-12-10T15:23:33.138634",
+    "modified_on": "2026-01-12T12:13:32.003641",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "Braccio movement",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": null
   },
   {
     "id": "a1b39bce15794249bff6bda490b91152",
     "name": "Braccio drive",
     "created_on": "2024-09-12T15:15:01.759547",
-    "modified_on": "2025-12-10T15:23:29.876252",
+    "modified_on": "2026-01-12T12:13:36.461345",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "Braccio drive",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": null
   },
   {
     "id": "45dc24e5407a4c5380d9e217652f884b",
     "name": "Braccio voice",
     "created_on": "2024-12-10T16:11:39.381333",
-    "modified_on": "2025-12-10T15:23:25.788831",
+    "modified_on": "2026-01-12T12:16:36.669232",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "Braccio voice",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": null
   },
   {
     "id": "5608dee658804089b7eb21f20c42b355",
     "name": "Black jack",
     "created_on": "2024-12-10T17:51:16.445728",
-    "modified_on": "2025-12-10T15:23:15.514926",
+    "modified_on": "2026-01-12T12:16:41.986061",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "Black jack",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": null
   },
   {
     "id": "5b3249d506d647d99ad3b3cf3d8769df",
     "name": "Zion",
     "created_on": "2025-12-12T12:28:19.204453",
-    "modified_on": "2025-12-12T12:28:38.626081",
+    "modified_on": "2026-01-12T12:18:20.028010",
     "description": "",
     "readonly": true,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "Zion",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": null
   }
 ]

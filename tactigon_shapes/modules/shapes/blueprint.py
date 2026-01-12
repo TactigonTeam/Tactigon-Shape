@@ -21,7 +21,6 @@
 import json
 from uuid import UUID, uuid4
 from datetime import datetime
-from typing import List, Optional
 
 from flask import Blueprint, render_template, flash, redirect, url_for,request, send_file
 
@@ -46,14 +45,14 @@ bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templa
 @bp.route("/")
 @bp.route("/<string:program_id>")
 @check_config
-def index(program_id: Optional[str] = None):
+def index(program_id: str | None = None):
     _shapes = get_shapes_app()
 
     if not _shapes:
         flash("Shapes app not found", category="danger")
         return redirect(url_for("main.index"))
 
-    current_config: Optional[ShapeConfig] = None
+    current_config: ShapeConfig | None = None
 
     if program_id:
         program = _shapes.find_shape_by_id(UUID(program_id))
@@ -67,7 +66,7 @@ def index(program_id: Optional[str] = None):
         if any(_shapes.config):
             current_config = _shapes.config[0]
 
-    gesture_list: List[ModelGesture] = []
+    gesture_list: list[ModelGesture] = []
 
     if app_config.TSKIN and app_config.TSKIN.gesture_config:
         for model in app_config.MODELS:
@@ -199,7 +198,7 @@ def edit(program_id: str):
         return redirect(url_for("shapes.index"))
     
     state = _shapes.get_state(current_config.id)
-    gesture_list: List[ModelGesture] = []
+    gesture_list: list[ModelGesture] = []
 
     if app_config.TSKIN and app_config.TSKIN.gesture_config:
         for model in app_config.MODELS:

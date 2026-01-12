@@ -26,6 +26,7 @@ from flask import redirect, url_for
 from tactigon_shapes.models import BASE_PATH, AppConfig
 
 config_file_path = path.join(BASE_PATH, "config")
+speechs_file_path = path.join(BASE_PATH, "speech")
 config_file = path.join(config_file_path, "config.json")
 allowed_extensions = ["zip"]
 
@@ -41,6 +42,13 @@ def check_config(func):
     @wraps(func)
     def inner(*args, **kwargs):
         if app_config.TSKIN:
+
+            if not app_config.TSKIN_SOCKET:
+                return redirect(url_for("tskin.socket_settings"))
+            
+            if not app_config.TSKIN_SPEECH or not app_config.SELECTED_SCORER:
+                return redirect(url_for("tskin.speech_settings"))
+
             return func(*args, **kwargs)
         
         return redirect(url_for("tskin.add"))

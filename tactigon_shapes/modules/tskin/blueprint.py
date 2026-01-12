@@ -24,13 +24,12 @@ import asyncio
 from os import path
 from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
-from typing import Optional
 
 from tactigon_shapes.modules.tskin.manager import get_tskin_default_config, start_tskin, load_tskin, stop_tskin, get_tskin
-from tactigon_shapes.modules.tskin.models import TSkinModel, TSkinConfig, Hand, GestureConfig
+from tactigon_shapes.modules.tskin.models import TSkinModel, TSkinConfig, Hand, GestureConfig, SocketConfig, TSpeechObject
 
 from tactigon_shapes.modules.socketio import get_socket_app
-from tactigon_shapes.config import app_config
+from tactigon_shapes.config import app_config, speechs_file_path
 from tactigon_shapes.utils.extensions import stop_apps
 from tactigon_shapes.utils.request_utils import get_from_request
 
@@ -43,6 +42,76 @@ def manage():
 @bp.route("add", methods=["GET"])
 def add():
     return render_template("tskin/add.jinja")
+
+@bp.route("socket_settings", methods=["GET", "POST"])
+def socket_settings():
+    if request.method == "POST":
+        host = get_from_request("host")
+        port = get_from_request("port")
+        ping = get_from_request("ping")
+
+        if not host or not port or not ping:
+            flash("Invalid configuration. Please check", "danger")
+            return redirect(url_for("tskin.socket_settings"))
+        
+        port = int(port)
+        ping = int(ping)
+
+        config = SocketConfig(
+            host=host,
+            port=port,
+            ping=ping,
+        )
+
+        app_config.TSKIN_SOCKET = config
+        app_config.save()
+
+        stop_tskin()
+
+        socket_app = get_socket_app()
+        if socket_app:
+            socket_app.stop()
+        
+        if app_config.TSKIN and app_config.TSKIN_SOCKET:
+            load_tskin(app_config.TSKIN, app_config.TSKIN_SOCKET)
+            tskin = start_tskin()
+
+            if socket_app and tskin:
+                socket_app.setTSkin(tskin)
+
+        flash("Socket saved!", "success")
+
+    if not app_config.TSKIN_SOCKET:
+        config = SocketConfig("0.0.0.0")
+    else:
+        config = app_config.TSKIN_SOCKET
+
+    return render_template("tskin/socket_settings.jinja", config=config)
+
+@bp.route("speech_settings", methods=["GET", "POST"])
+def speech_settings():
+    if request.method == "POST":
+        scorer = get_from_request("scorer")
+
+        if not scorer:
+            flash("Please select a valid scorer", "danger")
+            return redirect(url_for("tskin.speech_settings"))
+        
+        scorer_config = next((s for s in app_config.SCORERS if scorer == s.name), None)
+
+        if not scorer_config:
+            flash("Scorer not found in config", "danger")
+            return redirect(url_for("tskin.speech_settings"))
+        
+        with open(path.join(speechs_file_path, scorer_config.speech_file)) as speech_file:
+            app_config.TSKIN_SPEECH = TSpeechObject.FromJSON(json.load(speech_file))
+        app_config.SELECTED_SCORER = scorer
+
+        app_config.save()
+
+        flash("Speech saved!", "success")
+       
+    return render_template("tskin/speech_settings.jinja", scorers=app_config.SCORERS, selected_scorer=app_config.SELECTED_SCORER)
 
 @bp.route("scan", methods=["GET"])
 def scan():
@@ -94,6 +163,9 @@ def remove():
     tskin = get_tskin()
 
     if tskin is None:
+        # TODO: Handle case where TSKIN object does not exists but has somewhat valid configuration
+        
+
         flash(F"Tactigon skin {hand} not configured!", "danger")
         return redirect(url_for("main.index"))
 
@@ -136,7 +208,7 @@ def save():
     hand = Hand(hand)
     model_name = "MODEL_01_" + hand.name
 
-    current_model: Optional[TSkinModel] = None
+    current_model: TSkinModel | None = None
 
     for model in app_config.MODELS:
         if model.name == model_name:

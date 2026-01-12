@@ -22,8 +22,6 @@ from threading import Thread, Event
 from flask import Flask
 from flask_socketio import SocketIO
 
-from typing import Optional
-
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.braccio.extension import BraccioInterface
 from tactigon_shapes.modules.shapes.extension import ShapesApp
@@ -32,14 +30,14 @@ from tactigon_shapes.modules.tskin.models import TSkin
 class SocketApp(SocketIO):
     name: str = "socket_app"
     _TICK: float = 0.02
-    socket_thread: Optional[Thread]
+    socket_thread: Thread | None
     _stop_event: Event
-    _shapes_app: Optional[ShapesApp] = None
-    _braccio_interface: Optional[BraccioInterface] = None
-    _ironboy_interface: Optional[IronBoyInterface] = None
-    _last_connection_status: Optional[bool]
+    _shapes_app: ShapesApp | None = None
+    _braccio_interface: BraccioInterface | None = None
+    _ironboy_interface: IronBoyInterface | None = None
+    _last_connection_status: bool | None
 
-    def __init__(self, app: Optional[Flask] = None, **kwargs):
+    def __init__(self, app: Flask | None = None, **kwargs):
         SocketIO.__init__(self, app, **kwargs)
 
         self.socket_thread = None
@@ -59,7 +57,7 @@ class SocketApp(SocketIO):
         return not self._stop_event.is_set()
 
     @property
-    def shapes_app(self) -> Optional[ShapesApp]:
+    def shapes_app(self) -> ShapesApp | None:
         """
         Get the Shapes App reference
 
@@ -78,7 +76,7 @@ class SocketApp(SocketIO):
         self._shapes_app = app
 
     @property
-    def braccio_interface(self) -> Optional[BraccioInterface]:
+    def braccio_interface(self) -> BraccioInterface | None:
         """
         Get the BraccioInterface reference
 
@@ -97,7 +95,7 @@ class SocketApp(SocketIO):
         self._braccio_interface = app
 
     @property
-    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+    def ironboy_interface(self) -> IronBoyInterface | None:
         """
         Get the IronBoyInterface reference
 
