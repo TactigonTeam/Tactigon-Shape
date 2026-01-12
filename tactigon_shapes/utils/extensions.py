@@ -20,8 +20,6 @@
 
 from flask import current_app
 
-from typing import Optional
-
 from ..modules.socketio import SocketApp
 from ..modules.braccio.extension import BraccioInterface
 from ..modules.zion.extension import ZionInterface
@@ -30,7 +28,7 @@ from ..modules.ironboy.extension import IronBoyInterface
 
 excluded_apps = [SocketApp.name, TSKIN_EXTENSION, "socketio", BraccioInterface.__name__, ZionInterface.__name__, IronBoyInterface.__name__]
 
-def stop_apps(exclude: Optional[str] = None):
+def stop_apps(exclude: str | None = None):
     l = excluded_apps
     if (exclude):
         l.append(exclude)

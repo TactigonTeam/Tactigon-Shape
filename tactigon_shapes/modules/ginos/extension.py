@@ -20,13 +20,11 @@
 
 import json
 import logging
-from pathlib import Path
 import requests
 import httpx
 import time
-from flask import Flask
 
-from typing import Iterator, Optional, List
+from typing import Iterator
 
 from tactigon_shapes.modules.ginos.models import LLMChatResponse, LLMModelPullRequest, LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, LLMPromptRequest, LLMChatRequest, LLMPromptResponse
 
@@ -40,8 +38,8 @@ class GinosInterface:
     _url: str
     _model: str
 
-    _version: Optional[str]
-    _model_list: List[LLMModelRequest]
+    _version: str | None
+    _model_list: list[LLMModelRequest]
     _logger: logging.Logger
 
     def __init__(self, url: str, model: str):
@@ -70,14 +68,14 @@ class GinosInterface:
         return self._version is not None
     
     @property
-    def models(self) -> List[LLMModelRequest]:
+    def models(self) -> list[LLMModelRequest]:
         return self._model_list
     
     @property
     def model(self) -> str:
         return self._model
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> str | None:
         resp = self._get("version")
 
         return resp.get("version", None)
@@ -91,10 +89,10 @@ class GinosInterface:
         if models_resp:
             self._model_list = [LLMModelRequest.FromJSON(m) for m in models_resp]
     
-    def find_model(self, model_name: str) -> Optional[LLMModelRequest]:
+    def find_model(self, model_name: str) -> LLMModelRequest | None:
         return next((m for m in self._model_list if m.name == model_name), None)
 
-    def show_model(self, model_name: str) -> Optional[LLMModelShowRequest]:
+    def show_model(self, model_name: str) -> LLMModelShowRequest | None:
         response_json = {}
         try:
             res = self._post("show", dict(model=model_name))

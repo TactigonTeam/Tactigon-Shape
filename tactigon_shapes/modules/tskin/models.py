@@ -23,7 +23,6 @@ import json
 from os import path
 from datetime import datetime
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, Iterable
 
 from tactigon_gear import TSkinSocket as TSkin, TSkinConfig, GestureConfig, SocketConfig
 from tactigon_gear.models.tskin import Gesture, Hand, Angle, Touch, OneFingerGesture, TwoFingerGesture
@@ -34,7 +33,7 @@ from tactigon_gear.models.audio import TSpeechObject, TSpeech, HotWord
 class ModelGesture:
     gesture: str
     label: str
-    description: Optional[str] = None
+    description: str | None = None
 
     @classmethod
     def FromJSON(cls, json: dict):
@@ -54,7 +53,7 @@ class ModelGesture:
 class ModelTouch:
     gesture: OneFingerGesture
     label: str
-    description: Optional[str] = None
+    description: str | None = None
 
     @classmethod
     def FromJSON(cls, json: dict):
@@ -75,8 +74,8 @@ class TSkinModel:
     name: str
     hand: Hand
     date: datetime
-    gestures: List[ModelGesture]
-    touchs: List[ModelTouch]
+    gestures: list[ModelGesture]
+    touchs: list[ModelTouch]
 
     @classmethod
     def FromJSON(cls, json: dict):
@@ -95,4 +94,25 @@ class TSkinModel:
             "date": self.date.isoformat(),
             "gestures": [g.toJSON() for g in self.gestures],
             "touchs": [t.toJSON() for t in self.touchs]
+        }
+
+@dataclass
+class Scorer:
+    name: str
+    scorer_file: str
+    speech_file: str
+
+    @classmethod
+    def FromJSON(cls, json: dict):
+        return cls(
+            name=json["name"],
+            scorer_file=json["scorer_file"],
+            speech_file=json["speech_file"]
+        )
+    
+    def toJSON(self) -> dict:
+        return {
+            "name": self.name,
+            "scorer_file": self.scorer_file,
+            "speech_file": self.speech_file,
         }

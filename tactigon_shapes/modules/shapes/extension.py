@@ -30,7 +30,7 @@ from io import BytesIO
 from uuid import UUID, uuid4
 from queue import Queue
 from os import path, makedirs
-from typing import List, Optional, Tuple, Any
+from typing import Tuple, Any
 from pathlib import Path
 from flask import Flask
 from werkzeug.datastructures import FileStorage
@@ -76,12 +76,12 @@ class ShapeThread(ExtensionThread):
     _tskin: TSkin
     _keyboard: KeyboardController
     _logging_queue: LoggingQueue
-    _braccio_interface: Optional[BraccioInterface] = None
-    _zion_interface: Optional[ZionInterface] = None
-    _ironboy_interface: Optional[IronBoyInterface] = None
-    _ginos_interface: Optional[GinosInterface] = None
-    _mqtt_interface: Optional[MQTTClient] = None
-    _ros2_interface: Optional[Ros2Interface] = None
+    _braccio_interface: BraccioInterface | None = None
+    _zion_interface: ZionInterface | None = None
+    _ironboy_interface: IronBoyInterface | None = None
+    _ginos_interface: GinosInterface | None = None
+    _mqtt_interface: MQTTClient | None = None
+    _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
     
     def __init__(
@@ -90,10 +90,10 @@ class ShapeThread(ExtensionThread):
             app: ShapeConfig, 
             tskin: TSkin,
             keyboard: KeyboardController, 
-            braccio: Optional[BraccioInterface], 
-            zion: Optional[ZionInterface], 
+            braccio: BraccioInterface | None, 
+            zion: ZionInterface | None, 
             ros2: Ros2Interface | None,
-            ironboy: Optional[IronBoyInterface],
+            ironboy: IronBoyInterface | None,
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -122,39 +122,39 @@ class ShapeThread(ExtensionThread):
 
 
     @property
-    def braccio_interface(self) -> Optional[BraccioInterface]:
+    def braccio_interface(self) -> BraccioInterface | None:
         return self._braccio_interface
 
     @braccio_interface.setter
-    def braccio_interface(self, braccio_interface: Optional[BraccioInterface]):
+    def braccio_interface(self, braccio_interface: BraccioInterface | None):
         self._braccio_interface = braccio_interface
 
     @property
-    def zion_interface(self) -> Optional[ZionInterface]:
+    def zion_interface(self) -> ZionInterface | None:
         return self._zion_interface
 
     @zion_interface.setter
-    def zion_interface(self, zion_interface: Optional[ZionInterface]):
+    def zion_interface(self, zion_interface: ZionInterface | None):
         self._zion_interface = zion_interface
 
     @property
-    def ros2_interface(self) -> Optional[Ros2Interface]:
+    def ros2_interface(self) -> Ros2Interface | None:
         return self._ros2_interface
 
     @ros2_interface.setter
-    def ros2_interface(self, ros2_interface: Optional[Ros2Interface]):
+    def ros2_interface(self, ros2_interface: Ros2Interface | None):
         self._ros2_interface = ros2_interface
 
     @property
-    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+    def ironboy_interface(self) -> IronBoyInterface | None:
         return self.ironboy_interface
 
     @ironboy_interface.setter
-    def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
+    def ironboy_interface(self, ironboy_interface: IronBoyInterface | None):
         self._ironboy_interface = ironboy_interface
 
     @staticmethod
-    def debouce(tskin: Optional[TSkin]) -> bool:
+    def debouce(tskin: TSkin | None) -> bool:
         debouce_time = 0
         timeout = 0
         while tskin and timeout <= ShapeThread.TOUCH_DEBOUNCE_TIMEOUT:
@@ -288,20 +288,20 @@ class ShapeThread(ExtensionThread):
 
 class ShapesApp(ExtensionApp):
     config_file_path: str
-    config: List[ShapeConfig]
+    config: list[ShapeConfig]
     shapes_file_path: str
     keyboard: KeyboardController
-    current_id: Optional[UUID] = None
+    current_id: UUID | None = None
     logging_queue: LoggingQueue
-    in_flight_log: Optional[DebugMessage] = None
+    in_flight_log: DebugMessage | None = None
 
     _logger: logging.Logger
-    _ironboy_interface: Optional[IronBoyInterface] = None
-    _braccio_interface: Optional[BraccioInterface] = None
-    _zion_interface: Optional[ZionInterface] = None
+    _ironboy_interface: IronBoyInterface | None = None
+    _braccio_interface: BraccioInterface | None = None
+    _zion_interface: ZionInterface | None = None
     _ros2_interface: Ros2Interface | None = None
 
-    def __init__(self, config_path: str, flask_app: Optional[Flask] = None):
+    def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
         self.shapes_file_path = config_path
         self.keyboard = KeyboardController()
@@ -319,39 +319,39 @@ class ShapesApp(ExtensionApp):
         ExtensionApp.__init__(self, flask_app)
 
     @property
-    def braccio_interface(self) -> Optional[BraccioInterface]:
+    def braccio_interface(self) -> BraccioInterface | None:
         return self._braccio_interface
 
     @braccio_interface.setter
-    def braccio_interface(self, braccio_interface: Optional[BraccioInterface]):
+    def braccio_interface(self, braccio_interface: BraccioInterface | None):
         self._braccio_interface = braccio_interface
     
 
     @property
-    def zion_interface(self) -> Optional[ZionInterface]:
+    def zion_interface(self) -> ZionInterface | None:
         return self._zion_interface
 
     @zion_interface.setter
-    def zion_interface(self, zion_interface: Optional[ZionInterface]):
+    def zion_interface(self, zion_interface: ZionInterface | None):
         self._zion_interface = zion_interface
 
     @property
-    def ros2_interface(self) -> Optional[Ros2Interface]:
+    def ros2_interface(self) -> Ros2Interface | None:
         return self._ros2_interface
 
     @ros2_interface.setter
-    def ros2_interface(self, ros2_interface: Optional[Ros2Interface]):
+    def ros2_interface(self, ros2_interface: Ros2Interface | None):
         self._ros2_interface = ros2_interface
 
     @property
-    def ironboy_interface(self) -> Optional[IronBoyInterface]:
+    def ironboy_interface(self) -> IronBoyInterface | None:
         return self._ironboy_interface
 
     @ironboy_interface.setter
-    def ironboy_interface(self, ironboy_interface: Optional[IronBoyInterface]):
+    def ironboy_interface(self, ironboy_interface: IronBoyInterface | None):
         self._ironboy_interface = ironboy_interface
 
-    def get_log(self) -> Optional[DebugMessage]:
+    def get_log(self) -> DebugMessage | None:
         if self.in_flight_log:
             return self.in_flight_log
         
@@ -365,7 +365,7 @@ class ShapesApp(ExtensionApp):
         self._logger.debug("Logging read acknowledged")
         self.in_flight_log = None
 
-    def get_state(self, program_id: UUID) -> Optional[dict]:
+    def get_state(self, program_id: UUID) -> dict | None:
         try:
             folder_path = path.join(self.shapes_file_path, "programs", program_id.hex)
             state_file_path = path.join(folder_path, "state.json")
@@ -382,7 +382,7 @@ class ShapesApp(ExtensionApp):
 
         return None
 
-    def add(self, config: ShapeConfig, program: Optional[Program] = None) -> bool:
+    def add(self, config: ShapeConfig, program: Program | None = None) -> bool:
         self.save_config(config)
 
         if not program:
@@ -390,7 +390,7 @@ class ShapesApp(ExtensionApp):
 
         return self._save_files(config.id, program)
     
-    def save_config(self, config: Optional[ShapeConfig] = None):
+    def save_config(self, config: ShapeConfig | None = None):
         if config:
             found = False
 
@@ -508,16 +508,16 @@ class ShapesApp(ExtensionApp):
             self._logger.error("Error importing shape: %s", e)
             return None, f"Error importing shape: {e}"
 
-    def find_shape_by_id(self, config_id: UUID) -> Optional[ShapeConfig]:
+    def find_shape_by_id(self, config_id: UUID) -> ShapeConfig | None:
         return next(filter(lambda x: x.id == config_id, self.config), None)
 
-    def find_shape_by_name(self, name: str) -> Optional[ShapeConfig]:
+    def find_shape_by_name(self, name: str) -> ShapeConfig | None:
         return next((c for c in self.config if c.name.strip().lower() == name.strip().lower()), None)
 
-    def find_shape_by_name_and_not_id(self, name: str, config_id: UUID) -> Optional[ShapeConfig]:
+    def find_shape_by_name_and_not_id(self, name: str, config_id: UUID) -> ShapeConfig | None:
         return next((c for c in self.config if c.id != config_id and c.name.strip().lower() == name.strip().lower()), None)
 
-    def get_blocks_congfig(self, gestures: List[ModelGesture]) -> dict:
+    def get_blocks_congfig(self, gestures: list[ModelGesture]) -> dict:
         taps = []
 
         _finger_gestures = [OneFingerGesture, TwoFingerGesture]
@@ -544,7 +544,7 @@ class ShapesApp(ExtensionApp):
 
         return args
     
-    def get_shape(self, uuid: Optional[UUID] = None) -> Program:
+    def get_shape(self, uuid: UUID | None = None) -> Program:
         code = None
         program_file = None
 
@@ -566,7 +566,7 @@ class ShapesApp(ExtensionApp):
 
         return Program(state, code)
 
-    def start(self, config_id: UUID, tskin: TSkin) -> Optional[Tuple[bool, str]]:
+    def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
         if self.is_running:
             self.stop()
 

@@ -23,7 +23,7 @@ from enum import Enum
 from dataclasses import dataclass
 from datetime import datetime
 
-from typing import Any, Optional
+from typing import Any
 
 from tactigon_shapes.modules.ginos.models import GinosConfig
 from tactigon_shapes.modules.mqtt.models import MQTTConfig
@@ -46,7 +46,7 @@ class ShapesPostAction(Enum):
 @dataclass
 class Program:
     state: object
-    code: Optional[str] = None
+    code: str | None = None
 
 @dataclass
 class ShapeConfig:
@@ -54,12 +54,12 @@ class ShapeConfig:
     name: str
     created_on: datetime
     modified_on: datetime
-    description: Optional[str] = None
+    description: str | None = None
     readonly: bool = False
     app_file: str = "program.py"
-    ginos_config: Optional[GinosConfig] = None
-    ros2_config: Optional[Ros2ShapeConfig] = None
-    mqtt_config: Optional[MQTTConfig] = None
+    ginos_config: GinosConfig | None = None
+    ros2_config: Ros2ShapeConfig | None = None
+    mqtt_config: MQTTConfig | None = None
 
 
     @classmethod

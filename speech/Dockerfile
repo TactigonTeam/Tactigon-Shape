@@ -38,7 +38,7 @@ COPY deepspeech-0.9.3-models.tflite /app/deepspeech-0.9.3-models.tflite
 COPY shapes.scorer /app/shapes.scorer
 
 ENV TSS_ADDRESS=0.0.0.0
-ENV TSS_PORT=50006
+ENV TSS_PORT=50007
 ENV TSS_CONFIG=config.json
 
 CMD ["sh", "-c", "python3 -m tactigon_speech_socket -a $TSS_ADDRESS -p $TSS_PORT -c $TSS_CONFIG"]

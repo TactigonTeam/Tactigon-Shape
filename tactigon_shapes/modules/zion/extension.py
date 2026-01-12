@@ -23,7 +23,6 @@ import json
 import requests
 
 from flask import Flask
-from typing import Optional, List
 
 from tactigon_shapes.modules.zion.models import AlarmStatus, ZionConfig, Device, Scope, AlarmSearchStatus, AlarmSeverity
 
@@ -31,17 +30,17 @@ APPLICATION_JSON = 'application/json'
 
 class ZionInterface:
     config_file_path: str
-    config: Optional[ZionConfig]
+    config: ZionConfig | None
 
-    devices: List[Device] = []
+    devices: list[Device] = []
     _logger: logging.Logger
     
-    def __init__(self, config_file_path: str, app: Optional[Flask] = None):
+    def __init__(self, config_file_path: str, app: Flask | None = None):
         """inizialize app in Flask
 
         Args:
             config_file_path (str): the configuration file path
-            app (Optional[Flask], optional): Flask object. Defaults to None.
+            app (Flask | None, optional): Flask object. Defaults to None.
         """
         self.config_file_path = config_file_path
         self.load_config()
@@ -124,7 +123,7 @@ class ZionInterface:
             "alarmSearchStatus": [(s.name, s.value) for s in AlarmSearchStatus],
         }
     
-    def do_post(self, url: str, payload: object) -> Optional[requests.Response]:
+    def do_post(self, url: str, payload: object) -> requests.Response | None:
         """function used to make a POST request.
         header contains authentication token.
         error 401 is checked in case credentials fail or timeout
@@ -133,7 +132,7 @@ class ZionInterface:
             payload (object): the message we want to post
 
         Returns:
-            Optional[requests.Response]:request response
+            requests.Response | None:request response
         """
         if not self.config:
             return None
@@ -165,13 +164,13 @@ class ZionInterface:
                
         return None
 
-    def do_get(self, url: str) -> Optional[dict]:
+    def do_get(self, url: str) -> dict | None:
         """function used to make a GET request,
         error 401 is checked in case credentials fail or timeout
         Args:
             url (str): request URL
         Returns:
-            Optional[dict]: JSON of the response
+            dict | None: JSON of the response
         """
         if not self.config:
             return None
@@ -199,13 +198,13 @@ class ZionInterface:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
     
-    def do_delete(self, url: str) -> Optional[dict]:
+    def do_delete(self, url: str) -> dict | None:
         """function used to make a DELETE request,
         error 401 is checked in case credentials fail or timeout
         Args:
             url (str): request URL
         Returns:
-            Optional[dict]: response status code
+            dict | None: response status code
         """
 
         if not self.config:
@@ -235,7 +234,7 @@ class ZionInterface:
             return None
         
     
-    def refresh_token(self, url, username: str, password: str) -> Optional[str]:
+    def refresh_token(self, url, username: str, password: str) -> str | None:
         """make login to refresh auth token
 
         Args:
@@ -244,7 +243,7 @@ class ZionInterface:
             password (str): config password
 
         Returns:
-            Optional[str]: auth token 
+            str | None: auth token 
         """
         headers = {
             "Content-Type": APPLICATION_JSON,
@@ -267,7 +266,7 @@ class ZionInterface:
 
         return None
 
-    def get_devices(self, size: int = 20, page: int = 0) -> List[Device]:
+    def get_devices(self, size: int = 20, page: int = 0) -> list[Device]:
         """Populate device list trough connection with Zion Devices
 
         Returns:
@@ -298,7 +297,7 @@ class ZionInterface:
             
         return device_list
     
-    def device_last_telemetry(self, device_id: str, keys: str = "") -> Optional[dict]:
+    def device_last_telemetry(self, device_id: str, keys: str = "") -> dict | None:
         """returns the chosen device's last telemetry in json format,
         called by zion_device_last_telemetry
 
@@ -307,7 +306,7 @@ class ZionInterface:
             keys (str, optional): keys to filter result. Defaults to "".
 
         Returns:
-            Optional[dict]: dictionary
+            dict | None: dictionary
         """
         if not self.config:
             return None
@@ -327,7 +326,7 @@ class ZionInterface:
 
         return ret
     
-    def device_attr(self, device_id: str, scope: Scope = Scope.SERVER, keys: str = "") -> Optional[dict]:
+    def device_attr(self, device_id: str, scope: Scope = Scope.SERVER, keys: str = "") -> dict | None:
         """returns all attributes from chosen device,
         called by zion_device_attribute
 
@@ -337,7 +336,7 @@ class ZionInterface:
             keys (str, optional): can be used to filter. Defaults to "".
 
         Returns:
-            Optional[dict]: dict of device attributes
+            dict | None: dict of device attributes
         """
         if not self.config:
             return None
@@ -357,7 +356,7 @@ class ZionInterface:
 
         return ret
     
-    def device_alarm(self, device_id: str, severity: AlarmSeverity = AlarmSeverity.CRITICAL, search_status: AlarmSearchStatus = AlarmSearchStatus.ACTIVE, size: int = 20, page: int = 0) -> Optional[List[dict]]:
+    def device_alarm(self, device_id: str, severity: AlarmSeverity = AlarmSeverity.CRITICAL, search_status: AlarmSearchStatus = AlarmSearchStatus.ACTIVE, size: int = 20, page: int = 0) -> list[dict] | None:
         """Returns a page of alarms for the selected device.
         called by zion_device_alarm
         Args:
@@ -368,7 +367,7 @@ class ZionInterface:
             page (int, optional): Sequence number of page starting from 0. Defaults to 0.
 
         Returns:
-            Optional[List[dict]]: list of dicts
+            list[dict] | None: list of dicts
         """
         if not self.config:
             return None

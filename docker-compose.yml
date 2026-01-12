@@ -89,7 +89,7 @@ services:
       - tactigon-net
     environment:
       TSS_ADDRESS: tactigon-shapes
-      TSS_PORT: 50006
+      TSS_PORT: 50007
       TSS_CONFIG: config.json
 
   open-webui:

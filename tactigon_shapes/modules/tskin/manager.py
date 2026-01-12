@@ -21,7 +21,6 @@
 import sys
 from os import path
 from flask import current_app
-from typing import Optional, Union
 
 from tactigon_shapes.modules.tskin.models import TSkin, TSkinConfig, GestureConfig, SocketConfig, TSkinModel, Hand, TSpeech, TSpeechObject, HotWord
 
@@ -45,7 +44,7 @@ def stop_tskin():
 
     reset_tskin()
 
-def get_tskin() -> Optional[TSkin]:
+def get_tskin() -> TSkin | None:
     if TSKIN_EXTENSION in current_app.extensions:
         if isinstance(current_app.extensions[TSKIN_EXTENSION], TSkin):
             return current_app.extensions[TSKIN_EXTENSION]
@@ -69,8 +68,7 @@ def get_tskin_default_config(address: str, hand: Hand, name: str, model: TSkinMo
             ),
         ),
         SocketConfig(
-            host="0.0.0.0",
-            port=50006
+            host="0.0.0.0"
         ),
         TSpeechObject(
             [

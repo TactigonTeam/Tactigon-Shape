@@ -26,7 +26,7 @@ from functools import wraps
 from flask import Flask
 from werkzeug.datastructures import FileStorage
 
-from typing import Callable, Optional, Any
+from typing import Callable, Any
 
 from tactigon_shapes.modules.ros2.models import Ros2Config, Ros2Command, Ros2ShapeConfig, RosMessage, NodeAction, NodeActions, RosMessageTypes, get_message_name
 

@@ -3,14 +3,14 @@
     src: url('fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
 }
 
-html {
+html, body {
     height: 100%;
+    overflow: hidden;
 }
 
 body {
     background-color: #eee;
     font-family: 'Montserrat';
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -42,6 +42,8 @@ body.on_loading > #loading_spinner {
 /* Basic layout */
 
 main {
+    height: 100vh;
+    overflow: hidden;
     display: flex;
     flex: 1 1 auto;
 }
