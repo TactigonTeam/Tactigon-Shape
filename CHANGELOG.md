@@ -2,7 +2,6 @@
 
 Software name: Tactigon Shapes
 Project name: ONI107SHAP01
-Release code: 5.2.0.4-rc2
 
 ## REQUIREMENTS
 
@@ -14,13 +13,33 @@ Release code: 5.2.0.4-rc2
 
 ## DEPENDENCIES
 - Tactigon Skin firmware 5.0.7.1
-- Tactigon Gear 5.3.1
-- Tactigon Speech 5.0.10
+- Tactigon Gear 5.5.2
+- Tactigon Speech Socket 5.5.0.2
 
 ## TESTFILES
 - TESTBOOK_tactigonShape_V5
 
 ## CHANGELOG
+
+### 9/12/2025
+release code: 5.5.0.1
+
+- Upgraded TSkin to TSkinSocket in Shape in order to send audio stream over a socket
+- Created tactigon-speech-socket docker and added in the compose
+- Added open-webui docker to manage Ollama using a web browser
+
+BUGFIX:
+- Fixed deadloop on shape stop
+
+### 8/12/2025
+release code: 5.5.0.0
+
+- Added Import-Export features
+
+### 8/12/2025
+release code: 5.2.0.5
+
+- Added ROS2 compatible blocks
 
 ### 16/12/2025
 release code: 5.2.0.4-rc2

@@ -24,11 +24,9 @@ from enum import Enum
 from datetime import datetime
 from dataclasses import dataclass, field
 
-from typing import Optional, List
-
 import dateutil.parser
 
-def parse_datetime(date_string: Optional[str]) -> datetime:
+def parse_datetime(date_string: str | None) -> datetime:
     if not date_string:
         return datetime.now()
     
@@ -108,7 +106,7 @@ class LLMModelDetailsRequest:
     parent_model: str
     format: str
     family: str
-    families: List[str]
+    families: list[str]
     parameter_size: str
     quantization_level: str
 
@@ -130,7 +128,7 @@ class LLMModelRequest:
     modified_at: datetime
     size: int
     digest: str
-    details: Optional[LLMModelDetailsRequest]
+    details: LLMModelDetailsRequest | None
 
     @classmethod
     def FromJSON(cls, json: dict):
@@ -161,11 +159,11 @@ class LLMModelInfoRequest:
     llama_vocab_size: int
     tokenizer_ggml_bos_token_id: int
     tokenizer_ggml_eos_token_id: int
-    tokenizer_ggml_merges: List[str]
+    tokenizer_ggml_merges: list[str]
     tokenizer_ggml_model: str
     tokenizer_ggml_pre: str
-    tokenizer_ggml_token_type: List[str]
-    tokenizer_ggml_tokens: List[str]
+    tokenizer_ggml_token_type: list[str]
+    tokenizer_ggml_tokens: list[str]
 
     @classmethod
     def FromJSON(cls, json: dict):
@@ -216,10 +214,10 @@ class LLMPromptRequest:
     model: str
     prompt: str
     suffix: str = ""
-    images: List[str] = field(default_factory=list)
+    images: list[str] = field(default_factory=list)
     format: str = "json"
-    template: Optional[str] = None
-    context: Optional[str] = None
+    template: str | None = None
+    context: str | None = None
     stream: bool = True
     keep_alive: str = "5m"
 
@@ -243,7 +241,7 @@ class LLMPromptResponse:
     response: str
     done: bool
     done_reason: str
-    context: List[int] = field(default_factory=list)
+    context: list[int] = field(default_factory=list)
     prompt_eval_count: int = 0
     eval_count: int = 0
     total_duration: int = 0
@@ -279,8 +277,8 @@ class LLMPromptResponse:
 class LLMChatMessageRequest:
     role: LLMMessageRole
     content: str
-    images: Optional[str] = None
-    tools_call: List[str] = field(default_factory=list)
+    images: str | None = None
+    tools_call: list[str] = field(default_factory=list)
     keep_alive: str = "5m"
 
     def toJSON(self) -> dict:
@@ -293,8 +291,8 @@ class LLMChatMessageRequest:
 @dataclass
 class LLMChatRequest:
     model: str
-    messages: List[LLMChatMessageRequest]
-    tools: List[str] = field(default_factory=list)
+    messages: list[LLMChatMessageRequest]
+    tools: list[str] = field(default_factory=list)
 
     def toJSON(self) -> dict:
         c = dict(

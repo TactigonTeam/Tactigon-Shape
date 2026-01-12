@@ -102,6 +102,15 @@
       ]
     }
   ],
+  "SCORERS": [
+    {
+      "name": "shapes",
+      "scorer_file": "shapes.scorer",
+      "speech_file": "shapes.json"
+    }
+  ],
   "TSKIN": null,
-  "TSKIN_VOICE": null
+  "TSKIN_SOCKET": null,
+  "SELECTED_SCORER": null,
+  "TSKIN_SPEECH": null
 }

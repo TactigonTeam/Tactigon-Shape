@@ -27,10 +27,10 @@ from bleak import BleakClient
 from threading import Thread, Event
 from queue import Queue
 
-from typing import Optional, Tuple
+from typing import Tuple
 
-from .middleware import Solver
-from .models import BraccioConfig, BraccioCommand, BraccioPosition, CommandStatus, Wrist, Gripper
+from tactigon_shapes.modules.braccio.middleware import Solver
+from tactigon_shapes.modules.braccio.models import BraccioConfig, BraccioCommand, BraccioPosition, CommandStatus, Wrist, Gripper
 
 class Braccio(Thread):
     _TICK: float = 0.1
@@ -41,8 +41,8 @@ class Braccio(Thread):
 
     solver: Solver
     _stop_event: Event
-    _cmd_status: Optional[CommandStatus] 
-    client: Optional[BleakClient]
+    _cmd_status: CommandStatus | None
+    client: BleakClient | None
     _running: bool = False
     x_coord: float = 0
     y_coord: float = 0
@@ -137,7 +137,7 @@ class Braccio(Thread):
     def add_command(self, command: BraccioCommand):
         self.command_queue.put(command)
 
-    def get_command(self) -> Optional[BraccioCommand]:
+    def get_command(self) -> BraccioCommand | None:
         try:
             return self.command_queue.get_nowait()
         except Exception as e:
@@ -230,10 +230,10 @@ class Braccio(Thread):
 
 class BraccioInterface:
     config_file_path: str
-    config: Optional[BraccioConfig]
-    _thread: Optional[Braccio] = None
+    config: BraccioConfig | None
+    _thread: Braccio | None = None
 
-    def __init__(self, config_file_path: str, app: Optional[Flask] = None):
+    def __init__(self, config_file_path: str, app: Flask | None = None):
         self.config_file_path = config_file_path
         self.load_config()
         

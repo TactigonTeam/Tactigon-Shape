@@ -239,8 +239,11 @@
                     <i class="mi-round mi-extension" style="font-size: 24px"></i>
                 </a>
                 <div>
+                    <a href="{{ url_for('ros2.index') }}" class="text-decoration-none text-light" title="ROS 2">
+                        <i class="mi-round mi-keyboard-command-key" style="font-size: 24px"></i>
+                    </a>
                     {% if has_ironboy %}
-                        <a href="{{ url_for('ironboy.index') }}" class="btn btn-link text-decoration-none text-light" title="ironboy">
+                        <a href="{{ url_for('ironboy.index') }}" class="btn btn-link text-decoration-none text-light" title="Ironboy">
                             <i class="mi-round mi-smart-toy" style="font-size: 24px"></i>
                         </a>
                     {% endif %}

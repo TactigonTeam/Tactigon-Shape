@@ -17,10 +17,15 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
+import logging
 import argparse
 import signal
-from . import TactigonShapes
+from tactigon_shapes import TactigonShapes
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 def run():
     parser = argparse.ArgumentParser("Tactigon Shapes")

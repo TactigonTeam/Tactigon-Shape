@@ -78,11 +78,11 @@
 
 {% block body %}
 <div class="d-flex flex-grow-1">
-    <div class="d-flex flex-column sidebar-container">
-        <div class="text-center pb-3 pt-5">
+    <div class="d-flex flex-column justify-content-between sidebar-container">
+        <div class="text-center pb-3 pt-5 border-bottom">
             <h5>Shapes</h5>
         </div>
-        <div class="list-group list-group-flush flex-grow-1 sidebar" style="max-height: 70vh;">
+        <div class="list-group list-group-flush flex-grow-1 sidebar">
             {% for config in shapes_config %}
             <a href="{{ url_for('shapes.index', program_id=config.id) }}" class="list-group-item list-group-item-action
                 {% if config.id == current_config.id %}active{% endif %}
@@ -100,17 +100,21 @@
             </a>
             {% endfor %}
         </div>
-        <div class="mx-auto mt-auto py-3">
+        <div class="d-flex flex-column mt-auto p-3 gap-3">
             <button type="button" class="btn btn-outline-tskin" data-bs-toggle="modal" data-bs-target="#add">
                 <i class="bi bi-plus"></i>
-                Add Shape
+                Create Shape
+            </button>
+            <button type="button" class="btn btn-outline-tskin" data-bs-toggle="modal" data-bs-target="#import-shape" title="Import Shape">
+                <i class="bi bi-upload"></i>
+                Import Shape
             </button>
             <div class="modal fade" id="add" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <form action="{{ url_for('shapes.add') }}" method="POST">
                             <div class="modal-header">
-                                <h1 class="modal-title fs-5">Add Shape</h1>
+                                <h1 class="modal-title fs-5">Create Shape</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
                             </div>
@@ -159,7 +163,29 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-outline-secondary"
                                     data-bs-dismiss="modal">Close</button>
-                                <button class="btn btn-primary" type="submit">Add Shape</button>
+                                <button class="btn btn-primary" type="submit">Create Shape</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="import-shape" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form action="{{ url_for('shapes.import_shape') }}" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5">Import Shape</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="formFile" class="form-label">Please select the file to import into the Shape app.</label>
+                                    <input class="form-control" name="file" type="file" accept=".zip" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                <button class="btn btn-primary" type="submit">Import Shape</button>
                             </div>
                         </form>
                     </div>
@@ -181,21 +207,42 @@
                 </label>
             </div>
             <div class="btn-group">
-                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#clone"
-                    title="Clone Shape" {% if is_running and current_config.id==current_running_program %} disabled {%
-                    endif %}>
+                <button 
+                    type="button" 
+                    class="btn btn-link" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#clone"
+                    title="Clone Shape" 
+                    {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
                     <i class="bi bi-copy"></i>
                 </button>
             {% if not current_config.readonly %}
-                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#edit"
-                    title="Edit Shape" {% if is_running and current_config.id==current_running_program %} disabled {%
-                    endif %}>
+                <button 
+                    type="button" 
+                    class="btn btn-link" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#edit"
+                    title="Edit Shape" 
+                    {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#delete-shape"
-                    title="Delete Shaoe" {% if is_running and current_config.id==current_running_program %} disabled {%
-                    endif %}>
+                <button 
+                    type="button" 
+                    class="btn btn-link" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#delete-shape"
+                    title="Delete Shape" 
+                    {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
                     <i class="bi bi-trash text-danger"></i>
+                </button>
+                <button 
+                    type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#export-shape"
+                    class="btn btn-link" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#export-shape"
+                    title="Export Shape" 
+                    {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
+                    <i class="bi bi-box-arrow-down text-success"></i>
                 </button>
                 {% endif %}
             </div>
@@ -206,19 +253,16 @@
                         <form action="{{ url_for('shapes.save_config', program_id=current_config.id) }}" method="POST">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5">Edit Shape</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
                                     <label for="program-name" class="form-label">Name</label>
-                                    <input type="text" class="form-control" name="name" id="program-name"
-                                        value="{{current_config.name}}">
+                                    <input type="text" class="form-control" name="name" id="program-name" value="{{current_config.name}}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="programDescription" class="form-label">Description</label>
-                                    <textarea class="form-control" id="programDescription"
-                                        name="description">{{current_config.description}}</textarea>
+                                    <textarea class="form-control" id="programDescription" name="description">{{current_config.description}}</textarea>
                                 </div>
                                 <h6>Ginos</h6>
                                 <div class="row">
@@ -255,8 +299,7 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-outline-secondary"
-                                    data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
                                 <button class="btn btn-primary" type="submit">Update Shape</button>
                             </div>
                         </form>
@@ -275,8 +318,24 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <a href="{{ url_for('shapes.delete', program_id=current_config.id)}}"
-                                class="btn btn-danger">Delete</a>
+                            <a href="{{ url_for('shapes.delete', program_id=current_config.id)}}" class="btn btn-danger">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="modal fade" id="export-shape" tabindex="-1" aria-labelledby="export-shape" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="export-shape">Export {{current_config.name}}</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>This shape will be exported as a zip file.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-shape-export="{{ url_for('shapes.export_shape', program_id=current_config.id)}}" data-bs-dismiss="modal">Export</button>
                         </div>
                     </div>
                 </div>
@@ -288,8 +347,7 @@
                         <form action="{{ url_for('shapes.clone_config', program_id=current_config.id) }}" method="POST">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5">Clone {{current_config.name}} Shape</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
@@ -317,7 +375,8 @@
             <p>{{current_config.description | capitalize}}</p>
             {% if not current_config.readonly %}
             <div>
-                <a href="{{ url_for('shapes.edit', program_id=current_config.id) }}"
+                <a 
+                    href="{{ url_for('shapes.edit', program_id=current_config.id) }}"
                     class="btn btn-primary {% if is_running and current_config.id == current_running_program %} disabled {% endif %}">
                     <i class="bi bi-code-slash"></i> Edit code
                 </a>
@@ -351,9 +410,10 @@
         </div>
         {%else%}
         <div class="text-center my-auto">
-            <h3 class="text-dark">You currently have no programs.
-                <br />
-                Please click on "Add blockly program" to start creating programs.
+            <h3 class="text-dark">
+                You currently have no programs.
+                <br/>
+                Please click on "Create Shape" to start creating programs.
             </h3>
         </div>
         {% endif %}
@@ -412,8 +472,15 @@
         terminal.outerHeight(container_h-siblings_h);
     }
 
+    const log_buffer = [];
+
     $(document).ready(() => {
         const terminal = $("#terminal");
+
+        $(".active")[0].scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
 
         $("#run_application").change(function () {
             if (this.checked) {
@@ -421,35 +488,57 @@
             } else {
                 window.location.href = "{{ url_for('shapes.stop', program_id=current_config.id) }}";
             }
-        })
+        });
+
+        $("button[data-shape-export]").click(function(){
+            const exportUrl = $(this).data("shape-export");
+            window.location.href = exportUrl;
+            toast("File exported successfully!", "success");
+        });
 
         {% if current_config.id == current_running_program %}
-        socket.on("logging", (event) => {
-            if (terminal.find("span.ERROR").length > 0){
-                return;
-            }
-
-            if (event.message_type === "string"){
-                terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message}`));
-                return;
-            }
-
-            if (event.message_type === "prompt"){
-                const last_child = terminal.children().first();
-                if (last_child.attr('name') == event.message_type){
-                    const html = last_child.html();
-                    last_child.html(html+event.message.message);
+            socket.on("logging", (event, callback) => {
+                callback();
+                
+                if (terminal.find("span.ERROR").length > 0){
                     return;
                 }
 
-                terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message.message}`));
-                return;
-            }
-        });
-        resizeTerminal(terminal);
-        $(window).resize(() => {
-            resizeTerminal(terminal)
-        });
+                const log_string = `[${event.date}] ${event.severity}: ${event.message}`;
+
+                if (log_buffer.length >= 100){
+                    log_buffer.shift();
+                }
+
+                if (log_buffer.indexOf(log_string) > -1){
+                    return;
+                }
+
+                log_buffer.push(log_string);
+
+                if (event.message_type === "string"){
+                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(log_string));
+                    return;
+                }
+
+                if (event.message_type === "prompt"){
+                    const last_child = terminal.children().first();
+                    if (last_child.attr('name') == event.message_type){
+                        const html = last_child.html();
+                        last_child.html(html+event.message.message);
+                        return;
+                    }
+
+                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(log_string));
+                    return;
+                }
+            });
+
+            resizeTerminal(terminal);
+            
+            $(window).resize(() => {
+                resizeTerminal(terminal)
+            });
         {% endif %}
 
         loadCustomBlocks({{ blocks_config | tojson | safe }});

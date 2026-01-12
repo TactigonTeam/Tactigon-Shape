@@ -1,1 +1,1 @@
-docker build -t tactigon-shapes .
+docker build -t dev/tactigon-shapes .

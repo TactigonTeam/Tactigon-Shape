@@ -21,16 +21,15 @@
 import json
 import os
 import time
-from typing import Optional
 from flask import Flask
 from tactigon_ironboy import IronBoyConfig, IronBoy, IronBoyCommand
 
 class IronBoyInterface:
     config_file_path: str
-    config: Optional[IronBoyConfig]
-    _thread: Optional[IronBoy] = None
+    config: IronBoyConfig | None
+    _thread: IronBoy | None = None
 
-    def __init__(self, config_file_path: str, app: Optional[Flask] = None):
+    def __init__(self, config_file_path: str, app: Flask | None = None):
         self.config_file_path = config_file_path
         self.load_config()
         

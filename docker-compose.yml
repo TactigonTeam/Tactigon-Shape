@@ -1,3 +1,23 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
 networks:
   tactigon-net:
     name: tactigon-net
@@ -6,6 +26,7 @@ networks:
 volumes:
   ollama_data:
   tactigon-config:
+  open-webui:
 
 services:
   ollama:
@@ -35,14 +56,7 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     entrypoint: >
-      sh -c "
-      if ollama list | grep -q mistral; then
-        echo '✔ Mistral già presente';
-      else
-        echo '⬇ Pulling mistral model...';
-        ollama pull mistral;
-      fi
-      "
+      sh -c "ollama pull mistral;"
     restart: "no"
 
   tactigon-shapes:
@@ -64,3 +78,29 @@ services:
       - tactigon-config:/app/config
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
+
+  speech:
+    build:
+      context: ./speech
+      dockerfile: Dockerfile
+    container_name: tactigon-speech-socket
+    restart: unless-stopped
+    networks:
+      - tactigon-net
+    environment:
+      TSS_ADDRESS: tactigon-shapes
+      TSS_PORT: 50007
+      TSS_CONFIG: config.json
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: always
+    networks:
+      - tactigon-net
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui:/app/backend/data
