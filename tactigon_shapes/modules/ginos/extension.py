@@ -20,6 +20,8 @@
 
 import json
 import logging
+import os
+from pathlib import Path
 import requests
 import httpx
 import time
@@ -191,3 +193,43 @@ class GinosInterface:
 
         return 500
 
+    def get_doc_content(self,file_path):
+        path = Path(file_path)
+        
+        if not path.exists():
+            return None
+            
+        extension = path.suffix.lower()
+        
+        try:
+            if extension in ['.txt', '.md', '.csv', '.json']:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+            else:
+                return None
+            
+        except Exception as e:
+            self._logger.error(e)
+            return None
+
+
+    def read_static_file(self, filename: str):
+        # Il percorso deve puntare alla cartella del BIND MOUNT nel docker-compose ( al momento non cè )
+        # poi il path è da mettere nelle config ?
+        if not filename:
+            return ""
+        
+        # base_folder = "/app/external_data"
+        # full_path = os.path.join(base_folder, filename)
+        
+        self._logger.debug(f"Apertura file: {filename}")
+        
+        content = self.get_doc_content(filename)
+        
+        if content is None:
+            self._logger.error(f"Errore: File '{filename}' non trovato o formato non supportato in {filename}")
+            return ""
+        else:
+            self._logger.info(f"File '{filename}' letto con successo.")
+            self._logger.debug(f"Contenuto: {content[:30]}...")
+            return content

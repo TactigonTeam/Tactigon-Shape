@@ -103,5 +103,34 @@
       "subscriptions": []
     },
     "mqtt_config": null
+  },
+  {
+    "id": "22cb07e9b699466e8f732c988bcd141c",
+    "name": "dsds",
+    "created_on": "2026-01-14T15:59:53.940287",
+    "modified_on": "2026-01-14T17:49:15.153330",
+    "description": "",
+    "readonly": false,
+    "ginos_config": {
+      "url": "http://ollama:11434",
+      "model": "tinyllama"
+    },
+    "ros2_config": {
+      "node_name": "dsds",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
   }
 ]

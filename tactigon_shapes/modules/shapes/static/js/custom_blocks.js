@@ -1178,7 +1178,7 @@ function loadGinosAIBlocks(ginos){
             "args0": [
                 {
                 "type": "input_value",
-                "name": "input_path",
+                "name": "text",
                 "check": "String"
                 }
             ],
@@ -1249,22 +1249,21 @@ function loadGinosAIBlocks(ginos){
             "helpUrl": ""
         },
         {
-            "type": "read_static_file",
-            "tooltip": "read from file.csv",
-            "helpUrl": "read from file.csv",
-            "message0": "Input file : %1",
+            "type": "ginos_read_static_file",
+            "tooltip": "read file content",
+            "helpUrl": "read file content",
+            "message0": "Input file path : %1",
             "args0": [
                 {
                     "type": "input_value",
-                    "name": "path",
+                    "name": "input_path",
                     "check": "String"
                 }
             ],
-            "previousStatement": null,
-            "nextStatement": null,
-            "colour": 15,
-            "inputsInline": false
+            "output": "String",
+            "colour": "#EB6152"
         }
+        
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1354,6 +1353,7 @@ import time
 import random
 import types
 import json
+import os
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -1577,31 +1577,13 @@ def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""
 
     return ginos.prompt(prompt_object)
 
-def get_doc_content(file_path):
-    path = Path(file_path)
-    
-    if not path.exists():
-        return None
-        
-    extension = path.suffix.lower()
-    
-    try:
-        if extension == '.txt' or extension == '.md':
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read()
-        else:
-            return None
-        
-    except Exception as e:
 
-        return None
-
-def summarize_text(ginos: GinosInterface | None,file_path: str):
+def summarize_text(ginos: GinosInterface | None, file_path: str = ""):
 
     if not ginos:
         return
     
-    extracted_file_content = get_doc_content(file_path)
+    extracted_file_content = ginos.get_doc_content(file_path)
     
     if not extracted_file_content:
         return None
@@ -1611,6 +1593,18 @@ def summarize_text(ginos: GinosInterface | None,file_path: str):
     response = ginos_ai_prompt(ginos, prompt_per_riassunto)
 
     return response
+
+def ginos_read_static_file(ginos,input_path, logging_queue):
+    if not ginos:
+        return ""
+
+    content = ginos.read_static_file(input_path)
+
+    if content is None:
+        debug(logging_queue, f"File {input_path} not found.")
+        return ""
+
+    return content
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -2131,16 +2125,17 @@ function defineGinosAIGenerators(){
     // };
     
     python.pythonGenerator.forBlock['ginos_summarize_text'] = function(block, generator) {
-    const text = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
+        const text = generator.valueToCode(block, 'text', python.Order.ATOMIC);
         var code = `summarize_text(ginos,${text},logging_queue)`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     }
 
-    // python.pythonGenerator.forBlock['read_static_file'] = function(block, generator) {
-    //     const filepath = generator.valueToCode(block, 'path', python.Order.ATOMIC);
-    //     var code = `extract_data(${filepath},logging_queue)`
-    //     return code;
-    // }
+     python.pythonGenerator.forBlock['ginos_read_static_file'] = function(block, generator) {
+        const filepath = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
+        var code = `ginos_read_static_file(ginos, ${filepath}, logging_queue)`
+        return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+     }
+     
 }
 
 function defineMQTTGenerators(){
@@ -2179,6 +2174,7 @@ function defineMQTTGenerators(){
         return code;
     }
 }
+
 
 function clean_topic_names(topic){
     return topic

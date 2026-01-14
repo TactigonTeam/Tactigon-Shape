@@ -663,13 +663,19 @@
                         </shadow>
                     </value>
                 </block>
+                <block type="ginos_read_static_file">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                </block>
+                {#
                 <block type="ginos_summarize_text">
                     <value name="input_path">
                         <shadow type="text">
                         </shadow>   
                     </value>
                 </block>
-                {#
                 <block type="ginos_ai_chat">
                     <value name="messages">
                         <shadow type="ginos_ai_chat_message">
