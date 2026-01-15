@@ -196,7 +196,10 @@ def edit(program_id: str):
     if not current_config:
         flash("Shape not found", category="danger")
         return redirect(url_for("shapes.index"))
-    
+
+    if not _shapes.check_if_code_exists(current_config.id):
+        flash("This Shape has no code yet, remember to save", category="warning")
+
     state = _shapes.get_state(current_config.id)
     gesture_list: list[ModelGesture] = []
 

@@ -382,6 +382,18 @@ class ShapesApp(ExtensionApp):
 
         return None
 
+    def check_if_code_exists(self, program_id: UUID) -> bool:
+        try:
+            folder_path = path.join(self.shapes_file_path, "programs", program_id.hex)
+            program_file_path = path.join(folder_path, "program.py")
+
+            return path.exists(program_file_path)
+
+        except Exception as e:
+            self._logger.error("Error checking code existence: %s", e)
+
+        return False
+    
     def add(self, config: ShapeConfig, program: Program | None = None) -> bool:
         self.save_config(config)
 
@@ -493,7 +505,6 @@ class ShapesApp(ExtensionApp):
                 with zf.open("config.json") as config_file, zf.open("state.json") as state_file:
                     data = json.load(config_file)
                     config = ShapeConfig.FromJSON(data)
-
                     config.id = uuid4()
                     state_data = json.load(state_file)
                     program = Program(
