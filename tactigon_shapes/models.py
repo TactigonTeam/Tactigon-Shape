@@ -31,6 +31,31 @@ BASE_PATH = getcwd()
 
 TACTIGON_GEAR = tactigon_gear_version
 
+default_scorers = [
+    Scorer("shapes", "shapes.scorer", "shapes.json").toJSON()
+]
+
+default_gestures = [
+    ModelGesture("up", "Up"),
+    ModelGesture("down", "Down"),
+    ModelGesture("push", "Push"),
+    ModelGesture("pull", "Pull"),
+    ModelGesture("twist", "Twist"),
+    ModelGesture("circle", "Circle"),
+    ModelGesture("swipe_r", "Swipe right"),
+    ModelGesture("swipe_l", "Swipe left"),
+]
+
+default_touchs = [
+    ModelTouch(OneFingerGesture.SINGLE_TAP, "Tap"),
+    ModelTouch(OneFingerGesture.TAP_AND_HOLD, "Tap and hold"),
+]
+
+default_models = [
+    TSkinModel("MODEL_01_LEFT", Hand.LEFT, datetime.now(), default_gestures, default_touchs).toJSON(),
+    TSkinModel("MODEL_01_RIGHT", Hand.RIGHT, datetime.now(), default_gestures, default_touchs).toJSON(),
+]
+
 @dataclass
 class AppConfig(object):
     DEBUG: bool
@@ -46,32 +71,12 @@ class AppConfig(object):
 
     @classmethod
     def Default(cls, file_path):
-        gestures = [
-            ModelGesture("up", "Up"),
-            ModelGesture("down", "Down"),
-            ModelGesture("push", "Push"),
-            ModelGesture("pull", "Pull"),
-            ModelGesture("twist", "Twist"),
-            ModelGesture("circle", "Circle"),
-            ModelGesture("swipe_r", "Swipe right"),
-            ModelGesture("swipe_l", "Swipe left"),
-        ]
-        touchs = [
-            ModelTouch(OneFingerGesture.SINGLE_TAP, "Tap"),
-            ModelTouch(OneFingerGesture.TAP_AND_HOLD, "Tap and hold"),
-        ]
-        scorer = [
-            Scorer("shapes", "shapes.scorer", "shapes.json")
-        ]
-        return cls(
-            DEBUG=True,
-            SECRET_KEY="change-me",
-            MODELS=[
-                TSkinModel("MODEL_01_LEFT", Hand.LEFT, datetime.now(), gestures, touchs),
-                TSkinModel("MODEL_01_RIGHT", Hand.RIGHT, datetime.now(), gestures, touchs),
-            ],
-            SCORERS=scorer,
-            file_path=file_path
+        return cls.FromJSON(
+            dict(
+                DEBUG=True,
+                SECRET_KEY="change-me",
+            ),
+            file_path        
         )
 
     @classmethod
@@ -84,15 +89,15 @@ class AppConfig(object):
         return cls(
             json["DEBUG"],
             json["SECRET_KEY"],
-            json["SEND_FILE_MAX_AGE_DEFAULT"],
-            [TSkinModel.FromJSON(f) for f in json.get("MODELS", [])],
-            [Scorer.FromJSON(s) for s in json.get("SCORERS", [])],
+            json.get("SEND_FILE_MAX_AGE_DEFAULT", 1),
+            [TSkinModel.FromJSON(f) for f in json.get("MODELS", default_models)],
+            [Scorer.FromJSON(s) for s in json.get("SCORERS", default_scorers)],
             TSkinConfig.FromJSON(json["TSKIN"]) if "TSKIN" in json and json["TSKIN"] is not None else None,
             SocketConfig.FromJSON(json["TSKIN_SOCKET"]) if "TSKIN_SOCKET" in json and json["TSKIN_SOCKET"] is not None else None,
             json.get("SELECTED_SCORER", None),
             TSpeechObject.FromJSON(json["TSKIN_SPEECH"]) if "TSKIN_SPEECH" in json and json["TSKIN_SPEECH"] is not None else None,
             file_path
-            )
+        )
     
     def toJSON(self) -> object:
         return {

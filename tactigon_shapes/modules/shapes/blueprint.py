@@ -229,6 +229,8 @@ def edit(program_id: str):
 
     blocks_config["ginos"] = get_ginos_blocks()
 
+
+    
     return render_template("shapes/edit.jinja",
                            current_config=current_config,
                            state=json.dumps(state),
@@ -454,7 +456,6 @@ def start(program_id: str):
     if not program:
         flash(f"Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
-    
     tskin = get_tskin()
     
     if not tskin:
