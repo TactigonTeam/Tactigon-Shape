@@ -230,7 +230,7 @@ def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""
     return ginos.prompt(prompt_object)
 
 
-def summarize_text(ginos: GinosInterface | None, file_path: str):
+def summarize_text(ginos: GinosInterface | None, file_path: str = ""):
 
     if not ginos:
         return
@@ -302,7 +302,7 @@ def tactigon_shape_setup(
         mqtt: MQTTClient | None,
         logging_queue: LoggingQueue):
 
-    debug(logging_queue, (ginos_read_static_file(ginos, '/home/sofdev25/Documenti/test.txt', logging_queue)))
+    debug(logging_queue, (ginos_read_static_file(ginos, '/home/sofdev25/Documenti/test.json', logging_queue)))
 
 def tactigon_shape_function(
         tskin: TSkin,
