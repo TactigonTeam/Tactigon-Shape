@@ -109,3 +109,6 @@ class ZionConfig:
             "password": self.password,
             "url": self.url
         }
+    
+    def is_valid(self) -> bool:
+        return self.username != "" and self.password != "" and self.url != ""
