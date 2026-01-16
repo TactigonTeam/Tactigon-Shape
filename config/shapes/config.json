@@ -106,17 +106,17 @@
   },
   {
     "id": "22cb07e9b699466e8f732c988bcd141c",
-    "name": "dsds",
+    "name": "ginos_host",
     "created_on": "2026-01-14T15:59:53.940287",
-    "modified_on": "2026-01-14T17:59:38.052288",
+    "modified_on": "2026-01-16T17:59:45.086424",
     "description": "",
     "readonly": false,
     "ginos_config": {
-      "url": "http://ollama:11434",
+      "url": "http://localhost:11434",
       "model": "tinyllama"
     },
     "ros2_config": {
-      "node_name": "dsds",
+      "node_name": "ginos_host",
       "publishers": [],
       "subscriptions": []
     },

@@ -257,6 +257,18 @@ def ginos_read_static_file(ginos,input_path, logging_queue):
         return ""
 
     return content
+def ginos_add_file_to_context(ginos: GinosInterface | None, file_path: str, logging_queue):
+
+    if not ginos:
+        return None
+
+    df = ginos.add_file_to_context(file_path)
+
+    if df is None:
+        debug(logging_queue, f"File {file_path} not found or error reading.")
+        return None
+
+    return df
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -302,7 +314,7 @@ def tactigon_shape_setup(
         mqtt: MQTTClient | None,
         logging_queue: LoggingQueue):
 
-    debug(logging_queue, (ginos_read_static_file(ginos, '/home/sofdev25/Documenti/test.json', logging_queue)))
+    debug(logging_queue, (ginos_add_file_to_context(ginos, '/home/sofdev25/Documenti/test.txt', logging_queue)))
 
 def tactigon_shape_function(
         tskin: TSkin,

@@ -1261,8 +1261,24 @@ function loadGinosAIBlocks(ginos){
                 }
             ],
             "output": "String",
-            "colour": "#EB6152"
+            "colour": "#AA4A44"
+        },
+        {
+            "type": "ginos_add_file_to_context",
+            "tooltip": "add file content to dataframe context",
+            "helpUrl": "add file content to dataframe context",
+            "message0": "add file content to dataframe context : %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "input_path",
+                    "check": "String"
+                }
+            ],
+            "output": "String",
+            "colour": "#702963"
         }
+            
         
     ]);
 
@@ -1605,6 +1621,18 @@ def ginos_read_static_file(ginos,input_path, logging_queue):
         return ""
 
     return content
+def ginos_add_file_to_context(ginos: GinosInterface | None, file_path: str, logging_queue):
+
+    if not ginos:
+        return None
+
+    df = ginos.add_file_to_context(file_path)
+
+    if df is None:
+        debug(logging_queue, f"File {file_path} not found or error reading.")
+        return None
+
+    return df
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -2130,12 +2158,18 @@ function defineGinosAIGenerators(){
         return [code, Blockly.Python.ORDER_ATOMIC];
     }
 
-     python.pythonGenerator.forBlock['ginos_read_static_file'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ginos_read_static_file'] = function(block, generator) {
         const filepath = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
         var code = `ginos_read_static_file(ginos, ${filepath}, logging_queue)`
         return [code, Blockly.Python.ORDER_FUNCTION_CALL];
-     }
-     
+    }
+
+        python.pythonGenerator.forBlock['ginos_add_file_to_context'] = function(block, generator) {
+        const filepath = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
+        var code = `ginos_add_file_to_context(ginos, ${filepath}, logging_queue)`
+        return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+    }
+
 }
 
 function defineMQTTGenerators(){

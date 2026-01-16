@@ -23,15 +23,15 @@
                     }
                   },
                   "block": {
-                    "type": "ginos_read_static_file",
-                    "id": "T34bLRh,$`?lXFDo4R*W",
+                    "type": "ginos_add_file_to_context",
+                    "id": "V@_1$n@QDZVJfF~st`?*",
                     "inputs": {
                       "input_path": {
                         "shadow": {
                           "type": "text",
-                          "id": "*jm*r0m5ii=#0/D*j;Er",
+                          "id": "D/O$eUXC=hpHm4h;|RaK",
                           "fields": {
-                            "TEXT": "/home/sofdev25/Documenti/test.json"
+                            "TEXT": "/home/sofdev25/Documenti/test.txt"
                           }
                         }
                       }
