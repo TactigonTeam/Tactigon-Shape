@@ -529,7 +529,9 @@
                         return;
                     }
 
-                    terminal.prepend($("<span/>", {class: event.severity, name: event.message_type}).html(log_string));
+                    terminal
+                        .prepend($("<span/>", {class: event.severity, name: event.message_type})
+                        .html(`[${event.date}] ${event.severity}: ${event.message.message}`));
                     return;
                 }
             });
