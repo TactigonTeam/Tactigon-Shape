@@ -17,6 +17,7 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
+import logging
 
 from threading import Thread, Event
 from flask import Flask
@@ -44,6 +45,7 @@ class SocketApp(SocketIO):
         self._stop_event = Event()
         self._tutorial_app = None
         self._last_connection_status = None
+        self._logger = logging.getLogger(SocketApp.__name__)
 
         if app:
             self.init_app(app)
@@ -127,8 +129,11 @@ class SocketApp(SocketIO):
         Stop reading Tactigon Skin's data from the socket
         """
         self._stop_event.set()
-
+        if self.socket_thread:
+            self.socket_thread.join()
+    
     def socket_emit_function(self, tskin: TSkin):
+        logging.info("Starting SocketIO Tactigon Skin thread")
         while not self._stop_event.is_set():
             braccio_status = False
             braccio_connection = False
@@ -164,3 +169,5 @@ class SocketApp(SocketIO):
                     self.emit("logging", msg.toJSON(), callback=self._shapes_app.logging_read)
                 
             self.sleep(SocketApp._TICK)  # type: ignore
+
+        logging.info("Stopped SocketIO Tactigon Skin thread")
