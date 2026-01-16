@@ -134,7 +134,7 @@ class ZionInterface:
         Returns:
             requests.Response | None:request response
         """
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return None
 
         headers = {
@@ -172,7 +172,7 @@ class ZionInterface:
         Returns:
             dict | None: JSON of the response
         """
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return None
 
         headers = {
@@ -207,7 +207,7 @@ class ZionInterface:
             dict | None: response status code
         """
 
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return None
 
         headers = {
@@ -275,7 +275,7 @@ class ZionInterface:
 
         device_list = []
 
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return device_list
         
         hasNext = True
@@ -308,7 +308,7 @@ class ZionInterface:
         Returns:
             dict | None: dictionary
         """
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return None
         
         url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/values/timeseries?useStrictDataTypes=true"
@@ -338,7 +338,7 @@ class ZionInterface:
         Returns:
             dict | None: dict of device attributes
         """
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return None
         
         url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/values/attributes/{scope.value}"
@@ -369,7 +369,7 @@ class ZionInterface:
         Returns:
             list[dict] | None: list of dicts
         """
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return None
         
         url = f"{self.config.url}api/alarm/DEVICE/{device_id}?searchStatus={search_status.value}&textSearch={severity.value}&pageSize={size}&page={page}"
@@ -401,7 +401,7 @@ class ZionInterface:
         Returns:
             bool: response code is 200
         """
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return False
         
         url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/timeseries/ANY?scope=ANY"
@@ -415,7 +415,7 @@ class ZionInterface:
         return res.status_code == 200
     
     def send_device_attr(self, device_id: str, payload: dict, scope: Scope = Scope.SERVER) -> bool:
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return False
         
         url = f"{self.config.url}api/plugins/telemetry/{device_id}/{scope.value}"
@@ -441,7 +441,7 @@ class ZionInterface:
         Returns:
             bool: connection was successful
         """
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return False
         
         url = f"{self.config.url}api/alarm"
@@ -476,7 +476,7 @@ class ZionInterface:
         Returns:
             bool: operation result
         """      
-        if not self.config:
+        if not self.config or not self.config.is_valid():
             return False
         if not self.token:
             token = self.refresh_token(self.config.url, self.config.username, self.config.password)
