@@ -527,7 +527,7 @@
                 </value>
             </block>
         </category>
-        {% if zion_config %}
+        {% if zion_config and zion_config.is_valid() %}
             <sep></sep>
             <category name="Zion API" colour="#6665DD">
                 <block type="device_list">

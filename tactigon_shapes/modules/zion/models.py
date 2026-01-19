@@ -28,7 +28,13 @@ class Scope(Enum):
     SHARED = "SHARED_SCOPE"
 
 class AlarmStatus(Enum):
+    ACK = "ACK"
+    ACTIVE = "ACTIVE"
+    ANY = "ANY"
+    CLEARED = "CLEARED"
+    UNACK = "UNACK"
     CLEARED_UNACK = "CLEARED_UNACK"
+    CLEARED_ACK = "CLEARED_ACK"
 
 class AlarmSearchStatus(Enum):
     ACK = "ACK"
@@ -36,6 +42,8 @@ class AlarmSearchStatus(Enum):
     ANY = "ANY"
     CLEARED = "CLEARED"
     UNACK = "UNACK"
+    CLEARED_UNACK = "CLEARED_UNACK"
+    CLEARED_ACK = "CLEARED_ACK"
 
 class AlarmSeverity(Enum):
     ANY = ""
@@ -45,6 +53,19 @@ class AlarmSeverity(Enum):
 class Id:
     entityType: str
     id: str
+
+    @classmethod
+    def FromZION(cls, json: dict):
+        return cls(
+            json["entityType"],
+            json["id"]
+        )
+
+    def toJSON(self) -> dict:
+        return {
+            "entityType": self.entityType,
+            "id": self.id
+        }
 
 @dataclass
 class Device:
@@ -57,11 +78,11 @@ class Device:
     @classmethod
     def FromZION(cls, json):
         return cls(
-            Id(json["id"]["entityType"],json["id"]["id"]),
+            Id.FromZION(json["id"]),
             json["name"],
             json["type"],
-            Id(json["tenantId"]["entityType"],json["tenantId"]["id"]),
-            Id(json["customerId"]["entityType"],json["customerId"]["id"]),
+            Id.FromZION(json["tenantId"]),
+            Id.FromZION(json["customerId"]),
         )
 
     def to_alarm(self) -> dict:
@@ -80,25 +101,34 @@ class Device:
             }
         }
     
+    def toJSON(self) -> dict:
+        return {
+            "id": self.id.toJSON(),
+            "name": self.name,
+            "type": self.type,
+            "tenantId": self.tenantId.toJSON(),
+            "customerId": self.customerId.toJSON()
+        }
+    
 @dataclass
 class DeviceAlarm:
-    id: str
+    id: Id
     severity: AlarmSeverity
     status: AlarmStatus
     startTs: int
 
     @classmethod
-    def FromJSON(cls, json: dict):
+    def FromZION(cls, json: dict):
         return cls(
-            json["id"],
+            Id.FromZION(json["id"]),
             AlarmSeverity[json["severity"]],
             AlarmStatus[json["status"]],
             json["startTs"]
         )
     
-    def toJSON(self) -> object:
+    def toJSON(self) -> dict:
         return {
-            "id": self.id,
+            "id": self.id.toJSON(),
             "severity": self.severity.value,
             "status": self.status.value,
             "startTs": self.startTs
@@ -127,7 +157,7 @@ class ZionConfig:
             json["url"] if "url" in json and json["url"] else cls.url
         )
     
-    def toJSON(self) -> object:
+    def toJSON(self) -> dict:
         return {
             "username": self.username,
             "password": self.password,

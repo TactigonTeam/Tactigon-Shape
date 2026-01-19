@@ -42,9 +42,10 @@ class ZionInterface:
             config_file_path (str): the configuration file path
             app (Flask | None, optional): Flask object. Defaults to None.
         """
+        self._logger = logging.getLogger(ZionInterface.__name__)
+
         self.config_file_path = config_file_path
         self.load_config()
-        self._logger = logging.getLogger(ZionInterface.__name__)
 
         if app:
             self.init_app(app)
@@ -56,7 +57,6 @@ class ZionInterface:
         """
         app.extensions[ZionInterface.__name__] = self
 
-    #properties for configuration and token setup
     @property
     def configured(self) -> bool:
         return False if self.config is None else True
@@ -74,13 +74,13 @@ class ZionInterface:
         if self.config:
             self.config.token = token
     
-    
     def load_config(self):
         """loads configuration from Zionconfig JSON
         """
         if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
             with open(self.config_file, "r") as f:
                 self.config = ZionConfig.FromJSON(json.load(f))
+                self._logger.info("Zion configuration loaded. %s", self.config)
                 self.devices = self.get_devices()
         else:
             self.config = None
@@ -98,9 +98,9 @@ class ZionInterface:
         with open(self.config_file, "w") as f:
             json.dump(config.toJSON(), f, indent=2)
 
+        self._logger.info("Zion configuration saved.")
         self.load_config()
 
-   
     def reset_config(self):
         """ remove config file and reloads it
         """
@@ -157,14 +157,15 @@ class ZionInterface:
                 self.token = token            
                 return self.do_post(url, payload)
 
-            return res.json()
+            self._logger.debug("POST %s payload: %s response: %s", url, payload, res.status_code)
+            return res
         
         except Exception as e:
             self._logger.warning("POST %s failed: %s", url, e)
                
         return None
 
-    def do_get(self, url: str) -> dict | None:
+    def do_get(self, url: str) -> requests.Response | None:
         """function used to make a GET request,
         error 401 is checked in case credentials fail or timeout
         Args:
@@ -192,13 +193,14 @@ class ZionInterface:
                 self.token = token            
                 return self.do_get(url)
 
-            return res.json()
+            self._logger.info("GET %s response: %s", url, res.status_code)
+            return res
 
         except Exception as e:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
     
-    def do_delete(self, url: str) -> dict | None:
+    def do_delete(self, url: str) -> requests.Response | None:
         """function used to make a DELETE request,
         error 401 is checked in case credentials fail or timeout
         Args:
@@ -224,16 +226,17 @@ class ZionInterface:
                 if not token:
                     return None
                 
-                self.token = token            
-                return self.do_get(url)
+                self.token = token
+                return self.do_delete(url)        
 
-            return res.json()
+            self._logger.info("DELETE %s response: %s", url, res.status_code)
+            return res
 
         except Exception as e:
             self._logger.warning("DELETE %s failed: %s", url, e)
-            return None
-        
-    
+            
+        return None
+
     def refresh_token(self, url, username: str, password: str) -> str | None:
         """make login to refresh auth token
 
@@ -259,6 +262,7 @@ class ZionInterface:
             res.raise_for_status()
             
             data = res.json()
+            self._logger.info("Token refreshed successfully.")
             return data["token"]
 
         except Exception as e:
@@ -287,14 +291,17 @@ class ZionInterface:
             if not res:
                 break
 
-            for device in res["data"]:
+            devices = res.json()
+
+            for device in devices["data"]:
                 device_list.append(
                     Device.FromZION(device)
                 ) 
         
-            hasNext = res.get("hasNext", False)
+            hasNext = devices.get("hasNext", False)
             page += 1
-            
+        
+        self._logger.info("Retrieved %d devices from Zion.", len(device_list))
         return device_list
     
     def device_last_telemetry(self, device_id: str, keys: str = "") -> dict | None:
@@ -317,13 +324,17 @@ class ZionInterface:
 
         res = self.do_get(url)
 
-        if not res:
+        if not res or res.status_code != 200:
+            self._logger.error("Failed to retrieve telemetry for device %s: %s.", device_id, res.status_code if res else "No response")
             return None
+        
+        telemetry = res.json()
 
         ret = {}
-        for k in res:
-            ret[k] = res[k][0]["value"]
+        for k in telemetry:
+            ret[k] = telemetry[k][0]["value"]
 
+        self._logger.info("Retrieved telemetry for device %s: %s", device_id, ret)
         return ret
     
     def device_attr(self, device_id: str, scope: Scope = Scope.SERVER, keys: str = "") -> dict | None:
@@ -345,15 +356,19 @@ class ZionInterface:
         if keys:
             url += f"?keys={keys}"
 
-        attributes = self.do_get(url)
+        res = self.do_get(url)
 
-        if not attributes:
+        if not res or res.status_code != 200:
+            self._logger.error("Failed to retrieve attributes for device %s: %s.", device_id, res.status_code if res else "No response")
             return None
+        
+        attributes = res.json()
 
         ret = {}
         for attr in attributes:
             ret[attr["key"]] = attr["value"]
 
+        self._logger.info("Retrieved attributes for device %s: %s", device_id, ret)
         return ret
     
     def device_alarm(self, device_id: str, severity: AlarmSeverity = AlarmSeverity.CRITICAL, search_status: AlarmSearchStatus = AlarmSearchStatus.ACTIVE, size: int = 20, page: int = 0) -> list[DeviceAlarm]:
@@ -370,7 +385,7 @@ class ZionInterface:
             list[dict] | None: list of dicts
         """
 
-        alarms = []
+        alarms: list[DeviceAlarm] = []
         
         if not self.config or not self.config.is_valid():
             return alarms
@@ -378,21 +393,29 @@ class ZionInterface:
         hasNext = True
         
         while hasNext:
+            self._logger.warning("Fetching alarms for device %s, page %s.", device_id, page)
             url = f"{self.config.url}api/alarm/DEVICE/{device_id}?searchStatus={search_status.value}&textSearch={severity.value}&pageSize={size}&page={page}"
             res = self.do_get(url)
+            self._logger.info("GET response %s", res)
 
             if not res:
                 break
 
-            for alarm in res["data"]:
-                alarms.append(DeviceAlarm.FromJSON(alarm))
+            alarms_response = res.json()
+            self._logger.info("Alarms response: %s", alarms_response)
 
-            hasNext = res.get("hasNext", False)
+            for alarm in alarms_response["data"]:
+                alarms.append(DeviceAlarm.FromZION(alarm))
+
+            self._logger.info("Retrieved %d alarms in page %d for device %s.", len(alarms_response["data"]), page, device_id)
+
+            hasNext = alarms_response.get("hasNext", False)
             page += 1
+            self._logger.warning("New page %s.", page)   
 
+        self._logger.info("Retrieved %d alarms for device %s.", len(alarms), device_id)
         return alarms
 
-      
     def send_device_last_telemetry(self, device_id: str, payload: dict) -> bool:
         """Creates or updates the device time-series data based on the device Id and request payload.
         Args:
@@ -409,11 +432,13 @@ class ZionInterface:
 
         res = self.do_post(url, payload)
         
-
-        if not res:
+        if not res or res.status_code != 200:
+            self._logger.error("Failed to send telemetry to device %s: %s.", device_id, res.status_code if res else "No response")
             return False
         
-        return res.status_code == 200
+        self._logger.info("Telemetry sent to device %s: %s.", device_id, payload)
+        
+        return True
     
     def send_device_attr(self, device_id: str, payload: dict, scope: Scope = Scope.SERVER) -> bool:
         if not self.config or not self.config.is_valid():
@@ -421,13 +446,14 @@ class ZionInterface:
         
         url = f"{self.config.url}api/plugins/telemetry/{device_id}/{scope.value}"
 
-    
         res = self.do_post(url, payload)
 
-        if not res:
+        if not res or res.status_code != 200:
+            self._logger.error("Failed to send attributes to device %s: %s.", device_id, res.status_code if res else "No response")
             return False
         
-        return res.status_code == 200
+        self._logger.info("Attributes sent to device %s: %s.", device_id, payload)
+        return True
     
     def upsert_device_alarm(self, device_id: str, alarm_name: str, alarm_type: str, severity: AlarmSeverity = AlarmSeverity.CRITICAL, status: AlarmStatus = AlarmStatus.CLEARED_UNACK) -> bool:
         """insert or update device alarm,
@@ -460,9 +486,11 @@ class ZionInterface:
 
         res = self.do_post(url, payload)
 
-        if not res:
+        if not res or res.status_code != 200:
+            self._logger.error("Failed to insert alarm for device %s: %s.", device_id, res.status_code if res else "No response")
             return False
 
+        self._logger.info("Alarm inserted for device %s: %s.", device_id, payload)
         return True
 
     def delete_device_attr(self, device_id: str, scope: Scope = Scope.SERVER, key : str="") -> bool:
@@ -479,17 +507,21 @@ class ZionInterface:
         """      
         if not self.config or not self.config.is_valid():
             return False
+        
         if not self.token:
             token = self.refresh_token(self.config.url, self.config.username, self.config.password)
             if not token:
                 return False
             self.token = token
         
-        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/{scope}?keys={key}"
+        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/{scope.value}?keys={key}"
 
         res = self.do_delete(url)
-    
-        if res==200:
-            return True
-        else:
+
+        if not res or res.status_code != 200:
+            self._logger.error("Failed to delete attribute %s for device %s: %s.", key, device_id, res.status_code if res else "No response")
             return False
+        
+        self._logger.info("Attribute %s deleted for device %s.", key, device_id)
+
+        return True
