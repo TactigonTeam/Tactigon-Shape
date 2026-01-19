@@ -1527,10 +1527,7 @@ def zion_device_alarm(zion: ZionInterface | None, device_id: str, severity: Alar
     
     data = zion.device_alarm(device_id, severity, search_status)
 
-    if not data:
-        return []
-
-    return data
+    return [alarm.toJSON() for alarm in data]
 
 def zion_send_device_last_telemetry(zion: ZionInterface | None, device_id: str, key: str, data) -> bool:
     if not zion:

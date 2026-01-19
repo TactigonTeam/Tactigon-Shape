@@ -198,6 +198,10 @@ def edit(program_id: str):
         return redirect(url_for("shapes.index"))
     
     state = _shapes.get_state(current_config.id)
+
+    if not _shapes.get_code(current_config.id):
+        flash("Remember to save before leaving the page!", category="warning")
+
     gesture_list: list[ModelGesture] = []
 
     if app_config.TSKIN and app_config.TSKIN.gesture_config:

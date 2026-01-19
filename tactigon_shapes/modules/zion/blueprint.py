@@ -38,11 +38,12 @@ def index(edit: bool = False):
         flash("Zion interface not running", category="danger")
         return redirect(url_for("main.index"))
     
-    if not app.config:
+    if app.config and app.config.is_valid():
+        config = app.config
+    else:
         config = ZionConfig.Default()
         edit = True
-    else:
-        config = app.config
+        
     
     return render_template("zion/index.jinja", configured=app.configured, config=config, edit=edit, devices=app.devices)
 
