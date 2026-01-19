@@ -24,7 +24,6 @@ import requests
 import httpx
 import time
 import pandas
-import os
 
 from typing import Iterator
 
@@ -195,7 +194,7 @@ class GinosInterface:
 
         return 500
         
-    def check_file_validity(self,file_path) -> bool:
+    def check_file_validity(self, file_path: str) -> bool:
         path = Path(file_path)
 
         if not path.exists():
@@ -233,7 +232,7 @@ class GinosInterface:
         return ""
         
 
-    def file_to_dataframe(self,file_path: str):
+    def file_to_dataframe(self,file_path: str) -> pandas.DataFrame | None:
 
         if self.check_file_validity(file_path) is False:
             return None

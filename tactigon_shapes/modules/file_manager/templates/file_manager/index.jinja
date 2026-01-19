@@ -1,0 +1,85 @@
+{# #********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/ #}
+
+{% extends "base.jinja" %}
+
+{% block style %}
+
+{% endblock%}
+
+{% block body %}
+<div class="d-flex flex-grow-1">
+    <div class="d-flex flex-column justify-content-between sidebar-container">
+        <div class="text-center pb-3 pt-5 border-bottom">
+            <h5>Folders</h5>
+        </div>
+        <div class="list-group list-group-flush flex-grow-1 sidebar">
+            {% for folder in folders %}
+            <a href="{{ url_for('file_manager.index', folder=folder.name) }}"
+                class="list-group-item list-group-item-action {% if current_directory == folder.name %}active{% endif %}">
+                <i class="mi-outlined mi-folder{% if current_directory == folder.name %}-open{% endif %} me-2"></i>
+                {{ folder.name }}
+            </a>
+            {% endfor %}
+        </div>
+        <div class="d-flex flex-column mt-auto p-3 gap-3">
+            <button type="button" class="btn btn-outline-tskin" data-bs-toggle="modal" data-bs-target="#add_folder">
+                <i class="bi bi-plus"></i>
+                Add folder
+            </button>
+            <div class="modal fade" id="add_folder" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <form action="{{ url_for('file_manager.add_folder') }}" method="POST">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5">Add folder</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="program-name" class="form-label">Name</label>
+                                    <input type="text" class="form-control" name="name" id="program-name">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">Close</button>
+                                <button class="btn btn-primary" type="submit">Add folder</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex flex-column flex-fill m-3 gap-3">
+        {% if current_directory %}
+            <h5>{{ current_directory }}</h5>
+
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock%}
+
+{% block script %}
+
+{% endblock %}
