@@ -79,6 +79,30 @@ class Device:
                 "id": self.id.id
             }
         }
+    
+@dataclass
+class DeviceAlarm:
+    id: str
+    severity: AlarmSeverity
+    status: AlarmStatus
+    startTs: int
+
+    @classmethod
+    def FromJSON(cls, json: dict):
+        return cls(
+            json["id"],
+            AlarmSeverity[json["severity"]],
+            AlarmStatus[json["status"]],
+            json["startTs"]
+        )
+    
+    def toJSON(self) -> object:
+        return {
+            "id": self.id,
+            "severity": self.severity.value,
+            "status": self.status.value,
+            "startTs": self.startTs
+        }
 
 @dataclass
 class ZionConfig:
