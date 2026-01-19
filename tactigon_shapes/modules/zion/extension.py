@@ -24,7 +24,7 @@ import requests
 
 from flask import Flask
 
-from tactigon_shapes.modules.zion.models import AlarmStatus, ZionConfig, Device, Scope, AlarmSearchStatus, AlarmSeverity
+from tactigon_shapes.modules.zion.models import AlarmStatus, ZionConfig, Device, Scope, AlarmSearchStatus, AlarmSeverity, DeviceAlarm
 
 APPLICATION_JSON = 'application/json'
 
@@ -356,7 +356,7 @@ class ZionInterface:
 
         return ret
     
-    def device_alarm(self, device_id: str, severity: AlarmSeverity = AlarmSeverity.CRITICAL, search_status: AlarmSearchStatus = AlarmSearchStatus.ACTIVE, size: int = 20, page: int = 0) -> list[dict] | None:
+    def device_alarm(self, device_id: str, severity: AlarmSeverity = AlarmSeverity.CRITICAL, search_status: AlarmSearchStatus = AlarmSearchStatus.ACTIVE, size: int = 20, page: int = 0) -> list[DeviceAlarm]:
         """Returns a page of alarms for the selected device.
         called by zion_device_alarm
         Args:
@@ -369,28 +369,29 @@ class ZionInterface:
         Returns:
             list[dict] | None: list of dicts
         """
-        if not self.config or not self.config.is_valid():
-            return None
+
+        alarms = []
         
-        url = f"{self.config.url}api/alarm/DEVICE/{device_id}?searchStatus={search_status.value}&textSearch={severity.value}&pageSize={size}&page={page}"
+        if not self.config or not self.config.is_valid():
+            return alarms
 
-        alarms = self.do_get(url)
+        hasNext = True
+        
+        while hasNext:
+            url = f"{self.config.url}api/alarm/DEVICE/{device_id}?searchStatus={search_status.value}&textSearch={severity.value}&pageSize={size}&page={page}"
+            res = self.do_get(url)
 
-        if not alarms:
-            return None
+            if not res:
+                break
 
-        if page == 0:
-            ret = []
-            
-        for alarm in alarms["data"]:
-            ret.append({"id": alarm["id"]["id"], "severity": alarm["severity"], "status": alarm["status"], "startTs": alarm["startTs"]})
+            for alarm in res["data"]:
+                alarms.append(DeviceAlarm.FromJSON(alarm))
 
-        if alarms["hasNext"]:
-            others = self.device_alarm(device_id, severity, search_status, size, page+1)
-            if others:
-                ret.extend(others)
+            hasNext = res.get("hasNext", False)
+            page += 1
 
-        return ret
+        return alarms
+
       
     def send_device_last_telemetry(self, device_id: str, payload: dict) -> bool:
         """Creates or updates the device time-series data based on the device Id and request payload.
