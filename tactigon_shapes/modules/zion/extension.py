@@ -80,7 +80,7 @@ class ZionInterface:
         if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
             with open(self.config_file, "r") as f:
                 self.config = ZionConfig.FromJSON(json.load(f))
-                self._logger.info("Zion configuration loaded. %s", self.config)
+                self._logger.debug("Zion configuration loaded. %s", self.config)
                 self.devices = self.get_devices()
         else:
             self.config = None
@@ -193,7 +193,7 @@ class ZionInterface:
                 self.token = token            
                 return self.do_get(url)
 
-            self._logger.info("GET %s response: %s", url, res.status_code)
+            self._logger.debug("GET %s response: %s", url, res.status_code)
             return res
 
         except Exception as e:
@@ -229,7 +229,7 @@ class ZionInterface:
                 self.token = token
                 return self.do_delete(url)        
 
-            self._logger.info("DELETE %s response: %s", url, res.status_code)
+            self._logger.debug("DELETE %s response: %s", url, res.status_code)
             return res
 
         except Exception as e:
@@ -393,25 +393,19 @@ class ZionInterface:
         hasNext = True
         
         while hasNext:
-            self._logger.warning("Fetching alarms for device %s, page %s.", device_id, page)
             url = f"{self.config.url}api/alarm/DEVICE/{device_id}?searchStatus={search_status.value}&textSearch={severity.value}&pageSize={size}&page={page}"
             res = self.do_get(url)
-            self._logger.info("GET response %s", res)
 
             if not res:
                 break
 
             alarms_response = res.json()
-            self._logger.info("Alarms response: %s", alarms_response)
 
             for alarm in alarms_response["data"]:
                 alarms.append(DeviceAlarm.FromZION(alarm))
 
-            self._logger.info("Retrieved %d alarms in page %d for device %s.", len(alarms_response["data"]), page, device_id)
-
             hasNext = alarms_response.get("hasNext", False)
             page += 1
-            self._logger.warning("New page %s.", page)   
 
         self._logger.info("Retrieved %d alarms for device %s.", len(alarms), device_id)
         return alarms
@@ -473,12 +467,12 @@ class ZionInterface:
         
         url = f"{self.config.url}api/alarm"
 
-        device = list(filter(lambda d: d.id.id == device_id, self.devices))
+        device = next(filter(lambda d: d.id.id == device_id, self.devices), None)
 
         if not device:
             return False
         
-        payload = device[0].to_alarm()
+        payload = device.to_alarm()
         payload["name"] = alarm_name
         payload["type"] = alarm_type
         payload["severity"] = severity.value
