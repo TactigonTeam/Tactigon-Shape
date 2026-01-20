@@ -129,11 +129,11 @@ class TactigonShapes:
             def favicon():
                 return send_from_directory(path.join(flask_app.root_path, "static", "images"), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-            @flask_app.errorhandler(Exception)
-            def handle_exception(e):
-                # now you're handling non-HTTP exceptions only
-                current_app.logger.error(e)
-                return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form), 500
+            # @flask_app.errorhandler(Exception)
+            # def handle_exception(e):
+            #     # now you're handling non-HTTP exceptions only
+            #     current_app.logger.error("Exception while loading the page %s %s. Exception %s", request.method, request.url, e)
+            #     return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form), 500
 
             @flask_app.context_processor
             def inject_data():

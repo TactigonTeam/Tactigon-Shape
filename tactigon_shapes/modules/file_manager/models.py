@@ -19,12 +19,34 @@
 
 from os import path
 from dataclasses import dataclass, field
+from enum import Enum
+from datetime import datetime
 
+class ContentType(str, Enum):
+    FILE = "file"
+    FOLDER = "folder"
+    DIRECTORY = "directory"
 
 @dataclass
-class DirectoryItem:
+class ContentItem:
+    content_type: ContentType
+
+    @classmethod
+    def FromJSON(cls, json: dict) -> "ContentItem":
+        return cls(
+            content_type=json["content_type"]
+        )
+    
+    def toJSON(self) -> dict:
+        return {
+            "content_type": self.content_type,
+        }
+
+@dataclass
+class DirectoryItem(ContentItem):
     name: str
     base_path: str
+    content_type: ContentType = field(init=False, default=ContentType.DIRECTORY)
 
     @classmethod
     def FromJSON(cls, json: dict) -> "DirectoryItem":
@@ -35,29 +57,52 @@ class DirectoryItem:
     
     def toJSON(self) -> dict:
         return {
+            "content_type": self.content_type,
+            "name": self.name,
+            "base_path": self.base_path,
+        }
+    
+@dataclass
+class FolderItem(ContentItem):
+    name: str
+    base_path: str
+    content_type: ContentType = field(init=False, default=ContentType.FOLDER)
+
+    @classmethod
+    def FromJSON(cls, json: dict) -> "FolderItem":
+        return cls(
+            name=json.get("name", ""),
+            base_path=json.get("base_path", ""),
+        )
+    
+    def toJSON(self) -> dict:
+        return {
+            "content_type": self.content_type,
             "name": self.name,
             "base_path": self.base_path,
         }
 
 @dataclass
-class FileItem:
+class FileItem(ContentItem):
     name: str
     size: int
-    modified_time: str
+    modified_time: datetime
+    content_type: ContentType = field(init=False, default=ContentType.FILE)
 
     @classmethod
     def FromJSON(cls, json: dict) -> "FileItem":
         return cls(
             name=json.get("name", ""),
             size=json.get("size", 0),
-            modified_time=json.get("modified_time", ""),
+            modified_time=datetime.fromisoformat(json.get("modified_time", datetime.now().isoformat())),
         )
     
     def toJSON(self) -> dict:
         return {
+            "content_type": self.content_type,
             "name": self.name,
             "size": self.size,
-            "modified_time": self.modified_time,
+            "modified_time": self.modified_time.isoformat(),
         }   
 
 @dataclass
@@ -87,3 +132,7 @@ class FileManagerConfig:
             "base_path": self.base_path,
             "directories": [dir_item.toJSON() for dir_item in self.directories],
         }
+    
+class ItemAlreadyExists(Exception):
+    def __init__(self, message: str):
+        self.message = message
