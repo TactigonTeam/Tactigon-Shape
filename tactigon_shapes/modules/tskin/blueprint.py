@@ -66,12 +66,12 @@ def socket_settings():
         app_config.TSKIN_SOCKET = config
         app_config.save()
 
-        stop_tskin()
-
         socket_app = get_socket_app()
         if socket_app:
             socket_app.stop()
-        
+
+        stop_tskin()
+
         if app_config.TSKIN and app_config.TSKIN_SOCKET:
             load_tskin(app_config.TSKIN, app_config.TSKIN_SOCKET)
             tskin = start_tskin()
