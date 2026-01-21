@@ -21,6 +21,16 @@ Project name: ONI107SHAP01
 
 ## CHANGELOG
 
+### 21/01/2026
+release code: 5.5.0.2
+
+BUGFIX:
+- Added check to handle missing code warning
+- Fixed Zion interface to generalize calls and fix bug TCT-109 and TCT-110
+- Fixed device_alarm method
+- AI chat block append [Object object] on first stream message
+- Removed zion default credentials and added check for config validation
+
 ### 9/12/2025
 release code: 5.5.0.1
 
