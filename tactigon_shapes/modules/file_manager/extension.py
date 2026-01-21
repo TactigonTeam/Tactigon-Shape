@@ -200,6 +200,14 @@ class FileManagerExtension:
                 if os.path.exists(folder_path):
                     self._logger.info(f"Folder '{folder_path}' deleted")
                     shutil.rmtree(folder_path)
+            elif isinstance(item, DirectoryItem):
+                folder_path = os.path.join(item.base_path)
+                if os.path.exists(folder_path):
+                    self._logger.info(f"Directory '{folder_path}' deleted")
+                    shutil.rmtree(folder_path)
+                
+                self.config.directories = [d for d in self.config.directories if d != item]
+                self.save_config()
 
     def download_file(self, file_item: FileItem) -> tuple[io.BytesIO, str, str] | None:    
         if os.path.exists(file_item.path) and os.path.isfile(file_item.path):

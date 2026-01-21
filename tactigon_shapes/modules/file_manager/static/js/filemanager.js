@@ -14,7 +14,6 @@ class FileManager {
     init() {
         this.$container.empty();
 
-        this.buildMenu();
         this.buildSidebar();
         this.buildModals();
         this.buildBody();
@@ -27,10 +26,21 @@ class FileManager {
         $(window).resize((e) => {
             this._resizeTable();
         });
+
+        $(document).on('click.contextMenu', (e) => {
+            if (this.$contextMenu != undefined && !this.$contextMenu.is(e.target) && this.$contextMenu.has(e.target).length === 0) {
+                this.$contextMenu.remove();
+                this.$contextMenu = undefined;
+            }
+        });
+
+        $(document).on('contextmenu', (e) => {
+            e.preventDefault();
+        });
     }
 
     buildSidebar() {
-        this.$folderList = $('<div>', {
+        this.$directoryList = $('<div>', {
             class: 'list-group list-group-flush flex-grow-1 sidebar',
         });
 
@@ -42,7 +52,7 @@ class FileManager {
             }).append(
                 $('<h5>').text('Directories')
             ),
-            this.$folderList,
+            this.$directoryList,
             $('<div>', {
                 class: 'd-flex flex-column mt-auto p-3 gap-3'
             }).append($('<button>', {
@@ -375,6 +385,7 @@ class FileManager {
                             $("<i>", { class: "mi-outlined mi-refresh" })
                         ).on("click", (e) => {
                             e.preventDefault();
+                            this.listDirectory();
                             this.listFolderContent();
                             toast("Content refreshed!", "success")
                         }),
@@ -410,16 +421,16 @@ class FileManager {
             );
     }
 
-    buildMenu() {
-        this.$contextMenu = $('<div>', {
-            id: 'context_menu',
-            class: 'dropdown-menu shadow d-none'
-        })
-            .css({
-                position: 'absolute',
-                zIndex: 1055
-            })
-            .append(
+    buildMenu(item, top, left) {
+        if (this.$contextMenu != undefined) {
+            this.$contextMenu.remove();
+            this.$contextMenu = undefined;
+        }
+
+        let action = [];
+
+        if (item.item_type != "directory") {
+            action.push(
                 $('<button>', {
                     class: 'dropdown-item',
                     'data-action': 'download'
@@ -433,21 +444,34 @@ class FileManager {
                 }).append(
                     $('<i>', { class: 'mi-outlined mi-check-box me-2' }),
                     'Select'
-                ),
-                $('<button>', {
-                    class: 'dropdown-item',
-                    'data-action': 'delete'
-                }).append(
-                    $('<i>', { class: 'mi-outlined mi-delete me-2' }),
-                    'Delete'
                 )
-            )
+            );
+        }
+
+        action.push($('<button>', {
+            class: 'dropdown-item',
+            'data-action': 'delete'
+        }).append(
+            $('<i>', { class: 'mi-outlined mi-delete me-2' }),
+            'Delete'
+        ));
+
+        this.$contextMenu = $('<div>', {
+            class: 'dropdown-menu shadow'
+        })
+            .css({
+                top: top,
+                left: left,
+                position: 'absolute',
+                zIndex: 1055,
+                display: "block"
+            })
+            .append(action)
             .on('click', '.dropdown-item', (e) => {
                 e.preventDefault();
 
                 const el = $(e.currentTarget);
                 const action = el.data("action");
-                const item = this.$contextMenu.data("item");
 
                 switch (action) {
                     case 'download':
@@ -471,6 +495,12 @@ class FileManager {
 
                                 this.current_items = this.current_items.filter((e) => e !== item);
                                 toast("File removed!", "success");
+
+                                if (item.item_type == "directory") {
+                                    this.current_directory = "";
+                                    this.listDirectory();
+                                }
+                                
                                 this.updateBody();
                             })
                             .fail(err => {
@@ -480,17 +510,12 @@ class FileManager {
                         break;
                 }
 
-                this.$contextMenu.hide();
+                this.$contextMenu.remove();
+                this.$contextMenu = undefined;
                 this.updateBody();
             });
 
         this.$container.append(this.$contextMenu);
-
-        $(document).on('click.contextMenu', (e) => {
-            if (!this.$contextMenu.is(e.target) && this.$contextMenu.has(e.target).length === 0) {
-                this.$contextMenu.hide();
-            }
-        });
     }
 
     updateBody() {
@@ -601,11 +626,7 @@ class FileManager {
         let left = e.pageX;
         let top = e.pageY;
 
-        this.$contextMenu
-            .data("item", item)
-            .css({ top, left })
-            .show() // basta .show() di jQuery
-            .removeClass('d-none'); // se vuoi compatibilità classi
+        this.buildMenu(item, top, left);
     }
 
     sortItems(items) {
@@ -624,21 +645,26 @@ class FileManager {
             method: "GET",
         })
             .done((response) => {
-                this.$folderList.empty();
-                response.directories.forEach((folder) => {
-                    const $folderItem = $('<a>', {
-                        href: '#',
-                        class: 'list-group-item list-group-item-action' + (folder.name === this.current_directory ? ' active' : ''),
-                        html: [$("<i>", { class: 'mi-outlined mi-folder me-2' }), folder.name],
-                    }).click((e) => {
-                        e.preventDefault();
-                        this.$folderList.children().removeClass('active');
-                        $(e.currentTarget).addClass('active');
-                        this.listDirectoryContent(folder.name)
-                    });
+                this.$directoryList.empty();
+                this.$directoryList.append(
+                    $.map(response.directories, (folder, i) => {
+                        return $('<a>', {
+                            href: '#',
+                            class: 'list-group-item list-group-item-action' + (folder.name === this.current_directory ? ' active' : ''),
+                            html: [$("<i>", { class: 'mi-outlined mi-folder me-2' }), folder.name],
+                        }).click((e) => {
+                            e.preventDefault();
+                            this.$directoryList.children().removeClass('active');
+                            $(e.currentTarget).addClass('active');
+                            this.listDirectoryContent(folder.name)
+                        }).on("contextmenu", (e) => {
+                            e.preventDefault();
+                            console.log(e)
+                            this.showContextMenu(e, folder);
+                        })
+                    })
+                )
 
-                    this.$folderList.append($folderItem);
-                });
             })
             .fail(err => {
                 console.error(err);
@@ -671,14 +697,15 @@ class FileManager {
         this._ajax({
             url: `directories/${encodeURIComponent(directoryName)}/content`,
             method: "GET",
-        }).done((res) => {
-            this.current_directory = directoryName;
-            this.current_path = [];
-            this.current_path.push(directoryName);
-            this.selected_items = []
-            this.sortItems(res.items);
-            this.updateBody();
         })
+            .done((res) => {
+                this.current_directory = directoryName;
+                this.current_path = [];
+                this.current_path.push(directoryName);
+                this.selected_items = []
+                this.sortItems(res.items);
+                this.updateBody();
+            })
             .fail(err => {
                 console.error(err);
                 toast(err.responseJSON.error, 'danger');
