@@ -17,19 +17,6 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-const sidebar_resize = () => {
-    const navbars_h = $("body>nav").map((e, i)=>{
-        return i.offsetHeight;
-    }).toArray().reduce((a,b)=> a+b, 0);
-
-    const windows_h = $(window).height();
-    const sidebar = $(".sidebar");
-    const siblings_h = sidebar.siblings().map((e, i)=>{return i.offsetHeight;}).toArray();
-    const sibling_h = Math.max(...siblings_h);
-    const sidebar_h = windows_h-navbars_h;
-
-    $(".sidebar").outerHeight(sidebar_h > sibling_h ? sidebar_h : sibling_h);
-}
 
 function round(value, precision) {
     var multiplier = Math.pow(10, precision || 0);
@@ -179,14 +166,6 @@ var last_braccio_connection_status = undefined;
 var last_ironboy_connection_status = undefined;
 
 $(()=>{
-    /*
-    sidebar_resize()
-
-    $(window).on("resize", ()=>{
-        sidebar_resize()
-    });
-    */
-    
     const tskin = $("#tskin-management");
     const braccio = $("#braccio-management");
     const ironboy = $("#ironboy-management")

@@ -8,7 +8,7 @@ class FileManager {
         this.current_directory = "";
         this.current_path = [];
         this.current_items = [];
-        this.selected_item = [];
+        this.selected_items = [];
     }
 
     init() {
@@ -19,10 +19,14 @@ class FileManager {
         this.buildModals();
         this.buildBody();
 
-        this.$container.append(this.$sidebarContainer, this.$filesContent);
+        this.$container.append(this.$sidebarContainer, this.$itemsContent);
 
         this.listDirectory();
         this.updateBody();
+
+        $(window).resize((e) => {
+            this._resizeTable();
+        });
     }
 
     buildSidebar() {
@@ -269,16 +273,20 @@ class FileManager {
             $("<i>", { class: "mi-outlined mi-folder text-muted" }).css("fontSize", "48px"),
             $("<span>").text("Folder is empty")
         );
-        this.$folderContentContainer = $("<table>", { class: "table table-sm table-hover table-borderless" }).append(
-            $("<thead>").append(
-                $("<tr>").append(
-                    $("<th>").css("width", "80%").text("Name"),
-                    $("<th>").text("Size"),
-                    $("<th>").text("Modified"),
-                )
-            ),
-            this.$currentFolderContent
-        );
+        this.$folderContentContainer = $("<div>", { class: "table-wrapper" })
+            .append(
+                $("<table>", { class: "table table-sm table-hover table-borderless" })
+                    .append(
+                        $("<thead>").append(
+                            $("<tr>").append(
+                                $("<th>").text("Name"),
+                                $("<th>", { class: "fixed-100px" }).text("Size"),
+                                $("<th>", { class: "fixed-100px" }).text("Modified"),
+                            )
+                        ),
+                        this.$currentFolderContent
+                    )
+            );
 
         this.$breadcrumb = $("<ol>", { class: "breadcrumb my-auto" });
         this.$backButton = $("<button>", { type: "button", class: "btn btn-link text-secondary" })
@@ -292,93 +300,186 @@ class FileManager {
                 }
             });
 
-        this.$filesContent = $('<div>', {
-            class: 'd-flex flex-column flex-fill m-3 gap-3',
+        this.$downloadItemsButton = $("<button>", {
+            type: "button",
+            class: "btn btn-outline-secondary btn-sm",
+            title: "Download file"
         }).append(
-            $("<div>", { class: "btn-toolbar" }).append(
-                $("<div>", { class: "btn-group" }).append(
-                    $("<button>", {
-                        type: "button",
-                        class: "btn btn-outline-secondary btn-sm",
-                        title: "Refresh"
-                    }).append(
-                        $("<i>", { class: "mi-outlined mi-refresh" })
-                    ).on("click", (e) => {
-                        e.preventDefault();
-                        this.listFolderContent();
-                        toast("Content refreshed!", "success")
-                    }),
-                    $("<button>", {
-                        type: "button",
-                        class: "btn btn-outline-secondary btn-sm",
-                        title: "Upload file",
-                        'data-bs-toggle': 'modal',
-                        'data-bs-target': '#add_file'
-                    }).append(
-                        $("<i>", { class: "mi-outlined mi-file-upload" })
-                    ),
-                    $("<button>", {
-                        type: "button",
-                        class: "btn btn-outline-secondary btn-sm",
-                        title: "Create directory",
-                        'data-bs-toggle': 'modal',
-                        'data-bs-target': '#add_folder'
-                    }).append(
-                        $("<i>", { class: "mi-outlined mi-create-new-folder" })
-                    ),
-                )
+            $("<i>", { class: "mi-outlined mi-file-download" })
+        ).click((e) => {
+            e.preventDefault();
+            this.downloadItems(this.current_directory, this.selected_items)
+                .done((blob, status, xhr) => {
+                    this._saveFile(blob, status, xhr);
+                    this.selected_items = [];
+                    this.updateBody();
+                })
+                .fail(err => {
+                    console.error(err);
+                    toast(err.responseJSON.error, 'danger');
+                });
+        });
+
+        this.$deleteItemsButton = $("<button>", {
+            type: "button",
+            class: "btn btn-outline-secondary text-danger btn-sm",
+            title: "Delete items",
+            // 'data-bs-toggle': 'modal',
+            // 'data-bs-target': '#add_folder'
+        }).append(
+            $("<i>", { class: "mi-outlined mi-delete" })
+        ).click((e) => {
+            e.preventDefault();
+            this.deleteItems(this.current_directory, this.selected_items)
+                .done((res) => {
+                    if (!res.success) {
+                        toast(res.error, res.severity);
+                        return;
+                    }
+
+                    this.listFolderContent();
+                    toast("Items removed!", "success")
+                })
+                .fail(err => {
+                    console.error(err);
+                    toast(err.responseJSON.error, 'danger');
+                });
+        });
+
+        this.$itemsBodyContent = $("<div>", {
+            class: "card-body p-1 h-100"
+        }).append(
+            $("<div>", { class: "d-flex justify-content-between", id: "navigation" }).append(
+                this.$backButton,
+                $("<nav>", { class: "breadcrumb m-0" }).append(
+                    this.$breadcrumb
+                ),
+                $("<div>") // Placeholder for alignment
             ),
-            $("<div>", {
-                class: "d-flex flex-fill card"
-            }).append(
-                $("<div>", {
-                    class: "card-body p-1"
-                }).append(
-                    $("<div>", { class: "d-flex justify-content-between" }).append(
-                        this.$backButton,
-                        $("<nav>", { class: "breadcrumb m-0" }).append(
-                            this.$breadcrumb
-                        ),
-                        $("<div>") // Placeholder for alignment
-                    ),
-                    this.$folderContentContainer,
-                    this.$emptyFolderContent
-                )
-            )
+            this.$folderContentContainer,
+            this.$emptyFolderContent
         );
+
+        this.$itemsContent = $('<div>', {
+            class: 'd-flex flex-column flex-fill p-3 gap-3',
+        })
+            // .css("max-height", "600px")
+            .append(
+                $("<div>", { class: "btn-toolbar gap-3", id: "toolbar" }).append(
+                    $("<div>", { class: "btn-group" }).append(
+                        $("<button>", {
+                            type: "button",
+                            class: "btn btn-outline-secondary btn-sm",
+                            title: "Refresh"
+                        }).append(
+                            $("<i>", { class: "mi-outlined mi-refresh" })
+                        ).on("click", (e) => {
+                            e.preventDefault();
+                            this.listFolderContent();
+                            toast("Content refreshed!", "success")
+                        }),
+                        $("<button>", {
+                            type: "button",
+                            class: "btn btn-outline-secondary btn-sm",
+                            title: "Create directory",
+                            'data-bs-toggle': 'modal',
+                            'data-bs-target': '#add_folder'
+                        }).append(
+                            $("<i>", { class: "mi-outlined mi-create-new-folder" })
+                        )
+                    ),
+                    $("<div>", { class: "btn-group" }).append(
+                        $("<button>", {
+                            type: "button",
+                            class: "btn btn-outline-secondary btn-sm",
+                            title: "Upload file",
+                            'data-bs-toggle': 'modal',
+                            'data-bs-target': '#add_file'
+                        }).append(
+                            $("<i>", { class: "mi-outlined mi-file-upload" })
+                        ),
+                        this.$downloadItemsButton,
+                        this.$deleteItemsButton
+                    )
+                ),
+                $("<div>", {
+                    class: "d-flex flex-fill card"
+                }).append(
+                    this.$itemsBodyContent
+                )
+            );
     }
 
     buildMenu() {
         this.$contextMenu = $('<div>', {
             id: 'context_menu',
             class: 'dropdown-menu shadow d-none'
-        }).css({
-            position: 'absolute',
-            zIndex: 1055
         })
+            .css({
+                position: 'absolute',
+                zIndex: 1055
+            })
             .append(
+                $('<button>', {
+                    class: 'dropdown-item',
+                    'data-action': 'download'
+                }).append(
+                    $('<i>', { class: 'mi-outlined mi-file-download me-2' }),
+                    'Download'
+                ),
                 $('<button>', {
                     class: 'dropdown-item',
                     'data-action': 'select'
                 }).append(
                     $('<i>', { class: 'mi-outlined mi-check-box me-2' }),
                     'Select'
+                ),
+                $('<button>', {
+                    class: 'dropdown-item',
+                    'data-action': 'delete'
+                }).append(
+                    $('<i>', { class: 'mi-outlined mi-delete me-2' }),
+                    'Delete'
                 )
             )
             .on('click', '.dropdown-item', (e) => {
                 e.preventDefault();
-                // const action = $(this).data('action');
+
                 const el = $(e.currentTarget);
                 const action = el.data("action");
                 const item = this.$contextMenu.data("item");
 
                 switch (action) {
+                    case 'download':
+                        this.downloadItems(this.current_directory, [item])
+                            .done(this._saveFile)
+                            .fail(err => {
+                                console.error(err);
+                                toast(err.responseJSON.error, 'danger');
+                            });
+                        break;
                     case 'select':
-                        this.selected_item.push(item)
+                        this.selected_items.push(item)
+                        break;
+                    case 'delete':
+                        this.deleteItems(this.current_directory, [item])
+                            .done((res) => {
+                                if (!res.success) {
+                                    toast(res.error, res.severity);
+                                    return;
+                                }
+
+                                this.current_items = this.current_items.filter((e) => e !== item);
+                                toast("File removed!", "success");
+                                this.updateBody();
+                            })
+                            .fail(err => {
+                                console.error(err);
+                                toast(err.responseJSON.error, 'danger');
+                            });
                         break;
                 }
 
-                // Nascondi il menu
                 this.$contextMenu.hide();
                 this.updateBody();
             });
@@ -386,7 +487,6 @@ class FileManager {
         this.$container.append(this.$contextMenu);
 
         $(document).on('click.contextMenu', (e) => {
-            // Se il click NON è dentro il menu, nascondi
             if (!this.$contextMenu.is(e.target) && this.$contextMenu.has(e.target).length === 0) {
                 this.$contextMenu.hide();
             }
@@ -398,11 +498,11 @@ class FileManager {
         this.$breadcrumb.empty();
 
         if (this.current_directory == "") {
-            this.$filesContent.addClass("d-none");
+            this.$itemsContent.addClass("d-none");
             return;
         }
 
-        this.$filesContent.removeClass("d-none");
+        this.$itemsContent.removeClass("d-none");
 
         this.$breadcrumb.append(
             $.map(this.current_path, (part, index) => {
@@ -432,8 +532,8 @@ class FileManager {
         this.$currentFolderContent.append(
             $.map(this.current_items, (item) => {
                 var selection_checkbox = "";
-                if (this.selected_item.length > 0) {
-                    const checked = this.selected_item.indexOf(item) > -1;
+                if (this.selected_items.length > 0) {
+                    const checked = this.selected_items.indexOf(item) > -1;
 
                     selection_checkbox = $("<input>", {
                         type: "checkbox",
@@ -443,10 +543,10 @@ class FileManager {
                         const checkbox = $(e.currentTarget);
                         const checked = checkbox.prop("checked");
 
-                        if (!checked) {                            
-                            this.selected_item = this.selected_item.filter(i => i !== item);
+                        if (!checked) {
+                            this.selected_items = this.selected_items.filter(i => i !== item);
                         } else {
-                            this.selected_item.push(item);
+                            this.selected_items.push(item);
                         }
 
                         this.updateBody();
@@ -461,13 +561,13 @@ class FileManager {
                             $("<div>", { class: "form-check" }).append(
                                 selection_checkbox,
                                 $("<label>", { class: "form-check-label", for: item.name }).append(
-                                    `<i class="mi-outlined mi-${item.content_type === 'folder' ? 'folder' : 'file-open'} me-2"></i>`,
+                                    `<i class="mi-outlined mi-${item.item_type === 'folder' ? 'folder' : 'file-open'} me-2"></i>`,
                                     item.name
                                 )
                             )
                         ),
-                        $("<td>").text(item.size ? `${item.size} bytes` : ""),
-                        $("<td>").text(item.modified_time ? new Date(item.modified_time).toLocaleDateString() : ""),
+                        $("<td>", { class: "fixed-100px" }).text(item.size ? this._getFileSize(item.size) : ""),
+                        $("<td>", { class: "fixed-100px" }).text(item.modified_time ? new Date(item.modified_time).toLocaleDateString() : ""),
                     )
                     .on("contextmenu", (e) => {
                         e.preventDefault();
@@ -475,15 +575,25 @@ class FileManager {
                     })
                     .on("dblclick", (e) => {
                         e.preventDefault();
-                        if (item.content_type === 'folder') {
+                        if (item.item_type === 'folder') {
                             this.listFolderContent(item.name);
                         }
                     })
             })
         );
 
+        if (this.selected_items.length > 0) {
+            this.$deleteItemsButton.removeClass("disabled");
+            this.$downloadItemsButton.removeClass("disabled");
+        } else {
+            this.$deleteItemsButton.addClass("disabled");
+            this.$downloadItemsButton.addClass("disabled");
+        }
+
         this.$folderContentContainer.removeClass("d-none");
         this.$emptyFolderContent.addClass("d-none");
+
+        this._resizeTable();
     }
 
     showContextMenu(e, item) {
@@ -501,10 +611,10 @@ class FileManager {
     sortItems(items) {
         this.current_items = items;
         this.current_items.sort((a, b) => {
-            if (a.content_type === b.content_type) {
+            if (a.item_type === b.item_type) {
                 return a.name.localeCompare(b.name);
             }
-            return a.content_type === 'folder' ? -1 : 1;
+            return a.item_type === 'folder' ? -1 : 1;
         });
     }
 
@@ -565,7 +675,7 @@ class FileManager {
             this.current_directory = directoryName;
             this.current_path = [];
             this.current_path.push(directoryName);
-            this.selected_item = []
+            this.selected_items = []
             this.sortItems(res.items);
             this.updateBody();
         })
@@ -596,7 +706,7 @@ class FileManager {
             if (folderName != undefined && folderName != "") {
                 this.current_path.push(folderName);
             }
-            this.selected_item = []
+            this.selected_items = []
             this.sortItems(res.items);
             this.updateBody();
         })
@@ -626,6 +736,33 @@ class FileManager {
         });
     }
 
+    deleteItems(directoryName, items) {
+        return $.ajax({
+            url: `${this.baseUrl}directories/${encodeURIComponent(directoryName)}/files/delete`,
+            method: 'DELETE',
+            contentType: 'application/json',
+            data: JSON.stringify({ items: items }),
+            dataType: 'json'
+        }).then(res => {
+            if (!res.success) {
+                return $.Deferred().reject(res);
+            }
+            return res;
+        });
+    }
+
+    downloadItems(directoryName, items) {
+        return $.ajax({
+            url: `${this.baseUrl}directories/${encodeURIComponent(directoryName)}/files/download`,                         // es: '/api/file-manager/.../download'
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ items }),
+            xhrFields: {
+                responseType: 'blob'      // ricevi blob (ZIP)
+            },
+        });
+    }
+
     _ajax({ url, method = "GET", data = null }) {
         return $.ajax({
             url: this.baseUrl + url,
@@ -638,5 +775,51 @@ class FileManager {
             }
             return response;
         });
+    }
+
+    _saveFile(blob, status, xhr) {
+        let filename = `download.zip`;
+        const disposition = xhr.getResponseHeader("Content-Disposition");
+        if (disposition && disposition.indexOf("attachment") !== -1) {
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const matches = filenameRegex.exec(disposition);
+            if (matches != null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+    }
+
+    _resizeTable() {
+        const itemsContentHeight = this.$itemsContent.innerHeight();
+        const navigationHeight = this.$itemsBodyContent.find("#navigation").outerHeight();
+        const toolbarHeight = this.$itemsContent.find("#toolbar").outerHeight();
+
+        const table = itemsContentHeight - (2 * 4) - (16 * 3) - navigationHeight - toolbarHeight; // deve essere circa 730
+        this.$folderContentContainer.height(`${table}px`);
+    }
+
+    _getFileSize(size) {
+        if (size > 1000000) {
+            return `${round(size / 1000000, 2)} GB`
+        }
+
+        if (size > 1000) {
+            return `${round(size / 1000, 2)} MB`
+        }
+
+        if (size > 100) {
+            return `${round(size / 100, 2)} kB`
+        }
+
+        return `${round(size, 2)} bytes`
     }
 }

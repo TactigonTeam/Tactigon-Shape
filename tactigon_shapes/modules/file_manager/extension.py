@@ -20,6 +20,10 @@
 import logging
 import os
 import json
+import shutil
+import io
+import mimetypes
+import zipfile
 
 from datetime import datetime
 from flask import Flask
@@ -109,6 +113,7 @@ class FileManagerExtension:
                 if entry.is_file():
                     file_item = FileItem(
                         name=entry.name,
+                        path=entry.path,
                         size=entry.stat().st_size,
                         modified_time=datetime.now()
                     )
@@ -126,6 +131,7 @@ class FileManagerExtension:
                 if entry.is_file():
                     file_item = FileItem(
                         name=entry.name,
+                        path=entry.path,
                         size=entry.stat().st_size,
                         modified_time=datetime.fromtimestamp(entry.stat().st_mtime)
                     )
@@ -158,41 +164,116 @@ class FileManagerExtension:
         if file_path.endswith("/"):
             file_path = file_path[:-1]
 
-        self._logger.info("directory %s file_path %s", directory.base_path, file_path)
-
         full_path = os.path.join(directory.base_path, file_path)
+
+        self._logger.info("Adding file %s", full_path)
     
         if not os.path.exists(full_path):
+            self._logger.info("Path does not exists. Creating path...")
             os.makedirs(full_path)
 
-        file_path = os.path.join(full_path, content.filename or ".temp")
-        if os.path.exists(file_path):
+        file_full_path = os.path.join(full_path, content.filename or ".temp")
+        if os.path.exists(file_full_path):
             raise ItemAlreadyExists(f"File {content.filename} already exsists")
 
-        content.save(file_path)
+        content.save(file_full_path)
         
-        self._logger.info(f"File '{content.filename}' added to directory '{directory.name}'")
+        self._logger.info(f"File '{content.filename}' added to '{full_path}'")
         return FileItem(
             name=content.filename or ".temp",
+            path=file_full_path,
             size=content.content_length,
             modified_time=datetime.now()
         )
 
-    def delete_file(self, directory: DirectoryItem, file_name: str):
-        file_path = os.path.join(directory.base_path, file_name)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            os.remove(file_path)
-            self._logger.info(f"File '{file_name}' deleted from directory '{directory.name}'")
-        else:
-            self._logger.warning(f"File '{file_name}' not found in directory '{directory.name}'")
+    def delete_items(self, directory: DirectoryItem, items: list[ContentItem]):
+        self._logger.info("Removing %s items", len(items))
 
-    def get_file(self, directory: DirectoryItem, file_name: str) -> bytes | None:    
-        file_path = os.path.join(directory.base_path, file_name)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            with open(file_path, "rb") as f:
-                content = f.read()
-            self._logger.info(f"File '{file_name}' retrieved from directory '{directory.name}'")
-            return content
+        for item in items:
+            if isinstance(item, FileItem):
+                file_path = os.path.join(directory.base_path, item.name)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    self._logger.info(f"File '{file_path}' deleted")
+            elif isinstance(item, FolderItem):
+                folder_path = os.path.join(directory.base_path, item.base_path)
+                if os.path.exists(folder_path):
+                    self._logger.info(f"Folder '{folder_path}' deleted")
+                    shutil.rmtree(folder_path)
+
+    def download_file(self, file_item: FileItem) -> tuple[io.BytesIO, str, str] | None:    
+        if os.path.exists(file_item.path) and os.path.isfile(file_item.path):
+            self._logger.info("Downloading file %s", file_item.name)
+            file_buffer = io.BytesIO()
+            with open(file_item.path, "rb") as f:
+                file_buffer.write(f.read())
+            file_buffer.seek(0)
+            self._logger.info(f"File '{file_item.name}' retrieved")
+            return (file_buffer, mimetypes.guess_extension(file_item.name) or "", file_item.name)
         else:
-            self._logger.warning(f"File '{file_name}' not found in directory '{directory.name}'")
+            self._logger.error("Cannot download file %s with path %s", file_item.name, file_item.path)
+            self._logger.warning(f"File '{file_item.name}' not found")
             return None
+        
+    def download_folder(self, folder_item: FolderItem) -> tuple[io.BytesIO, str, str] | None:
+        if os.path.exists(folder_item.base_path) and os.path.isdir(folder_item.base_path):
+            self._logger.info("Downloading folder %s and it's content", folder_item.name)
+            zip_buffer = io.BytesIO()
+
+            with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
+                for root, dirs, files in os.walk(folder_item.base_path):
+                    for file in files:
+                        full_path = os.path.join(root, file)
+                        arcname = os.path.relpath(full_path, folder_item.base_path)
+                        arcname = os.path.join(folder_item.name, arcname)
+                        zipf.write(full_path, arcname=arcname)
+
+
+            zip_buffer.seek(0)
+            return zip_buffer, "application/zip", f"{folder_item.name}.zip"
+    
+        else:
+            self._logger.error("Cannot download folder %s with path %s", folder_item.name, folder_item.base_path)
+            return None
+
+    def download_item(self, item: ContentItem) -> tuple[io.BytesIO, str, str] | None:
+        if isinstance(item, FileItem):
+            return self.download_file(item)
+        elif isinstance(item, FolderItem):
+            return self.download_folder(item)
+        
+        self._logger.warning("Invalid item to download %s", item.toJSON())
+        return None
+    
+    def download_items(self, items: list[ContentItem]) -> tuple[io.BytesIO, str, str] | None:
+        item_count = 0
+        zip_buffer = io.BytesIO()
+
+        self._logger.info("Downloading items %s", len(items))
+
+        with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
+            for item in items:
+                if isinstance(item, FileItem):
+                    if os.path.exists(item.path) and os.path.isfile(item.path):
+                        item_count += 1
+                        zipf.write(item.path, arcname=item.name)
+
+                elif isinstance(item, FolderItem):
+                    if os.path.exists(item.base_path) and os.path.isdir(item.base_path):
+                        for root, dirs, files in os.walk(item.base_path):
+                            for file in files:
+                                item_count += 1
+                                full_path = os.path.join(root, file)
+                                arcname = os.path.relpath(full_path, item.base_path)
+                                arcname = os.path.join(item.name, arcname)
+                                zipf.write(full_path, arcname=arcname)
+
+        zip_buffer.seek(0)
+
+        if item_count == 0:
+            self._logger.warning("No items to download...")
+            return None
+        
+        self._logger.info("Downloading %s items", item_count)
+
+        return zip_buffer, "application/zip", "download.zip"

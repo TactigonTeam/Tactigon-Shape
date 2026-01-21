@@ -8,7 +8,7 @@
 #
 # Project Name:
 # Tactigon Soul - Shape
-# 
+#
 # Release date: 30/09/2025
 # Release version: 1.0
 #
@@ -20,6 +20,24 @@
 {% extends "base.jinja" %}
 
 {% block style %}
+<style>
+    .table-wrapper {
+        /*max-height: 300px;*/
+        overflow-y: auto;
+    }
+
+    .fixed-100px{
+        width: 100px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+    }
+</style>
 
 {% endblock%}
 
@@ -31,16 +49,16 @@
 {% endblock%}
 
 {% block script %}
-    <script src="{{ url_for('file_manager.static', filename='js/filemanager.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            const fileManager = new FileManager({
-                baseUrl: "/files",
-                container: "#file_manager",
-            });
-
-            fileManager.init();
+<script src="{{ url_for('file_manager.static', filename='js/filemanager.js') }}"></script>
+<script>
+    $(document).ready(function () {
+        const fileManager = new FileManager({
+            baseUrl: "/files",
+            container: "#file_manager",
         });
-    </script>
+
+        fileManager.init();
+    });
+</script>
 
 {% endblock %}

@@ -22,31 +22,31 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
-class ContentType(str, Enum):
+class ItemType(str, Enum):
     FILE = "file"
     FOLDER = "folder"
     DIRECTORY = "directory"
 
 @dataclass
 class ContentItem:
-    content_type: ContentType
+    item_type: ItemType
 
     @classmethod
     def FromJSON(cls, json: dict) -> "ContentItem":
         return cls(
-            content_type=json["content_type"]
+            item_type=json["item_type"]
         )
     
     def toJSON(self) -> dict:
         return {
-            "content_type": self.content_type,
+            "item_type": self.item_type,
         }
 
 @dataclass
 class DirectoryItem(ContentItem):
     name: str
     base_path: str
-    content_type: ContentType = field(init=False, default=ContentType.DIRECTORY)
+    item_type: ItemType = field(init=False, default=ItemType.DIRECTORY)
 
     @classmethod
     def FromJSON(cls, json: dict) -> "DirectoryItem":
@@ -57,7 +57,7 @@ class DirectoryItem(ContentItem):
     
     def toJSON(self) -> dict:
         return {
-            "content_type": self.content_type,
+            "item_type": self.item_type,
             "name": self.name,
             "base_path": self.base_path,
         }
@@ -66,7 +66,7 @@ class DirectoryItem(ContentItem):
 class FolderItem(ContentItem):
     name: str
     base_path: str
-    content_type: ContentType = field(init=False, default=ContentType.FOLDER)
+    item_type: ItemType = field(init=False, default=ItemType.FOLDER)
 
     @classmethod
     def FromJSON(cls, json: dict) -> "FolderItem":
@@ -77,7 +77,7 @@ class FolderItem(ContentItem):
     
     def toJSON(self) -> dict:
         return {
-            "content_type": self.content_type,
+            "item_type": self.item_type,
             "name": self.name,
             "base_path": self.base_path,
         }
@@ -85,25 +85,40 @@ class FolderItem(ContentItem):
 @dataclass
 class FileItem(ContentItem):
     name: str
+    path: str
     size: int
     modified_time: datetime
-    content_type: ContentType = field(init=False, default=ContentType.FILE)
+    item_type: ItemType = field(init=False, default=ItemType.FILE)
 
     @classmethod
     def FromJSON(cls, json: dict) -> "FileItem":
         return cls(
             name=json.get("name", ""),
+            path=json.get("path", ""),
             size=json.get("size", 0),
             modified_time=datetime.fromisoformat(json.get("modified_time", datetime.now().isoformat())),
         )
     
     def toJSON(self) -> dict:
         return {
-            "content_type": self.content_type,
+            "item_type": self.item_type,
             "name": self.name,
+            "path": self.path,
             "size": self.size,
             "modified_time": self.modified_time.isoformat(),
-        }   
+        }
+    
+class ItemBuilder:
+    item_map = {
+        ItemType.DIRECTORY: DirectoryItem,
+        ItemType.FOLDER: FolderItem,
+        ItemType.FILE: FileItem
+    }
+    
+    @staticmethod
+    def fromJSON(json: dict) -> ContentItem:
+        item = ItemBuilder.item_map.get(json["item_type"], ContentItem)
+        return item.FromJSON(json)
 
 @dataclass
 class FileManagerConfig:
