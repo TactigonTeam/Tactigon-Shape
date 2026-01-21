@@ -21,7 +21,7 @@
 from platform import system
 
 platform_name = system()
-__version__ = f"5.5.0.0-rc1"
+__version__ = f"5.5.0.2"
 
 import sys
 import sys
