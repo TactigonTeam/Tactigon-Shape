@@ -44,7 +44,7 @@ from tactigon_shapes.modules.tskin.manager import load_tskin, start_tskin, stop_
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.file_manager.extension import FileManagerExtension
+from tactigon_shapes.modules.file_manager.extension import FileManager
 
 from tactigon_shapes.utils.extensions import force_stop_apps
 
@@ -78,7 +78,7 @@ class TactigonShapes:
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
             ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
-            file_manager = FileManagerExtension(path.join(BASE_PATH, "config", "file_manager"))
+            file_manager = FileManager(path.join(BASE_PATH, "config", "file_manager"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -93,6 +93,7 @@ class TactigonShapes:
             shapes_app.zion_interface = zion_interface
             shapes_app.ros2_interface = ros2_interface
             shapes_app.ironboy_interface = ironboy_interface
+            shapes_app.file_manager = file_manager
 
             socket_app.shapes_app = shapes_app
             socket_app.braccio_interface = braccio_interface

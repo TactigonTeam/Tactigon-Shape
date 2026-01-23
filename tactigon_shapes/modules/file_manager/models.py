@@ -69,6 +69,18 @@ class FolderItem(ContentItem):
     item_type: ItemType = field(init=False, default=ItemType.FOLDER)
 
     @classmethod
+    def FromPath(cls, path: str):
+        if path.count("/") < 2 :
+            base_path = ""
+            name = path.rsplit("/", 1)[0]
+        else:
+            base_path, name = path.rsplit("/", 1)
+        return cls(
+            name=name,
+            base_path=f"/{base_path}"
+        )
+
+    @classmethod
     def FromJSON(cls, json: dict) -> "FolderItem":
         return cls(
             name=json.get("name", ""),

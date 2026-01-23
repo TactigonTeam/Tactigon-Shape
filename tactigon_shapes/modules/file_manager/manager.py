@@ -20,10 +20,10 @@
 
 from flask import current_app
 
-from tactigon_shapes.modules.file_manager.extension import FileManagerExtension
+from tactigon_shapes.modules.file_manager.extension import FileManager
 
-def get_file_manager_extension() -> FileManagerExtension | None:
-    if FileManagerExtension.__name__ in current_app.extensions and isinstance(current_app.extensions[FileManagerExtension.__name__], FileManagerExtension):
-        return current_app.extensions[FileManagerExtension.__name__]
+def get_file_manager_extension() -> FileManager | None:
+    if FileManager.__name__ in current_app.extensions and isinstance(current_app.extensions[FileManager.__name__], FileManager):
+        return current_app.extensions[FileManager.__name__]
     
     return None
