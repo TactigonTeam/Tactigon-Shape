@@ -27,7 +27,11 @@ import pandas
 
 from typing import Iterator
 
-from tactigon_shapes.modules.ginos.models import LLMChatResponse, LLMModelPullRequest, LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, LLMPromptRequest, LLMChatRequest, LLMPromptResponse
+from tactigon_shapes.modules.file_manager.extension import FileManager
+from tactigon_shapes.modules.ginos.models import LLMChatResponse, LLMModelPullRequest, \
+    LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, \
+        LLMPromptRequest, LLMChatRequest, LLMPromptResponse, \
+        DataFrameFileExtension
 
 APPLICATION_JSON = 'application/json'
 
@@ -77,6 +81,10 @@ class GinosInterface:
     @property
     def model(self) -> str:
         return self._model
+    
+    @property
+    def dataframe_extensions(self) -> list[str]:
+        return [e.value for e in DataFrameFileExtension]
 
     def get_version(self) -> str | None:
         resp = self._get("version")
@@ -193,85 +201,52 @@ class GinosInterface:
             self._logger.error(e)
 
         return 500
-        
-    def check_file_validity(self, file_path: str) -> bool:
-        path = Path(file_path)
-
-        if not path.exists():
-            logging.error(f"File non trovato: {file_path}")
-            return False
-        
-        extension = path.suffix.lower()
-        #TODO:
-        # da mettere in configurazione la lista delle extensioni supportate
-        if not extension in ['.txt', '.md', '.csv', '.json']:
-            logging.error(f"Formato file non supportato: {file_path}")
-            return False
-
-        return True
-
-    def read_static_file(self, filename: str):
-        # Il percorso deve puntare alla cartella del BIND MOUNT nel docker-compose ( al momento non cè )
-        # poi il path è da mettere nelle config ?
-        if not filename:
-            return ""
-        
-        if not self.check_file_validity(filename):
-            return ""
-
-        # base_folder = "/app/external_data"
-        # full_path = os.path.join(base_folder, filename)
-        
-        self._logger.debug(f"Apertura file: {filename}")
-
-        try:
-            with open(filename, 'r', encoding='utf-8') as f:
-                return f.read()
-        except Exception as e:
-                self._logger.error(f"ERROR: read_static_file {filename}: {e}")
-        return ""
-        
-
+    
     def file_to_dataframe(self,file_path: str) -> pandas.DataFrame | None:
 
-        if self.check_file_validity(file_path) is False:
+        if FileManager.get_file_extension(file_path) not in self.dataframe_extensions:
             return None
+
         try:
+            df = None
+
             if file_path.endswith('.csv'):
                 df = pandas.read_csv(file_path)
 
             elif file_path.endswith('.json'):
                 df = pandas.read_json(file_path)
 
-            elif file_path.endswith(('.txt', '.md')):
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    lines = [line.strip() for line in f.readlines() if line.strip()]
+            # elif file_path.endswith(('.txt', '.md')):
+            #     with open(file_path, 'r', encoding='utf-8') as f:
+            #         lines = [line.strip() for line in f.readlines() if line.strip()]
 
-                return pandas.DataFrame(lines, columns=['content'])
+            #     return pandas.DataFrame(lines, columns=['content'])
             
             return df
         except Exception as e:
-            return None
+            self._logger.error("Cannot read file into dataframe. %s", e.with_traceback)
+            
+        return None
 
     def add_file_to_context(self, file_path: str):
             
-            new_df = self.file_to_dataframe(file_path)
-            
-            if new_df is None:
-                self._logger.error(f"Impossibile aggiungere il file: {file_path}")
-                return False
+        new_df = self.file_to_dataframe(file_path)
+        
+        if new_df is None:
+            self._logger.error(f"Impossibile aggiungere il file: {file_path}")
+            return False
 
-            if self._dataframe is None:
-                # È il primo file: il master DataFrame diventa questo
-                self._dataframe = new_df
-            else:
-                # Concateniamo i dati nuovi a quelli vecchi
-                # 'ignore_index=True' serve per non avere indici duplicati
-                self._dataframe = pandas.concat([self._dataframe, new_df], ignore_index=True)
-            
-            self._logger.debug("\n" + self._dataframe.to_string())
-            self._logger.info(f"Added {file_path} to context")
-            return True
+        if self._dataframe is None:
+            # È il primo file: il master DataFrame diventa questo
+            self._dataframe = new_df
+        else:
+            # Concateniamo i dati nuovi a quelli vecchi
+            # 'ignore_index=True' serve per non avere indici duplicati
+            self._dataframe = pandas.concat([self._dataframe, new_df], ignore_index=True)
+        
+        self._logger.debug("\n" + self._dataframe.to_string())
+        self._logger.info(f"Added {file_path} to context")
+        return True
 
     def clear_context(self):
         self._dataframe = None

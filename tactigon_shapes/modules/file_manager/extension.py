@@ -27,6 +27,7 @@ import zipfile
 
 from datetime import datetime
 from flask import Flask
+from pathlib import Path
 from werkzeug.datastructures import FileStorage
 from tactigon_shapes.modules.file_manager.models import FileManagerConfig, ContentItem, DirectoryItem, FolderItem, FileItem, ItemAlreadyExists
 from tactigon_shapes.models import BASE_PATH
@@ -62,6 +63,11 @@ class FileManager:
             response.update(data)
         
         return response, 200
+    
+    @staticmethod
+    def get_file_extension(filename: str) -> str:
+        p = Path(filename)
+        return "".join(p.suffixes)
     
     @staticmethod
     def list_folders(directory: DirectoryItem) -> list[FolderItem]:

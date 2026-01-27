@@ -100,3 +100,8 @@ class TestFileManager(TestCase):
         # Assert
         self.assertEqual(result, [])
 
+    def test_get_file_extension(self):
+
+        for filename, expected in [("my-filename", ""), ("my-file.png", ".png"), ("file.tar.gz", ".tar.gz")]:
+            result = FileManager.get_file_extension(filename)
+            self.assertEqual(result, expected)
