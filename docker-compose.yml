@@ -56,7 +56,15 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     entrypoint: >
-      sh -c "ollama pull mistral;"
+      sh -c "
+      echo 'Waiting for Ollama API...';
+      until curl -s http://ollama:11434/api/tags > /dev/null; do
+        sleep 2;
+      done;
+      echo 'Ollama ready. Pulling model...';
+      ollama pull mistral;
+      echo 'Model pulled.';
+      "
     restart: "no"
 
   tactigon-shapes:
