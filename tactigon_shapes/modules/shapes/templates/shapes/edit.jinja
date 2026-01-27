@@ -28,6 +28,24 @@
 
 {% block body %}
 <div class="d-flex flex-column flex-fill m-3 gap-3">
+    <div class="modal" id="leave_modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Shape's edit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Warning!</h6>
+                    <p>Are you sure you want to leave this page? All the unsaved changes will be lost.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="#" id="leave_href" class="btn btn-primary">Leave</a>
+                </div>
+            </div>
+        </div>
+    </div>
     <div>
         <h4>{{ current_config.name | capitalize }}</h4>
         <p>{{ current_config.description| capitalize }}</p>
@@ -527,7 +545,7 @@
                 </value>
             </block>
         </category>
-        {% if zion_config %}
+        {% if zion_config and zion_config.is_valid() %}
             <sep></sep>
             <category name="Zion API" colour="#6665DD">
                 <block type="device_list">
@@ -951,6 +969,26 @@
         defineCustomGenerators();
 
         const workspace = initializeBlockly();
+        const leaveModalEl = document.getElementById('leave_modal')
+        const leaveModal = bootstrap.Modal.getOrCreateInstance(leaveModalEl);
+
+        leaveModalEl.addEventListener('show.bs.modal', function (event) {
+            const caller = $(event.relatedTarget)
+            $("#leave_href").attr("href", caller.attr("href"));
+        });
+
+        $("a").filter(function() {
+            const _id = $(this).attr("id");
+            return _id != "leave_href";
+        })
+        .each((i, el) => {
+            const _el = $(el);
+            _el.data("skipLoading", true);
+        })
+        .on("click", function(event){
+            event.preventDefault();
+            leaveModal.show(this);
+        });
 
         $('#update-program-form').on('submit', (e) => {
 

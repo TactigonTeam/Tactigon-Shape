@@ -198,6 +198,10 @@ def edit(program_id: str):
         return redirect(url_for("shapes.index"))
     
     state = _shapes.get_state(current_config.id)
+
+    if not _shapes.get_code(current_config.id):
+        flash("Remember to save before leaving the page!", category="warning")
+
     gesture_list: list[ModelGesture] = []
 
     if app_config.TSKIN and app_config.TSKIN.gesture_config:
@@ -355,7 +359,7 @@ def clone_config(program_id: str):
         flash(f"Cannot clone Shape. Shape not found.", category="danger")
         return redirect(url_for("shapes.index"))
     
-    exist_config_by_name = _shapes.find_shape_by_name_and_not_id(name=program_name, config_id=UUID(program_id))
+    exist_config_by_name = _shapes.find_shape_by_name(name=program_name)
 
     if exist_config_by_name:
         flash(f"Name '{program_name}' already exists!", category="danger")

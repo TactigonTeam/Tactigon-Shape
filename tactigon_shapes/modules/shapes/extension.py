@@ -374,11 +374,23 @@ class ShapesApp(ExtensionApp):
                 return json.load(state_json_file)
 
         except FileNotFoundError:
-            self._logger.error("Error: The file %s does not exist.", self.config_file_path)
+            self._logger.error("Error: The file %s does not exist.", state_file_path)
 
         except json.JSONDecodeError:
             self._logger.error("Error: The file is not a valid JSON document.")
 
+        return None
+    
+    def get_code(self, program_id: UUID) -> str | None:   
+        try:
+            folder_path = path.join(self.shapes_file_path, "programs", program_id.hex)
+            code_file_path = path.join(folder_path, "program.py")
+
+            with open(code_file_path) as state_json_file:
+                return state_json_file.read()
+
+        except FileNotFoundError:
+            self._logger.error("Error: The file %s does not exist.", code_file_path)
 
         return None
 
@@ -449,9 +461,6 @@ class ShapesApp(ExtensionApp):
         except Exception as e:
             self._logger.error("Error creating temp file for export: %s", e)
             return False
-
-    def get_downloads_path(self) -> str:
-            return str(Path.home() / "Downloads")
     
     def export(self, config: ShapeConfig) -> BytesIO:
         memory_file = BytesIO()
@@ -479,7 +488,6 @@ class ShapesApp(ExtensionApp):
             return False, f"An error occurred during unzipping: {e}"
         
     def import_shape(self, file: FileStorage) -> tuple[ShapeConfig | None, str]:
-
         zip_bytes = file.read()
         zip_buffer = BytesIO(zip_bytes)
         
@@ -546,25 +554,18 @@ class ShapesApp(ExtensionApp):
     
     def get_shape(self, uuid: UUID | None = None) -> Program:
         code = None
-        program_file = None
 
         if uuid:
-            state_file = path.join(self.shapes_file_path, "programs", uuid.hex, "state.json")
-            program_file = path.join(self.shapes_file_path, "programs", uuid.hex, "program.py")
+            state = self.get_state(uuid)
+            code = self.get_code(uuid)
         else:
             state_file = path.join(self.shapes_file_path, "init_state.json")
-
-        with open(state_file) as state_json_file:
-            state = json.load(state_json_file)
-
-        if program_file:
-            try:
-                with open(program_file) as program_python_file:
-                    code = program_python_file.read()
-            except:
-                pass
+            with open(state_file) as state_json_file:
+                state = json.load(state_json_file)
 
         return Program(state, code)
+    
+    
 
     def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
         if self.is_running:
