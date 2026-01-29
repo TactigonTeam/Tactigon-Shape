@@ -21,6 +21,14 @@ Project name: ONI107SHAP01
 
 ## CHANGELOG
 
+### 29/01/2026
+release code: 5.5.0.3
+
+BUGFIX:
+- Updated docker-compose to prevent race condition on startup
+- Fixed name duplication bug
+
+
 ### 21/01/2026
 release code: 5.5.0.2
 
