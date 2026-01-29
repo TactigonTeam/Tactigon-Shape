@@ -39,25 +39,17 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    entrypoint: 
+      [
+        "/bin/bash",
+        "-c",
+        "ollama serve & sleep 5 && ollama pull mistral && wait",
+      ]
     healthcheck:
-      test: ["CMD", "ollama", "list"]
+      test: ["CMD-SHELL", "ollama list | grep -q mistral"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-
-  ollama-init:
-    image: ollama/ollama:0.12.10
-    container_name: ollama-init
-    depends_on:
-      ollama:
-        condition: service_healthy
-    networks:
-      - tactigon-net
-    volumes:
-      - ollama_data:/root/.ollama
-    entrypoint: >
-      sh -c "ollama pull mistral;"
-    restart: "no"
+      timeout: 10s
+      retries: 180
 
   tactigon-shapes:
     image: nextdeveloper/tactigon-shapes
