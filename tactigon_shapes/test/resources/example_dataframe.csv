@@ -1,0 +1,6 @@
+id,nome,eta,email,iscrizione_attiva,data_registrazione
+1,Mario Rossi,30,mario.rossi@email.com,True,2024-01-15
+2,Luigi Bianchi,28,luigi.bianchi@email.com,True,2024-03-22
+3,Anna Verdi,35,anna.verdi@email.com,False,2023-11-05
+4,Sara Neri,22,sara.neri@email.com,True,2024-07-19
+5,Luca Gallo,40,luca.gallo@email.com,False,2022-12-01

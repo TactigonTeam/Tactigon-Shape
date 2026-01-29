@@ -23,7 +23,7 @@ import logging
 import requests
 import httpx
 import time
-import pandas
+import pandas as pd
 
 from typing import Iterator
 
@@ -46,13 +46,13 @@ class GinosInterface:
     _version: str | None
     _model_list: list[LLMModelRequest]
     _logger: logging.Logger
-    _dataframe: pandas.DataFrame | None
+    _dataframe: pd.DataFrame
 
     def __init__(self, url: str, model: str):
         self._url = url if url[-1] == "/" else f"{url}/"
         self._model = model
         self._logger = logging.getLogger(GinosInterface.__name__)
-        self._dataframe = None
+        self._dataframe = pd.DataFrame()
 
         retries = 0
         while retries < 6:
@@ -84,7 +84,7 @@ class GinosInterface:
     
     @property
     def dataframe_extensions(self) -> list[str]:
-        return [e.value for e in DataFrameFileExtension]
+        return [f".{e.value}" for e in DataFrameFileExtension]
 
     def get_version(self) -> str | None:
         resp = self._get("version")
@@ -202,19 +202,20 @@ class GinosInterface:
 
         return 500
     
-    def file_to_dataframe(self,file_path: str) -> pandas.DataFrame | None:
+    def file_to_dataframe(self,file_path: str) -> pd.DataFrame | None:
 
         if FileManager.get_file_extension(file_path) not in self.dataframe_extensions:
+            self._logger.error("File type not supported.")
             return None
 
         try:
             df = None
 
             if file_path.endswith('.csv'):
-                df = pandas.read_csv(file_path)
+                df = pd.read_csv(file_path)
 
             elif file_path.endswith('.json'):
-                df = pandas.read_json(file_path)
+                df = pd.read_json(file_path)
 
             # elif file_path.endswith(('.txt', '.md')):
             #     with open(file_path, 'r', encoding='utf-8') as f:
@@ -233,21 +234,14 @@ class GinosInterface:
         new_df = self.file_to_dataframe(file_path)
         
         if new_df is None:
-            self._logger.error(f"Impossibile aggiungere il file: {file_path}")
+            self._logger.error(f"Cannot get dataframe from file {file_path}")
             return False
-
-        if self._dataframe is None:
-            # È il primo file: il master DataFrame diventa questo
-            self._dataframe = new_df
-        else:
-            # Concateniamo i dati nuovi a quelli vecchi
-            # 'ignore_index=True' serve per non avere indici duplicati
-            self._dataframe = pandas.concat([self._dataframe, new_df], ignore_index=True)
         
-        self._logger.debug("\n" + self._dataframe.to_string())
+        self._dataframe = pd.concat([self._dataframe, new_df], ignore_index=True)
+       
         self._logger.info(f"Added {file_path} to context")
         return True
 
     def clear_context(self):
-        self._dataframe = None
-        self._logger.info("INFO: dataframe pulito")
+        self._dataframe = pd.DataFrame()
+        self._logger.info("Dataframe cleared!")
