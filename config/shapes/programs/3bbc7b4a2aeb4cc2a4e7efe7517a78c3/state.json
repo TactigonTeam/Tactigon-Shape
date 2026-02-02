@@ -109,7 +109,7 @@
                               },
                               "next": {
                                 "block": {
-                                  "type": "tactigon_shape_debug",
+                                  "type": "shapes_debug",
                                   "id": "R1|wn6PKvI~GYUjA)#G]",
                                   "inputs": {
                                     "TEXT": {
@@ -157,7 +157,7 @@
                     },
                     "next": {
                       "block": {
-                        "type": "tactigon_shape_debug",
+                        "type": "shapes_debug",
                         "id": "elg}D:3.`#I#S-kf+O:F",
                         "inputs": {
                           "TEXT": {
@@ -318,7 +318,7 @@
                         },
                         "next": {
                           "block": {
-                            "type": "tactigon_shape_debug",
+                            "type": "shapes_debug",
                             "id": "ynuKbwsqw9QrBW7Pj63f",
                             "inputs": {
                               "TEXT": {

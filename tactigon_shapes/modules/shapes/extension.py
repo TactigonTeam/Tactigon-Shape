@@ -208,6 +208,21 @@ class ShapeThread(ExtensionThread):
         setattr(self.module, subscription.payload_reference, None)
 
     def run(self):
+        self.setUp()
+
+        should_run = True
+        
+        while not self._stop_event.is_set() and should_run:
+            try:
+                should_run = self.main()
+            except Exception as e:
+                self._logging_queue.error(str(e.with_traceback))
+
+            time.sleep(self.TICK)
+
+        self.close()
+
+    def setUp(self):
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
 
         if shape_setup_fn:
@@ -226,39 +241,21 @@ class ShapeThread(ExtensionThread):
             except Exception as e:
                 self._logger.error(e)
                 self._logging_queue.error(str(e))
-        
-        ExtensionThread.run(self)
 
     def main(self):
-        try:
-            self.module.tactigon_shape_function(
-                self._tskin, 
-                self._keyboard, 
-                self.braccio_interface, 
-                self.zion_interface, 
-                self._ros2_interface,
-                self._ironboy_interface, 
-                self._ginos_interface,
-                self._mqtt_interface,
-                self._logging_queue
-            )
-        except Exception as e:
-            self._logging_queue.error(str(e))
-
-    def load_module(self, source: str):
-        """
-        reads file source and loads it as a module
-
-        :param source: file to load
-        :param module_name: name of module to register in sys.modules
-        :return: loaded module
-        """
-        spec = importlib.util.spec_from_file_location(self.MODULE_NAME, source)
-        self.module = importlib.util.module_from_spec(spec)  # type: ignore
-        sys.modules[self.MODULE_NAME] = self.module
-        spec.loader.exec_module(self.module)  # type: ignore
-
-    def stop(self):
+        return self.module.tactigon_shape_function(
+            self._tskin, 
+            self._keyboard, 
+            self.braccio_interface, 
+            self.zion_interface, 
+            self._ros2_interface,
+            self._ironboy_interface, 
+            self._ginos_interface,
+            self._mqtt_interface,
+            self._logging_queue
+        )
+    
+    def close(self):
         shape_close_fn = getattr(self.module, "tactigon_shape_close", None)
 
         if shape_close_fn:
@@ -287,7 +284,18 @@ class ShapeThread(ExtensionThread):
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
 
-        ExtensionThread.stop(self)
+    def load_module(self, source: str):
+        """
+        reads file source and loads it as a module
+
+        :param source: file to load
+        :param module_name: name of module to register in sys.modules
+        :return: loaded module
+        """
+        spec = importlib.util.spec_from_file_location(self.MODULE_NAME, source)
+        self.module = importlib.util.module_from_spec(spec)  # type: ignore
+        sys.modules[self.MODULE_NAME] = self.module
+        spec.loader.exec_module(self.module)  # type: ignore
 
 
 class ShapesApp(ExtensionApp):

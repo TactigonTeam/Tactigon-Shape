@@ -5,6 +5,7 @@ import time
 import random
 import types
 import json
+import os
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -162,10 +163,7 @@ def zion_device_alarm(zion: ZionInterface | None, device_id: str, severity: Alar
     
     data = zion.device_alarm(device_id, severity, search_status)
 
-    if not data:
-        return []
-
-    return data
+    return [alarm.toJSON() for alarm in data]
 
 def zion_send_device_last_telemetry(zion: ZionInterface | None, device_id: str, key: str, data) -> bool:
     if not zion:
@@ -228,40 +226,11 @@ def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""
 
     return ginos.prompt(prompt_object)
 
-def get_doc_content(file_path):
-    path = Path(file_path)
-    
-    if not path.exists():
-        return None
-        
-    extension = path.suffix.lower()
-    
-    try:
-        if extension == '.txt' or extension == '.md':
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read()
-        else:
-            return None
-        
-    except Exception as e:
-
-        return None
-
-def summarize_text(ginos: GinosInterface | None,file_path: str):
-
+def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
     if not ginos:
-        return
-    
-    extracted_file_content = get_doc_content(file_path)
-    
-    if not extracted_file_content:
-        return None
+        return False
 
-    prompt_per_riassunto = "summarize this text: " + extracted_file_content
-
-    response = ginos_ai_prompt(ginos, prompt_per_riassunto)
-
-    return response
+    return ginos.add_file_to_context(os.path.join(directory, file_path))
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -340,3 +309,5 @@ def tactigon_shape_function(
             pos_y = (pos_y if isinstance(pos_y, Number) else 0) + 20
         debug(logging_queue, (''.join([str(x) for x in [pos_x, '|', pos_y, '|', pos_z]])))
         braccio_move(braccio, logging_queue, pos_x, pos_y, pos_z)
+
+    return True

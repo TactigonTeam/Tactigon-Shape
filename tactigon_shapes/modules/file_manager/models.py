@@ -66,6 +66,7 @@ class DirectoryItem(ContentItem):
 class FolderItem(ContentItem):
     name: str
     base_path: str
+    children: list[ContentItem] = field(default_factory=list)
     item_type: ItemType = field(init=False, default=ItemType.FOLDER)
 
     @classmethod
@@ -92,6 +93,7 @@ class FolderItem(ContentItem):
             "item_type": self.item_type,
             "name": self.name,
             "base_path": self.base_path,
+            "children": [c.toJSON() for c in self.children]
         }
 
 @dataclass

@@ -76,7 +76,7 @@
                             },
                             "DO0": {
                               "block": {
-                                "type": "tactigon_shape_debug",
+                                "type": "shapes_debug",
                                 "id": ")S+mfDm(Tb0MX=pB!EyT",
                                 "inputs": {
                                   "TEXT": {
@@ -155,7 +155,7 @@
                                         },
                                         "next": {
                                           "block": {
-                                            "type": "tactigon_shape_debug",
+                                            "type": "shapes_debug",
                                             "id": "dc6dd(8:IaKr!/:*I*5X",
                                             "inputs": {
                                               "TEXT": {
@@ -234,7 +234,7 @@
                                 },
                                 "next": {
                                   "block": {
-                                    "type": "tactigon_shape_debug",
+                                    "type": "shapes_debug",
                                     "id": "J[|5XL!Cp,E;:j4Q`zDM",
                                     "inputs": {
                                       "TEXT": {
@@ -294,7 +294,7 @@
                       },
                       "DO1": {
                         "block": {
-                          "type": "tactigon_shape_debug",
+                          "type": "shapes_debug",
                           "id": "^Q`M*CGoK,t]WuKZIJ4U",
                           "inputs": {
                             "TEXT": {
@@ -481,7 +481,7 @@
                           },
                           "ELSE": {
                             "block": {
-                              "type": "tactigon_shape_debug",
+                              "type": "shapes_debug",
                               "id": "vP![{ne4ukf(JCS6CL.Z",
                               "inputs": {
                                 "TEXT": {
@@ -585,7 +585,7 @@
                                     },
                                     "DO0": {
                                       "block": {
-                                        "type": "tactigon_shape_debug",
+                                        "type": "shapes_debug",
                                         "id": "W9QnOQA41Q7sJy/g7[^=",
                                         "inputs": {
                                           "TEXT": {
@@ -633,7 +633,7 @@
                                     },
                                     "DO1": {
                                       "block": {
-                                        "type": "tactigon_shape_debug",
+                                        "type": "shapes_debug",
                                         "id": "LG#0lr{(0|)hd^87L9,Y",
                                         "inputs": {
                                           "TEXT": {
@@ -691,7 +691,7 @@
                                           },
                                           "DO0": {
                                             "block": {
-                                              "type": "tactigon_shape_debug",
+                                              "type": "shapes_debug",
                                               "id": "|~f=qcr2U(kvT7qIXw:X",
                                               "inputs": {
                                                 "TEXT": {
@@ -708,7 +708,7 @@
                                           },
                                           "ELSE": {
                                             "block": {
-                                              "type": "tactigon_shape_debug",
+                                              "type": "shapes_debug",
                                               "id": "|%3~Yq6_)l)?oM7d;A-U",
                                               "inputs": {
                                                 "TEXT": {
@@ -796,7 +796,7 @@
                       },
                       "DO0": {
                         "block": {
-                          "type": "tactigon_shape_debug",
+                          "type": "shapes_debug",
                           "id": "%#7{M)=bQStPi:huy(r`",
                           "inputs": {
                             "TEXT": {

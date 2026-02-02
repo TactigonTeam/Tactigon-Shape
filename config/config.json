@@ -109,18 +109,7 @@
       "speech_file": "shapes.json"
     }
   ],
-  "TSKIN": {
-    "address": "C0:83:2A:34:25:38",
-    "hand": "right",
-    "name": "TSKIN50",
-    "touch_config": null,
-    "gesture_config": {
-      "model_path": "models/MODEL_01_RIGHT/model.pickle",
-      "encoder_path": "models/MODEL_01_RIGHT/encoder.pickle",
-      "name": "MODEL_01_RIGHT",
-      "created_at": "2025-10-27T16:01:57.599950"
-    }
-  },
+  "TSKIN": null,
   "TSKIN_SOCKET": {
     "host": "0.0.0.0",
     "port": 50007,

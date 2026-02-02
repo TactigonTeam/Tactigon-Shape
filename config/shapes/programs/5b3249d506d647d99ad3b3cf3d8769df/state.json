@@ -12,13 +12,13 @@
       {
         "type": "tactigon_shape_function",
         "id": ".i:}_0~B$5w-Y4xuWWFa",
-        "x": 150,
-        "y": 110,
+        "x": 30,
+        "y": 130,
         "deletable": false,
         "inputs": {
           "BODY": {
             "block": {
-              "type": "tactigon_shape_debug",
+              "type": "shapes_debug",
               "id": "2P6_nncRf,Ye;MoC5RMt",
               "inputs": {
                 "TEXT": {
@@ -57,7 +57,7 @@
               },
               "next": {
                 "block": {
-                  "type": "tactigon_shape_debug",
+                  "type": "shapes_debug",
                   "id": "x]qaBg8-o`pLRC%WuCm9",
                   "inputs": {
                     "TEXT": {
@@ -113,7 +113,7 @@
         "type": "tactigon_shape_close",
         "id": "W0}^,.Ql4rPg1:oFg*;|",
         "x": 30,
-        "y": 300,
+        "y": 350,
         "deletable": false
       }
     ]

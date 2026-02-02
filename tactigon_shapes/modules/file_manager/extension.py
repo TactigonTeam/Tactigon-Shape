@@ -103,10 +103,12 @@ class FileManager:
         return []
     
     @staticmethod
-    def list_contents(directory: DirectoryItem, subfolders: list[str] = []) -> list[ContentItem]:
+    def list_contents(directory: DirectoryItem, subfolders: list[str] | None = None, recursive: bool = False) -> list[ContentItem]: 
+        if subfolders is None:
+            subfolders = []
+        _logger = FileManager.get_logger()
         contents: list[ContentItem] = []
         content_path = os.path.join(directory.base_path, *subfolders)
-        _logger = FileManager.get_logger()
         _logger.info(f"Listing contents in path: {content_path}")
         if os.path.exists(content_path) and os.path.isdir(content_path):
             for entry in os.scandir(content_path):
@@ -119,11 +121,15 @@ class FileManager:
                     )
                     contents.append(file_item)
                 elif entry.is_dir():
-                    dir_item = FolderItem(
-                        name=entry.name,
-                        base_path=entry.path
-                    )
-                    contents.append(dir_item)
+                    if recursive:
+                        subfolders.append(entry.name)
+                        contents.extend(FileManager.list_contents(directory, subfolders, recursive))
+                    else:
+                        dir_item = FolderItem(
+                            name=entry.name,
+                            base_path=entry.path
+                        )
+                        contents.append(dir_item)
 
         _logger.info(f"Listed contents in directory '{content_path}': {len(contents)} items")
         return contents
@@ -340,4 +346,15 @@ class FileManager:
         self.save_config()
         self._logger.info(f"Directory '{directory.name}' deleted")
 
+    def get_blocks(self):
+        blocks = []
+        for directory in self.config.directories:
+            self._logger.info(f"blòocks {directory}")
+            blocks.append({
+                "directory": directory.toJSON(),
+                "content": [c.toJSON() for c in self.list_contents(directory, recursive=True)]
+            })
+
+        return blocks
+            
     

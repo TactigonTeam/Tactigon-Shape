@@ -411,6 +411,17 @@
         <category name="Variables" colour="#a55b80" custom="VARIABLE"></category>
         <category name="Functions" colour="#995ba5" custom="PROCEDURE"></category>
         <sep></sep>
+        <category name="Runtime" colour="#EB6152">
+            <block type="shapes_stop"></block>
+            <block type="shapes_debug">
+                <value name="TEXT">
+                    <shadow type="text">
+                        <field name="TEXT">Message</field>
+                    </shadow>
+                </value>
+            </block>
+        </category>
+        <sep></sep>
         <category name="Gesture" colour="#EB6152">
             <block type="tskin_gesture_list"></block>
         </category>
@@ -674,32 +685,20 @@
         {% endif %}
         {% if current_config.ginos_config %}
             <sep></sep>
-            <category name="Ginos AI" colour="#6665DD">
+            <category name="Ginos AI" colour="#EB6152">
                 <block type="ginos_ai_prompt">
                     <value name="prompt">
                         <shadow type="text">
                         </shadow>
                     </value>
                 </block>
-                <block type="ginos_read_static_file">
-                    <value name="input_path">
-                        <shadow type="text">
-                        </shadow>
-                    </value>
-                </block>
-                <block type="ginos_add_file_to_context">
+                <block type="ginos_load_dataframe">
                     <value name="input_path">
                         <shadow type="text">
                         </shadow>
                     </value>
                 </block>
                 {#
-                <block type="ginos_summarize_text">
-                    <value name="input_path">
-                        <shadow type="text">
-                        </shadow>   
-                    </value>
-                </block>
                 <block type="ginos_ai_chat">
                     <value name="messages">
                         <shadow type="ginos_ai_chat_message">
@@ -768,16 +767,6 @@
             <block type="keyboard_funckey"></block>
             <block type="keyboard_mod_plus_funckey"></block>
             <block type="keyboard_mod_plus_mod_plus_funckey"></block>
-        </category>
-        <sep></sep>
-        <category name="Debug" colour="#bce261">
-            <block type="tactigon_shape_debug">
-                <value name="TEXT">
-                    <shadow type="text">
-                        <field name="TEXT">abc</field>
-                    </shadow>
-                </value>
-            </block>
         </category>
     </xml>
 </div>
