@@ -144,7 +144,6 @@ class FileManagerConfig:
         return cls(
             base_path="",
             directories=[
-                DirectoryItem(name="Shapes", base_path=path.join(base_path, "shapes")),
                 DirectoryItem(name="DataFrame", base_path=path.join(base_path, "DataFrame")),
             ],
         )

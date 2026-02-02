@@ -1195,10 +1195,12 @@ function loadGinosAIBlocks(ginos, file_manager) {
 
     file_manager.forEach(el => {
         directory.push([el['directory']['name'], el['directory']['base_path']]);
-        optionMapping[el['directory']['base_path']] = el['content'].map(f => {
+        optionMapping[el['directory']['base_path']] = [['---', '']];
+
+        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
             const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
             return [f_path, f_path];
-        });
+        }));
     });
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
