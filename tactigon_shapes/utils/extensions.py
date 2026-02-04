@@ -20,22 +20,30 @@
 
 from flask import current_app
 
-from typing import Optional
-
 from ..modules.socketio import SocketApp
 from ..modules.braccio.extension import BraccioInterface
 from ..modules.zion.extension import ZionInterface
 from ..modules.tskin.manager import TSKIN_EXTENSION
 from ..modules.ironboy.extension import IronBoyInterface
 
-excluded_apps = [SocketApp.name, TSKIN_EXTENSION, "socketio", BraccioInterface.__name__, ZionInterface.__name__,IronBoyInterface.__name__]
+excluded_apps = [SocketApp.name, TSKIN_EXTENSION, "socketio", BraccioInterface.__name__, ZionInterface.__name__, IronBoyInterface.__name__]
 
-def stop_apps(exclude: Optional[str] = None):
+def stop_apps(exclude: str | None = None):
     l = excluded_apps
     if (exclude):
         l.append(exclude)
 
     for ext in current_app.extensions:
         if ext in l:
+            current_app.logger.info(f"Skipping stopping extension: {ext}")
             continue
+        current_app.logger.info(f"Stopping extension: {ext}")
         current_app.extensions[ext].stop()
+
+def force_stop_apps():
+    for ext in current_app.extensions:
+        try:
+            current_app.logger.info(f"Force stopping extension: {ext}")
+            current_app.extensions[ext].stop()
+        except Exception as e:
+            current_app.logger.error(f"Cannot stop extension: {e}")

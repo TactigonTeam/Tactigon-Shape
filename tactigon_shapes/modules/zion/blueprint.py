@@ -21,11 +21,11 @@
 from tabnanny import check
 from flask import Blueprint, redirect, render_template, flash, url_for
 
-from .manager import get_zion_interface
-from .models import ZionConfig
+from tactigon_shapes.modules.zion.manager import get_zion_interface
+from tactigon_shapes.modules.zion.models import ZionConfig
 
-from ...config import app_config, check_config
-from ...utils.request_utils import get_from_request
+from tactigon_shapes.config import app_config, check_config
+from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint("zion", __name__, url_prefix="/zion", template_folder="templates", static_folder="static")
 
@@ -38,11 +38,12 @@ def index(edit: bool = False):
         flash("Zion interface not running", category="danger")
         return redirect(url_for("main.index"))
     
-    if not app.config:
+    if app.config and app.config.is_valid():
+        config = app.config
+    else:
         config = ZionConfig.Default()
         edit = True
-    else:
-        config = app.config
+        
     
     return render_template("zion/index.jinja", configured=app.configured, config=config, edit=edit, devices=app.devices)
 

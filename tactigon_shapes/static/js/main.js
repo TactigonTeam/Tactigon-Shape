@@ -163,7 +163,7 @@ const show_toast = (el) => {
         delay: 3000
     };
 
-    if (el.classList.contains("danger")) {
+    if (el.classList.contains("danger") || el.classList.contains("warning")) {
         toast_option.autohide = false;
     }
 
@@ -196,7 +196,11 @@ $(()=>{
     });
     
     $("a").click(function(){
-        const loading_msg = $(this).attr("loading-msg");
+        const _el = $(this);
+        if (_el.data("skipLoading")) {
+            return;
+        }
+        const loading_msg = _el.attr("loading-msg");
         $("#loading_message").html(loading_msg == undefined ? "" : loading_msg);
         $("body").addClass("on_loading");
     });

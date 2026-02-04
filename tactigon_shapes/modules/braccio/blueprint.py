@@ -24,12 +24,12 @@ import asyncio
 from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, flash
 
-from .extension import BraccioConfig, BraccioInterface
-from .manager import get_braccio_interface
+from tactigon_shapes.modules.braccio.extension import BraccioConfig, BraccioInterface
+from tactigon_shapes.modules.braccio.manager import get_braccio_interface
 
-from ...config import check_config
-from ...utils.extensions import stop_apps
-from ...utils.request_utils import get_from_request
+from tactigon_shapes.config import check_config
+from tactigon_shapes.utils.extensions import stop_apps
+from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint("braccio", __name__, url_prefix="/braccio", template_folder="templates")
 
@@ -48,40 +48,22 @@ def index():
 
     return render_template("braccio/index.jinja", configured=app.configured, config=app.config)
 
-if sys.platform == "darwin":
-    @bp.route("scan")
-    @check_config
-    def scan():
-        app = get_braccio_interface()
+@bp.route("/scan")
+@check_config
+def scan():
+    app = get_braccio_interface()
 
-        if not app:
-            flash("Braccio interface not running", category="danger")
-            return redirect(url_for("main.index"))
-        
-        async def find_devices():
-            devices = await BleakScanner.discover(cb=dict(use_bdaddr=True))
-            return filter(lambda d: str(d.name).startswith("ADA"), devices)
+    if not app:
+        flash("Braccio interface not running", category="danger")
+        return redirect(url_for("main.index"))
+    
+    async def find_devices():
+        devices = await BleakScanner.discover()
+        return filter(lambda d: str(d.name).upper().startswith("ADA") , devices)
 
-        devices = [{"name": d.name, "id": d.address, "address": str(d.details[0].identifier())} for d in asyncio.run(find_devices())]
+    devices = [{"name": d.name, "id": d.address, "address": d.address} for d in asyncio.run(find_devices())]
 
-        return json.dumps(devices)
-else:
-    @bp.route("/scan")
-    @check_config
-    def scan():
-        app = get_braccio_interface()
-
-        if not app:
-            flash("Braccio interface not running", category="danger")
-            return redirect(url_for("main.index"))
-        
-        async def find_devices():
-            devices = await BleakScanner.discover()
-            return filter(lambda d: str(d.name).upper().startswith("ADA") , devices)
-
-        devices = [{"name": d.name, "id": d.address, "address": d.address} for d in asyncio.run(find_devices())]
-
-        return json.dumps(devices)
+    return json.dumps(devices)
 
 @bp.route("/save", methods=["POST"])
 @check_config

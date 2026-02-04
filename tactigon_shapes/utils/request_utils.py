@@ -19,10 +19,10 @@
 
 
 from flask import request, flash
-from typing import Any, Optional
+from typing import Any
 
 
-def get_from_request(name: str) -> Optional[str]:
+def get_from_request(name: str) -> str | None:
     if name in request.args:
         return request.args.get(name)
     

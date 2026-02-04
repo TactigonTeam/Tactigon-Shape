@@ -21,8 +21,6 @@
 from enum import Enum
 from dataclasses import dataclass
 
-from typing import Optional
-
 class Wrist(Enum):
     HORIZONTAL = 90
     VERTICAL = 0
@@ -78,7 +76,7 @@ class BraccioPosition:
 @dataclass
 class BraccioCommand:
     command: Command
-    position: Optional[BraccioPosition] = None
+    position: BraccioPosition | None = None
 
     @classmethod
     def Move(cls, position):

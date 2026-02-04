@@ -28,9 +28,17 @@
             </div>
 
             <div class="list-group list-group-flush flex-grow-1 sidebar">
-                <a href="{{ url_for('main.settings') }}" class="list-group-item list-group-item-action {% if 'settings' in request_path %}active{% endif %}" alt="Notification's settings">
-                    <i class="bi bi-info-circle px-3"></i>
+                <a href="{{ url_for('main.settings') }}" class="list-group-item list-group-item-action {% if '/settings' in request_path %}active{% endif %}" alt="Shape info">
+                    <i class="mi-outlined mi-info px-3" style="font-size: 24px"></i>
                     Info
+                </a>
+                <a href="{{ url_for('tskin.socket_settings') }}" class="list-group-item list-group-item-action {% if '/socket_settings' in request_path %}active{% endif %}" alt="Socket settings">
+                    <i class="mi-outlined mi-settings-ethernet px-3" style="font-size: 24px"></i>
+                    Socket
+                </a>
+                <a href="{{ url_for('tskin.speech_settings') }}" class="list-group-item list-group-item-action {% if '/speech_settings' in request_path %}active{% endif %}" alt="Speech settings">
+                    <i class="mi-outlined mi-settings-voice px-3" style="font-size: 24px"></i>
+                    Speech
                 </a>
             </div>
         </div>

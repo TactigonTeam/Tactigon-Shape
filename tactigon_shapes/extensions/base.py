@@ -21,7 +21,7 @@
 import time
 from abc import ABC, abstractmethod
 from threading import Thread, Event
-from typing import Optional, Any
+from typing import Any
 
 from flask import Flask
 
@@ -57,9 +57,9 @@ class ExtensionThread(ABC, Thread):
 
 
 class ExtensionApp(ABC):
-    _thread: Optional[ExtensionThread] = None
+    _thread: ExtensionThread | None = None
 
-    def __init__(self, flask_app: Optional[Flask] = None):
+    def __init__(self, flask_app: Flask | None = None):
         if flask_app:
             self.init_app(flask_app)
 
@@ -71,11 +71,11 @@ class ExtensionApp(ABC):
         return type(self).__name__
 
     @property
-    def thread(self) -> Optional[ExtensionThread]:
+    def thread(self) -> ExtensionThread | None:
         return self._thread
 
     @thread.setter
-    def thread(self, thread: Optional[ExtensionThread]):
+    def thread(self, thread: ExtensionThread | None):
         self._thread = thread
 
     @property

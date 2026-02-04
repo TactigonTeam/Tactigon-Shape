@@ -27,19 +27,19 @@ function loadCustomBlocks(response) {
     const gripperOptions = response ? response.gripperOptions : [];
     const speechs = response ? response.speechs : [];
     const zion = response ? response.zion : [];
+    const ros2 = response ? response.ros2 : {};
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos: {};
     
     loadTSkinBlocks(gestures, taps);
-    if (speechs) {
-        loadSpeechBlocks(speechs);
-    }
+    loadSpeechBlocks(speechs);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
+    loadRos2Blocks(ros2);
     loadIronBoyBlocks(ironboy);
     loadGinosAIBlocks(ginos);
-    loadGinosMQTTBlocks(ginos);
+    loadMQTTBlocks();
     loadDictionaryBlocks();
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
@@ -137,6 +137,68 @@ function loadDictionaryBlocks(){
             "helpUrl": "",
             "inputsInline": true
         },
+        {
+            "type": "dict_builder",
+            "message0": "Create map %1",
+            "args0": [
+                {
+                    "type": "input_statement",
+                    "name": "PAIRS"
+                }
+            ],
+            "output": "Dict",
+            "colour": 230,
+            "tooltip": "Create a dictionary",
+        },
+        {
+            "type": "dict_pair",
+            "message0": "Key %1 value %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "dict_key",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "dict_value"
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 200,
+            "tooltip": "Create a key-value pair for a dictionary",
+        },
+        {
+            "type": "dict_to_json",
+            "message0": "jsonify %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "dict",
+                    "check": "Dict"
+                }
+            ],
+            "output": "JSONString",
+            "colour": 200,
+            "tooltip": "Convert dictionary into json string",
+            "inputsInline": true
+        },
+        {
+            "type": "json_to_dict",
+            "message0": "Dict from json %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "json",
+                    "check": "String"
+                }
+            ],
+            "output": "Dict",
+            "colour": 200,
+            "tooltip": "Convert json string into dictionary",
+            "inputsInline": true
+        }
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -323,26 +385,26 @@ function loadSpeechBlocks(speechs) {
         }
     };
 
-    Blockly.Blocks['tskin_play'] = {
-        init: function () {
-            this.jsonInit({
-                "type": "tskin_play",
-                "message0": "Play file audio %1",
-                "args0": [
-                    {
-                        "type": "input_value",
-                        "name": "filename",
-                        "check": "String"
-                    }
-                ],
-                "previousStatement": null,
-                "nextStatement": null,
-                "colour": "#EB6152",
-                "tooltip": "Use Tactigon Skin to play audio",
-                "helpUrl": ""
-            });
-        }
-    };
+    // Blockly.Blocks['tskin_play'] = {
+    //     init: function () {
+    //         this.jsonInit({
+    //             "type": "tskin_play",
+    //             "message0": "Play file audio %1",
+    //             "args0": [
+    //                 {
+    //                     "type": "input_value",
+    //                     "name": "filename",
+    //                     "check": "String"
+    //                 }
+    //             ],
+    //             "previousStatement": null,
+    //             "nextStatement": null,
+    //             "colour": "#EB6152",
+    //             "tooltip": "Use Tactigon Skin to play audio",
+    //             "helpUrl": ""
+    //         });
+    //     }
+    // };
 }
 
 // Carica i blocchi relativi a Keyboard
@@ -906,6 +968,156 @@ function loadZionBlocks(zion){
     };
 } 
 
+function loadRos2Blocks(ros2blocks){
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "ros2_command",
+            "message0": "ros2 run %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "command",
+                    "options": ros2blocks.commands
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "tooltip": "Start a ROS 2 process",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_subscribe",
+            "message0": "On topic %1 type %2 get values in %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                },
+                {
+                    "type": "input_value",
+                    "name": "message_type",
+                    "check": "GenericRos2MessageType"
+                },
+                {
+                    "type": "field_variable",
+                    "name": "var_name",
+                    "variable": "payload"
+                }
+            ],
+            "message1": "do %1",
+            "args1": [
+                {
+                    "type": "input_statement",
+                    "name": "function"
+                }
+            ],
+            "tooltip": "Subscribe to a ROS 2 topic and trigger the call on message event",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_type",
+            "message0": "Type %1",
+            "args0": [
+                {
+                "type": "field_dropdown",
+                "name": "message_type",
+                "options": ros2blocks.default_types
+                }
+            ],
+            "output": "GenericRos2MessageType",
+            "tooltip": "Select a ROS 2 message type",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_publish",
+            "message0": "Publish message %1 on topic %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "message_type",
+                    "check": "Ros2MessageType"
+                },
+                {
+                    "type": "input_value",
+                    "name": "topic",
+                    "check": "String"
+                }                
+            ],
+            "tooltip": "Publish a message to a ROS 2 topic",
+            "helpUrl": "",
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_String",
+            "message0": "String(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "String"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 String message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Bool",
+            "message0": "Bool(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Boolean"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Bool message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Int64",
+            "message0": "Int64(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Number"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Int64 message",
+            "helpUrl": "",
+            "colour": 225
+        },
+        {
+            "type": "ros2_message_Float64",
+            "message0": "Float64(data=%1)",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Number"
+                }
+            ],
+            "output": "Ros2MessageType",
+            "tooltip": "Create a ROS 2 Float64 message",
+            "helpUrl": "",
+            "colour": 225
+        },
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
 function loadIronBoyBlocks(ironboy) {
     Blockly.Blocks['ironboy_command'] = {
         init: function () {
@@ -1036,7 +1248,6 @@ function loadGinosAIBlocks(ginos){
             "tooltip": "",
             "helpUrl": ""
         },
-        //----------------------------
         {
             "type": "read_static_file",
             "tooltip": "read from file.csv",
@@ -1059,10 +1270,10 @@ function loadGinosAIBlocks(ginos){
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadGinosMQTTBlocks(ginos){
+function loadMQTTBlocks(){
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
-            "type": "ginos_mqtt_subscribe",
+            "type": "mqtt_subscribe",
             "message0": "On message from %1 get values in %2",
             "args0": [
                 {
@@ -1088,7 +1299,7 @@ function loadGinosMQTTBlocks(ginos){
             "colour": 225
         },
         {
-            "type": "ginos_mqtt_publish",
+            "type": "mqtt_publish",
 
             "message0": "publish payload %1 on topic %2",
             "args0": [
@@ -1109,7 +1320,7 @@ function loadGinosMQTTBlocks(ginos){
             "colour": 225
         },
         {
-            "type": "ginos_mqtt_register",
+            "type": "mqtt_register",
             "tooltip": "",
             "helpUrl": "",
             "message0": "Register the device",
@@ -1119,7 +1330,7 @@ function loadGinosMQTTBlocks(ginos){
             "colour": 225
         },
         {
-            "type": "ginos_mqtt_unregister",
+            "type": "mqtt_unregister",
             "tooltip": "",
             "helpUrl": "",
             "message0": "Unregister the device",
@@ -1142,28 +1353,31 @@ function defineImportsAndLibraries(){
 import time
 import random
 import types
+import json
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
-from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, HotWord, TSpeechObject, TSpeech
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
-from typing import List, Optional, Union, Any
+from typing import Union, Any
 from pathlib import Path
 
 
-def check_gesture(gesture: Optional[Gesture], gesture_to_find: str) -> bool:
+def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
     if not gesture:
         return False
     
     return gesture.gesture == gesture_to_find
 
-def check_touch(touch: Optional[Touch], finger_gesture: str) -> bool:
+def check_touch(touch: Touch | None, finger_gesture: str) -> bool:
     if not touch:
         return False
     _g_one = None
@@ -1182,8 +1396,8 @@ def check_touch(touch: Optional[Touch], finger_gesture: str) -> bool:
         pass
     return False
 
-def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union[HotWord, List[HotWord]]]):
-    def build_tspeech(hws: List[Union[HotWord, List[HotWord]]]) -> Optional[TSpeechObject]:
+def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
+    def build_tspeech(hws: list[Union[HotWord, list[HotWord]]]) -> TSpeechObject | None:
         if not hws:
             return None
 
@@ -1201,8 +1415,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union
         debug(logging_queue, f"Waiting for command...")
         r = tskin.listen(tspeech)
         if r:
-            debug(logging_queue, "Listening....")
-            text_so_far = ""
+            debug(logging_queue, "listening....")
             t = None
             while True:
                 t = tskin.transcription
@@ -1210,9 +1423,10 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union
                 if t:
                     break
 
-                if text_so_far != tskin.text_so_far:
-                    text_so_far = tskin.text_so_far
-                    debug(logging_queue, f"Listening: {text_so_far}")
+                text_so_far = tskin.text_so_far
+                if text_so_far:
+                    debug(logging_queue, f"listening: {text_so_far}")
+                    
                 time.sleep(tskin.TICK)
 
             if t and t.path is not None:
@@ -1222,13 +1436,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: List[Union
     debug(logging_queue, "Cannot listen...")
     return []
 
-def record_audio(tskin: TSkin, filename: str, seconds: float):
-    tskin.record(filename, seconds)
-
-    while tskin.is_recording:
-        time.sleep(tskin.TICK)
-
-def keyboard_press(keyboard: KeyboardController, commands: List[KeyCode]):
+def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
     for k in commands:
         _k = k.char if isinstance(k, KeyCode) and k.char else k
         keyboard.press(_k)
@@ -1236,7 +1444,7 @@ def keyboard_press(keyboard: KeyboardController, commands: List[KeyCode]):
         _k = k.char if isinstance(k, KeyCode) and k.char else k
         keyboard.release(_k)
 
-def braccio_move(braccio: Optional[BraccioInterface], logging_queue: LoggingQueue, x: float, y: float, z: float):
+def braccio_move(braccio: BraccioInterface | None, logging_queue: LoggingQueue, x: float, y: float, z: float):
     if braccio:
         res = braccio.move(x, y, z)
         if res:
@@ -1249,7 +1457,7 @@ def braccio_move(braccio: Optional[BraccioInterface], logging_queue: LoggingQueu
     else:
         debug(logging_queue, "Braccio not configured")
 
-def braccio_wrist(braccio: Optional[BraccioInterface], logging_queue: LoggingQueue, wrist: Wrist):
+def braccio_wrist(braccio: BraccioInterface | None, logging_queue: LoggingQueue, wrist: Wrist):
     if braccio:
         res = braccio.wrist(wrist)
         if res:
@@ -1262,7 +1470,7 @@ def braccio_wrist(braccio: Optional[BraccioInterface], logging_queue: LoggingQue
     else:
         debug(logging_queue, "Braccio not configured")
 
-def braccio_gripper(braccio: Optional[BraccioInterface], logging_queue: LoggingQueue, gripper: Gripper):
+def braccio_gripper(braccio: BraccioInterface | None, logging_queue: LoggingQueue, gripper: Gripper):
     if braccio:
         res = braccio.gripper(gripper)
         if res:
@@ -1275,7 +1483,7 @@ def braccio_gripper(braccio: Optional[BraccioInterface], logging_queue: LoggingQ
     else:
         debug(logging_queue, "Braccio not configured")
 
-def zion_device_last_telemetry(zion: Optional[ZionInterface], device_id: str, keys: str) -> dict:
+def zion_device_last_telemetry(zion: ZionInterface | None, device_id: str, keys: str) -> dict:
     if not zion:
         return {}
     
@@ -1286,7 +1494,7 @@ def zion_device_last_telemetry(zion: Optional[ZionInterface], device_id: str, ke
 
     return data
 
-def zion_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> dict:
+def zion_device_attr(zion: ZionInterface | None, device_id: str, scope: Scope, keys: str) -> dict:
     if not zion:
         return {}
     
@@ -1297,18 +1505,15 @@ def zion_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope
 
     return data
 
-def zion_device_alarm(zion: Optional[ZionInterface], device_id: str, severity: AlarmSeverity, search_status: AlarmSearchStatus) -> List[dict]:
+def zion_device_alarm(zion: ZionInterface | None, device_id: str, severity: AlarmSeverity, search_status: AlarmSearchStatus) -> list[dict]:
     if not zion:
         return []
     
     data = zion.device_alarm(device_id, severity, search_status)
 
-    if not data:
-        return []
+    return [alarm.toJSON() for alarm in data]
 
-    return data
-
-def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: str, key: str, data) -> bool:
+def zion_send_device_last_telemetry(zion: ZionInterface | None, device_id: str, key: str, data) -> bool:
     if not zion:
         return False
 
@@ -1317,13 +1522,13 @@ def zion_send_device_last_telemetry(zion: Optional[ZionInterface], device_id: st
 
     return zion.send_device_last_telemetry(device_id, payload)
 
-def zion_delete_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, keys: str) -> bool:
+def zion_delete_device_attr(zion: ZionInterface | None, device_id: str, scope: Scope, keys: str) -> bool:
     if not zion:
         return False
 
     return zion.delete_device_attr(device_id, scope, keys)
 
-def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: Scope, key: str, data) -> bool:
+def zion_send_device_attr(zion: ZionInterface | None, device_id: str, scope: Scope, key: str, data) -> bool:
     if not zion:
         return False
 
@@ -1332,13 +1537,13 @@ def zion_send_device_attr(zion: Optional[ZionInterface], device_id: str, scope: 
 
     return zion.send_device_attr(device_id, payload, scope)    
 
-def zion_send_device_alarm(zion: Optional[ZionInterface], device_id: str, name: str) -> bool:
+def zion_send_device_alarm(zion: ZionInterface | None, device_id: str, name: str) -> bool:
     if not zion:
         return False
 
     return zion.upsert_device_alarm(device_id, name, name) 
 
-def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
+def debug(logging_queue: LoggingQueue, msg: Any):
 
     if isinstance(msg,(float)):
         rounded=round(msg,4)
@@ -1349,11 +1554,7 @@ def debug(logging_queue: LoggingQueue, msg: Optional[Any]):
     else:
         logging_queue.debug(str(msg).replace("\\n","<br>"))
 
-def reset_touch(tskin: TSkin):
-        if tskin.touch_preserve:
-            _ = tskin.touch
-
-def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
+def iron_boy_command(ironboy: IronBoyInterface | None, logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
     if ironboy:
         command = ironboy.command(cmd,reps)
 
@@ -1362,7 +1563,7 @@ def iron_boy_command(ironboy: Optional[IronBoyInterface], logging_queue: Logging
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_ai_prompt(ginos: Optional[GinosInterface], prompt: str, context: str = ""):
+def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""):
     if not ginos:
         return
 
@@ -1392,7 +1593,7 @@ def get_doc_content(file_path):
 
         return None
 
-def summarize_text(ginos: Optional[GinosInterface],file_path: str):
+def summarize_text(ginos: GinosInterface | None,file_path: str):
 
     if not ginos:
         return
@@ -1408,24 +1609,36 @@ def summarize_text(ginos: Optional[GinosInterface],file_path: str):
 
     return response
 
+def ros2_run(ros2: Ros2Interface | None, command: str):
+    if not ros2:
+        return
 
-def mqtt_publish(mqtt: Optional[MQTTClient], topic: str, payload: Any):
+    ros2.run(command)
+
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+    if not ros2:
+        return
+    
+    ros2.publish(topic, message)
+
+def mqtt_publish(mqtt: MQTTClient | None, topic: str, payload: Any):
     if not mqtt:
         return
     
     mqtt.publish(topic, payload)
 
-def mqtt_register(mqtt: Optional[MQTTClient]):
+def mqtt_register(mqtt: MQTTClient | None):
     if not mqtt:
         return
     
     mqtt.register()
 
-def mqtt_unregister(mqtt: Optional[MQTTClient]):
+def mqtt_unregister(mqtt: MQTTClient | None):
     if not mqtt:
         return
     
     mqtt.unregister()
+
 
 # ---------- Generated code ---------------
 
@@ -1453,11 +1666,12 @@ function defineCustomGenerators() {
         var code = 'def tactigon_shape_setup(\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1482,11 +1696,12 @@ function defineCustomGenerators() {
         var code = 'def tactigon_shape_close(\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1511,11 +1726,12 @@ function defineCustomGenerators() {
         var code = 'def tactigon_shape_function(\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: Optional[BraccioInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: Optional[ZionInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: Optional[IronBoyInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: Optional[GinosInterface],\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: Optional[MQTTClient],\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
@@ -1536,9 +1752,10 @@ function defineCustomGenerators() {
     defineBraccioGenerators();
     defineDictionaryGenerators();
     defineZionGenerators();
+    defineRos2Generators();
     defineIronBoyGenerators();
     defineGinosAIGenerators();
-    defineGinosMQTTGenerators();
+    defineMQTTGenerators();
 }
 
 function defineTSkinGenerators(){
@@ -1592,11 +1809,11 @@ function defineSpeechGenerators(){
         return `record_audio(tskin, ${filename}, ${seconds})\n`
     };
 
-    python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
-        let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
+    // python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
+    //     let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
 
-        return `tskin.play(${filename})\n`
-    };
+    //     return `tskin.play(${filename})\n`
+    // };
 }
 
 function defineKeyboardGenerators(){
@@ -1677,6 +1894,36 @@ function defineDictionaryGenerators() {
         const key = Blockly.Python.valueToCode(block, 'key', Blockly.Python.ORDER_ATOMIC) || "''";
 
         const code = `${dict}.get(${key}, None)`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['dict_builder'] = function(block) {
+        const pairBlock = block.getInputTargetBlock('PAIRS');
+        const pairCode = Blockly.Python.blockToCode(pairBlock).slice(0, -2); // remove trailing comma and space
+        const code = "{" + pairCode + "}";
+
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['dict_pair'] = function (block) {
+        const key = Blockly.Python.valueToCode(block, 'dict_key', Blockly.Python.ORDER_ATOMIC) || "'data'";
+        const value = Blockly.Python.valueToCode(block, 'dict_value', Blockly.Python.ORDER_ATOMIC) || "''";
+
+        const code = `${key}: ${value}, `;
+        return code;
+    };
+
+    python.pythonGenerator.forBlock['dict_to_json'] = function (block, generator) {
+        const dict = Blockly.Python.valueToCode(block, 'dict', Blockly.Python.ORDER_ATOMIC) || "{}";
+
+        const code = `json.dumps(${dict})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['json_to_dict'] = function (block, generator) {
+        const dict = Blockly.Python.valueToCode(block, 'json', Blockly.Python.ORDER_ATOMIC) || "{}";
+
+        const code = `json.loads(${dict})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 }
@@ -1777,12 +2024,74 @@ function defineZionGenerators() {
     };
 }
 
+function defineRos2Generators(){
+    python.pythonGenerator.forBlock['ros2_command'] = function(block, generator) {
+        const command = block.getFieldValue('command');
+        return `ros2_run(ros2, "${command}")\n`;
+    };
+
+    python.pythonGenerator.forBlock['ros2_subscribe'] = function(block, generator) {
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0){
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+        // const message_type = generator.valueToCode(block, 'message_type', python.Order.ATOMIC);
+        const function_name = clean_topic_names(value_topic);
+        const statement_function = generator.statementToCode(block, 'function');
+
+        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables +  statement_function;
+        return code;
+    }
+
+    python.pythonGenerator.forBlock['ros2_publish'] = function(block, generator) {
+        const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
+        const message_type = generator.valueToCode(block, 'message_type', python.Order.ATOMIC);
+
+        const code = `ros2_publish(ros2, ${value_topic}, ${message_type})\n`
+        return code;
+    }
+
+    python.pythonGenerator.forBlock['ros2_message_type'] = function(block) {
+        const command = block.getFieldValue('message_type');
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_String'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `ros2_models.String(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Bool'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `ros2_models.Bool(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Int64'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `ros2_models.Int64(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_message_Float64'] = function(block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const command = `ros2_models.Float64(data=${data})`;
+        return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+}
+
 function defineIronBoyGenerators(){
-    python.pythonGenerator.forBlock['ironboy_command'] = function(block,generator) {
+    python.pythonGenerator.forBlock['ironboy_command'] = function(block, generator) {
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
         const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
         const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
-        return [code, Blockly.Python.ORDER_ATOMIC];
+        return code;
     };
 
     python.pythonGenerator.forBlock['command_list'] = function(block) {
@@ -1800,40 +2109,39 @@ function defineGinosAIGenerators(){
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
-        // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
-        // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-        // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
-        var code = ``;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
+    // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
+    //     // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
+    //     // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
+    //     // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
+    //     var code = ``;
+    //     return [code, Blockly.Python.ORDER_ATOMIC];
+    // };
 
-    python.pythonGenerator.forBlock["ginos_ai_chat_message"] = function(block, generator) {
-        var code = ``;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
-    python.pythonGenerator.forBlock["ginos_ai_chat_message_role"] = function(block, generator) {
-        var code = ``;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
+    // python.pythonGenerator.forBlock["ginos_ai_chat_message"] = function(block, generator) {
+    //     var code = ``;
+    //     return [code, Blockly.Python.ORDER_ATOMIC];
+    // };
+
+    // python.pythonGenerator.forBlock["ginos_ai_chat_message_role"] = function(block, generator) {
+    //     var code = ``;
+    //     return [code, Blockly.Python.ORDER_ATOMIC];
+    // };
     
     python.pythonGenerator.forBlock['ginos_summarize_text'] = function(block, generator) {
     const text = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
         var code = `summarize_text(ginos,${text},logging_queue)`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     }
-    //------------
-    python.pythonGenerator.forBlock['read_static_file'] = function(block, generator) {
 
-    const filepath = generator.valueToCode(block, 'path', python.Order.ATOMIC);
-    var code = `extract_data(${filepath},logging_queue)`
-    return code;
-    }
+    // python.pythonGenerator.forBlock['read_static_file'] = function(block, generator) {
+    //     const filepath = generator.valueToCode(block, 'path', python.Order.ATOMIC);
+    //     var code = `extract_data(${filepath},logging_queue)`
+    //     return code;
+    // }
 }
 
-
-function defineGinosMQTTGenerators(){
-    python.pythonGenerator.forBlock['ginos_mqtt_subscribe'] = function(block, generator) {
+function defineMQTTGenerators(){
+    python.pythonGenerator.forBlock['mqtt_subscribe'] = function(block, generator) {
         let variables = block.workspace.getAllVariables().map((v) => {
             return v.name;
         }).join(', ');
@@ -1850,7 +2158,7 @@ function defineGinosMQTTGenerators(){
         return code;
     }
 
-    python.pythonGenerator.forBlock['ginos_mqtt_publish'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_publish'] = function(block, generator) {
         const value_payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
         const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
 
@@ -1858,12 +2166,12 @@ function defineGinosMQTTGenerators(){
         return code;
     }
 
-    python.pythonGenerator.forBlock['ginos_mqtt_register'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_register'] = function(block, generator) {
         const code = `mqtt_register(mqtt)\n`
         return code;
     }
 
-    python.pythonGenerator.forBlock['ginos_mqtt_unregister'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_unregister'] = function(block, generator) {
         const code = `mqtt_unregister(mqtt)\n`
         return code;
     }
