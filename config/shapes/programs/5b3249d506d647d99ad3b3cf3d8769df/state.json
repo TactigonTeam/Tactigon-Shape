@@ -18,7 +18,7 @@
         "inputs": {
           "BODY": {
             "block": {
-              "type": "shapes_debug",
+              "type": "tactigon_shape_debug",
               "id": "2P6_nncRf,Ye;MoC5RMt",
               "inputs": {
                 "TEXT": {
@@ -57,7 +57,7 @@
               },
               "next": {
                 "block": {
-                  "type": "shapes_debug",
+                  "type": "tactigon_shape_debug",
                   "id": "x]qaBg8-o`pLRC%WuCm9",
                   "inputs": {
                     "TEXT": {

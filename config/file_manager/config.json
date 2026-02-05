@@ -1,0 +1,10 @@
+{
+  "base_path": "",
+  "directories": [
+    {
+      "item_type": "directory",
+      "name": "DataFrame",
+      "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame"
+    }
+  ]
+}

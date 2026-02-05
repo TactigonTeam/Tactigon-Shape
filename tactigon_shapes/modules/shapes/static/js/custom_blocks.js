@@ -119,7 +119,7 @@ function loadShapesBlocks() {
             "colour": "#EB6152",
         },
         {
-            "type": "shapes_debug",
+            "type": "tactigon_shape_debug",
             "message0": "Debug %1",
             "args0": [
                 {
@@ -129,7 +129,7 @@ function loadShapesBlocks() {
             ],
             "previousStatement": null,
             "nextStatement": null,
-            "colour": "#bce261",
+            "colour": "#7BAF1E",
             "tooltip": "Send a message to the terminal",
             "helpUrl": ""
         }
@@ -444,7 +444,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                 ],
                 "previousStatement": null,
                 "nextStatement": null,
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Press a key on the keyboard",
                 "helpUrl": ""
             });
@@ -464,7 +464,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Enter a single function key",
                 "helpUrl": ""
             });
@@ -489,7 +489,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of a modifier key and a function key",
                 "helpUrl": ""
             });
@@ -519,7 +519,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of 2 modifier keys and a function key",
                 "helpUrl": ""
             });
@@ -539,7 +539,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Enter a single keyboard letter",
                 "helpUrl": ""
             })
@@ -573,7 +573,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of a modifier key and a letter",
                 "helpUrl": ""
             });
@@ -611,7 +611,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of 2 modifier keys and a letter",
                 "helpUrl": ""
             });
@@ -1752,7 +1752,7 @@ function defineCustomGenerators() {
 }
 
 function defineShapesGenerators() {
-    python.pythonGenerator.forBlock['shapes_debug'] = function (block, generator) {
+    python.pythonGenerator.forBlock['tactigon_shape_debug'] = function (block, generator) {
         var message = generator.valueToCode(block, 'TEXT', python.Order.ATOMIC);
         var code = `debug(logging_queue, ${message})\n`;
         return code;

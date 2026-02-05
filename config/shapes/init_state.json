@@ -16,7 +16,7 @@
         "inputs": {
           "BODY": {
             "block": {
-              "type": "shapes_debug",
+              "type": "tactigon_shape_debug",
               "inputs": {
                 "TEXT": {
                   "shadow": {
