@@ -37,11 +37,14 @@ def parse_datetime(date_string: str | None) -> datetime:
 
     return dateutil.parser.isoparse(date_string)
 
-class LLMMessageRole(Enum):
+class LLMMessageRole(str, Enum):
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
     TOOL = "tool"
+
+class DataFrameFileExtension(str, Enum):
+    CSV = "csv"
 
 @dataclass
 class GinosConfig:

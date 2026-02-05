@@ -37,6 +37,7 @@ from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
 from tactigon_shapes.modules.ros2.manager import get_ros2_interface
+from tactigon_shapes.modules.file_manager.manager import get_file_manager_extension
 from tactigon_shapes.utils.request_utils import get_from_request
 
 
@@ -92,6 +93,10 @@ def index(program_id: str | None = None):
         blocks_config["ros2"] = ros2_interface.get_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
+
+    file_manager = get_file_manager_extension()
+    if file_manager:
+        blocks_config["file_manager"] = file_manager.get_blocks()
     
     state = _shapes.get_state(current_config.id) if current_config else None
 
@@ -218,6 +223,7 @@ def edit(program_id: str):
     zion = get_zion_interface()
     ros2_interface = get_ros2_interface()
     ironboy = get_ironboy_interface()
+    file_manager = get_file_manager_extension()
 
     if ironboy:
         blocks_config["ironboy"] = ironboy.get_shape_blocks()       
@@ -230,11 +236,15 @@ def edit(program_id: str):
 
     blocks_config["ginos"] = get_ginos_blocks()
 
-    return render_template("shapes/edit.jinja",
-                           current_config=current_config,
-                           state=json.dumps(state),
-                           blocks_config=blocks_config
-                           )
+    if file_manager:
+        blocks_config["file_manager"] = file_manager.get_blocks()
+
+    return render_template(
+        "shapes/edit.jinja",
+        current_config=current_config,
+        state=json.dumps(state),
+        blocks_config=blocks_config
+    )
 
 
 @bp.route("/<string:program_id>/save/config", methods=["POST"])

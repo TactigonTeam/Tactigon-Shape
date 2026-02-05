@@ -46,6 +46,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
+from tactigon_shapes.modules.file_manager.extension import FileManager
 from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 IMPORT_FOLDER_NAME = 'import'
@@ -83,6 +84,7 @@ class ShapeThread(ExtensionThread):
     _mqtt_interface: MQTTClient | None = None
     _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
+    _file_manager: FileManager | None = None
     
     def __init__(
             self, 
@@ -94,6 +96,7 @@ class ShapeThread(ExtensionThread):
             zion: ZionInterface | None, 
             ros2: Ros2Interface | None,
             ironboy: IronBoyInterface | None,
+            file_manager: FileManager | None,
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -103,6 +106,7 @@ class ShapeThread(ExtensionThread):
         self._zion_interface = zion
         self._ros2_interface = ros2
         self._ironboy_interface = ironboy
+        self._file_manager = file_manager
 
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
@@ -204,6 +208,21 @@ class ShapeThread(ExtensionThread):
         setattr(self.module, subscription.payload_reference, None)
 
     def run(self):
+        self.setUp()
+
+        should_run = True
+        
+        while not self._stop_event.is_set() and should_run:
+            try:
+                should_run = self.main()
+            except Exception as e:
+                self._logging_queue.error(str(e.with_traceback))
+
+            time.sleep(self.TICK)
+
+        self.close()
+
+    def setUp(self):
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
 
         if shape_setup_fn:
@@ -222,39 +241,21 @@ class ShapeThread(ExtensionThread):
             except Exception as e:
                 self._logger.error(e)
                 self._logging_queue.error(str(e))
-        
-        ExtensionThread.run(self)
 
     def main(self):
-        try:
-            self.module.tactigon_shape_function(
-                self._tskin, 
-                self._keyboard, 
-                self.braccio_interface, 
-                self.zion_interface, 
-                self._ros2_interface,
-                self._ironboy_interface, 
-                self._ginos_interface,
-                self._mqtt_interface,
-                self._logging_queue
-            )
-        except Exception as e:
-            self._logging_queue.error(str(e))
-
-    def load_module(self, source: str):
-        """
-        reads file source and loads it as a module
-
-        :param source: file to load
-        :param module_name: name of module to register in sys.modules
-        :return: loaded module
-        """
-        spec = importlib.util.spec_from_file_location(self.MODULE_NAME, source)
-        self.module = importlib.util.module_from_spec(spec)  # type: ignore
-        sys.modules[self.MODULE_NAME] = self.module
-        spec.loader.exec_module(self.module)  # type: ignore
-
-    def stop(self):
+        return self.module.tactigon_shape_function(
+            self._tskin, 
+            self._keyboard, 
+            self.braccio_interface, 
+            self.zion_interface, 
+            self._ros2_interface,
+            self._ironboy_interface, 
+            self._ginos_interface,
+            self._mqtt_interface,
+            self._logging_queue
+        )
+    
+    def close(self):
         shape_close_fn = getattr(self.module, "tactigon_shape_close", None)
 
         if shape_close_fn:
@@ -283,7 +284,18 @@ class ShapeThread(ExtensionThread):
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
 
-        ExtensionThread.stop(self)
+    def load_module(self, source: str):
+        """
+        reads file source and loads it as a module
+
+        :param source: file to load
+        :param module_name: name of module to register in sys.modules
+        :return: loaded module
+        """
+        spec = importlib.util.spec_from_file_location(self.MODULE_NAME, source)
+        self.module = importlib.util.module_from_spec(spec)  # type: ignore
+        sys.modules[self.MODULE_NAME] = self.module
+        spec.loader.exec_module(self.module)  # type: ignore
 
 
 class ShapesApp(ExtensionApp):
@@ -300,6 +312,7 @@ class ShapesApp(ExtensionApp):
     _braccio_interface: BraccioInterface | None = None
     _zion_interface: ZionInterface | None = None
     _ros2_interface: Ros2Interface | None = None
+    _file_manager: FileManager | None = None
 
     def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
@@ -350,6 +363,14 @@ class ShapesApp(ExtensionApp):
     @ironboy_interface.setter
     def ironboy_interface(self, ironboy_interface: IronBoyInterface | None):
         self._ironboy_interface = ironboy_interface
+
+    @property
+    def file_manager(self) -> FileManager | None:
+        return self._file_manager
+    
+    @file_manager.setter
+    def file_manager(self, file_manager: FileManager):
+        self._file_manager = file_manager
 
     def get_log(self) -> DebugMessage | None:
         if self.in_flight_log:
@@ -590,7 +611,8 @@ class ShapesApp(ExtensionApp):
                         zion=self.zion_interface, 
                         ros2=self.ros2_interface,
                         ironboy=self.ironboy_interface, 
-                        logging_queue=self.logging_queue
+                        file_manager=self.file_manager,
+                        logging_queue=self.logging_queue,
                     ) 
                     self.thread.start()
                 except Exception as e:

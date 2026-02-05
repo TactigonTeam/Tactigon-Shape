@@ -41,6 +41,7 @@ def manage():
 
 @bp.route("add", methods=["GET"])
 def add():
+    print("TSKIN ADD", file=sys.stderr)
     return render_template("tskin/add.jinja")
 
 @bp.route("socket_settings", methods=["GET", "POST"])

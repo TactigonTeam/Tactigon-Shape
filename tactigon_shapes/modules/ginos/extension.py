@@ -17,16 +17,21 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
+from pathlib import Path
 import json
 import logging
 import requests
 import httpx
 import time
+import pandas as pd
 
 from typing import Iterator
 
-from tactigon_shapes.modules.ginos.models import LLMChatResponse, LLMModelPullRequest, LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, LLMPromptRequest, LLMChatRequest, LLMPromptResponse
+from tactigon_shapes.modules.file_manager.extension import FileManager
+from tactigon_shapes.modules.ginos.models import LLMChatResponse, LLMModelPullRequest, \
+    LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, \
+        LLMPromptRequest, LLMChatRequest, LLMPromptResponse, \
+        DataFrameFileExtension
 
 APPLICATION_JSON = 'application/json'
 
@@ -41,11 +46,13 @@ class GinosInterface:
     _version: str | None
     _model_list: list[LLMModelRequest]
     _logger: logging.Logger
+    _dataframe: pd.DataFrame
 
     def __init__(self, url: str, model: str):
         self._url = url if url[-1] == "/" else f"{url}/"
         self._model = model
         self._logger = logging.getLogger(GinosInterface.__name__)
+        self._dataframe = pd.DataFrame()
 
         retries = 0
         while retries < 6:
@@ -74,6 +81,10 @@ class GinosInterface:
     @property
     def model(self) -> str:
         return self._model
+    
+    @property
+    def dataframe_extensions(self) -> list[str]:
+        return [f".{e.value}" for e in DataFrameFileExtension]
 
     def get_version(self) -> str | None:
         resp = self._get("version")
@@ -190,4 +201,47 @@ class GinosInterface:
             self._logger.error(e)
 
         return 500
+    
+    def file_to_dataframe(self,file_path: str) -> pd.DataFrame | None:
 
+        if FileManager.get_file_extension(file_path) not in self.dataframe_extensions:
+            self._logger.error("File type not supported.")
+            return None
+
+        try:
+            df = None
+
+            if file_path.endswith('.csv'):
+                df = pd.read_csv(file_path)
+
+            elif file_path.endswith('.json'):
+                df = pd.read_json(file_path)
+
+            # elif file_path.endswith(('.txt', '.md')):
+            #     with open(file_path, 'r', encoding='utf-8') as f:
+            #         lines = [line.strip() for line in f.readlines() if line.strip()]
+
+            #     return pandas.DataFrame(lines, columns=['content'])
+            
+            return df
+        except Exception as e:
+            self._logger.error("Cannot read file into dataframe. %s", e.with_traceback)
+            
+        return None
+
+    def add_file_to_context(self, file_path: str):
+            
+        new_df = self.file_to_dataframe(file_path)
+        
+        if new_df is None:
+            self._logger.error(f"Cannot get dataframe from file {file_path}")
+            return False
+        
+        self._dataframe = pd.concat([self._dataframe, new_df], ignore_index=True)
+       
+        self._logger.info(f"Added {file_path} to context")
+        return True
+
+    def clear_context(self):
+        self._dataframe = pd.DataFrame()
+        self._logger.info("Dataframe cleared!")

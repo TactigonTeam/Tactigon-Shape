@@ -44,6 +44,7 @@ from tactigon_shapes.modules.tskin.manager import load_tskin, start_tskin, stop_
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.file_manager.extension import FileManager
 
 from tactigon_shapes.utils.extensions import force_stop_apps
 
@@ -77,6 +78,7 @@ class TactigonShapes:
             zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"))
             ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
+            file_manager = FileManager(path.join(BASE_PATH, "config", "file_manager"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -85,11 +87,13 @@ class TactigonShapes:
             shapes_app.init_app(flask_app)
             socket_app.init_app(flask_app)
             ironboy_interface.init_app(flask_app)
+            file_manager.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
             shapes_app.zion_interface = zion_interface
             shapes_app.ros2_interface = ros2_interface
             shapes_app.ironboy_interface = ironboy_interface
+            shapes_app.file_manager = file_manager
 
             socket_app.shapes_app = shapes_app
             socket_app.braccio_interface = braccio_interface
@@ -111,6 +115,7 @@ class TactigonShapes:
             from tactigon_shapes.modules.zion.blueprint import bp as zion_bp
             from tactigon_shapes.modules.ros2.blueprint import bp as ros2_bp
             from tactigon_shapes.modules.ironboy.blueprint import bp as ironboy_bp
+            from tactigon_shapes.modules.file_manager.blueprint import bp as file_manager_bp
 
             flask_app.register_blueprint(main.bp)
             flask_app.register_blueprint(tskin_bp)
@@ -119,16 +124,17 @@ class TactigonShapes:
             flask_app.register_blueprint(zion_bp)
             flask_app.register_blueprint(ros2_bp)
             flask_app.register_blueprint(ironboy_bp)
+            flask_app.register_blueprint(file_manager_bp)
 
             @flask_app.route('/favicon.ico')
             def favicon():
                 return send_from_directory(path.join(flask_app.root_path, "static", "images"), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-            @flask_app.errorhandler(Exception)
-            def handle_exception(e):
-                # now you're handling non-HTTP exceptions only
-                current_app.logger.error(e)
-                return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form), 500
+            # @flask_app.errorhandler(Exception)
+            # def handle_exception(e):
+            #     # now you're handling non-HTTP exceptions only
+            #     current_app.logger.error("Exception while loading the page %s %s. Exception %s", request.method, request.url, e)
+            #     return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form), 500
 
             @flask_app.context_processor
             def inject_data():

@@ -29,8 +29,10 @@ function loadCustomBlocks(response) {
     const zion = response ? response.zion : [];
     const ros2 = response ? response.ros2 : {};
     const ironboy = response ? response.ironboy : [];
-    const ginos = response ? response.ginos: {};
-    
+    const ginos = response ? response.ginos : {};
+    const file_manager = response ? response.file_manager : {};
+
+    loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs);
     loadKeyboardBlocks(funcKeys, modKeys);
@@ -38,7 +40,7 @@ function loadCustomBlocks(response) {
     loadZionBlocks(zion);
     loadRos2Blocks(ros2);
     loadIronBoyBlocks(ironboy);
-    loadGinosAIBlocks(ginos);
+    loadGinosAIBlocks(ginos, file_manager);
     loadMQTTBlocks();
     loadDictionaryBlocks();
 
@@ -95,6 +97,26 @@ function loadCustomBlocks(response) {
             "colour": 230,
             "tooltip": "Setup function",
             "helpUrl": ""
+        }
+    ]);
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
+function loadShapesBlocks() {
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "shapes_stop",
+            "tooltip": "Stop shape execution",
+            "helpUrl": "",
+            "message0": "Stop shape %1",
+            "args0": [
+                {
+                    "type": "input_dummy",
+                    "name": "NAME"
+                }
+            ],
+            "previousStatement": null,
+            "colour": "#EB6152",
         },
         {
             "type": "tactigon_shape_debug",
@@ -107,28 +129,29 @@ function loadCustomBlocks(response) {
             ],
             "previousStatement": null,
             "nextStatement": null,
-            "colour": "#bce261",
+            "colour": "#7BAF1E",
             "tooltip": "Send a message to the terminal",
             "helpUrl": ""
         }
     ]);
+
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadDictionaryBlocks(){
+function loadDictionaryBlocks() {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "get_dict_property",
             "message0": "Get item %1 from dictionary %2",
             "args0": [
                 {
-                "type": "input_value",
-                "name": "key",
-                "check": "String"
+                    "type": "input_value",
+                    "name": "key",
+                    "check": "String"
                 },
                 {
-                "type": "input_value",
-                "name": "dictionary"
+                    "type": "input_value",
+                    "name": "dictionary"
                 }
             ],
             "output": null,
@@ -204,7 +227,6 @@ function loadDictionaryBlocks(){
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-//Carica i blocchi relativi a TSkin
 function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
     Blockly.Blocks['tskin_gesture_list'] = {
         init: function () {
@@ -317,11 +339,11 @@ function loadSpeechBlocks(speechs) {
     args = []
     message = "Voice command:"
 
-    for (var i=0; i<speechs.length; i++){
+    for (var i = 0; i < speechs.length; i++) {
 
         message += " %" + (i + 1);
 
-        if (i==0) {
+        if (i == 0) {
             args.push({
                 "type": "field_dropdown",
                 "name": "FIELD_0",
@@ -346,7 +368,7 @@ function loadSpeechBlocks(speechs) {
     }
 
     Blockly.Blocks['tskin_listen'] = {
-        init: function(){
+        init: function () {
             this.jsonInit({
                 "type": "tskin_listen",
                 "message0": message,
@@ -407,7 +429,6 @@ function loadSpeechBlocks(speechs) {
     // };
 }
 
-// Carica i blocchi relativi a Keyboard
 function loadKeyboardBlocks(funcKeys, modKeys) {
     Blockly.Blocks['keyboard_press'] = {
         init: function () {
@@ -423,7 +444,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                 ],
                 "previousStatement": null,
                 "nextStatement": null,
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Press a key on the keyboard",
                 "helpUrl": ""
             });
@@ -443,7 +464,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Enter a single function key",
                 "helpUrl": ""
             });
@@ -468,7 +489,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of a modifier key and a function key",
                 "helpUrl": ""
             });
@@ -498,7 +519,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of 2 modifier keys and a function key",
                 "helpUrl": ""
             });
@@ -518,7 +539,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Enter a single keyboard letter",
                 "helpUrl": ""
             })
@@ -552,7 +573,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of a modifier key and a letter",
                 "helpUrl": ""
             });
@@ -590,7 +611,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     }
                 ],
                 "output": "KeyboardShortcut",
-                "colour": "#c2c2c2",
+                "colour": "#7F7F7F",
                 "tooltip": "Combination of 2 modifier keys and a letter",
                 "helpUrl": ""
             });
@@ -682,7 +703,7 @@ function loadBraccioBlocks(wristOptions, gripperOptions) {
     };
 }
 
-function loadZionBlocks(zion){
+function loadZionBlocks(zion) {
     Blockly.Blocks['device_list'] = {
         init: function () {
             this.jsonInit({
@@ -770,7 +791,7 @@ function loadZionBlocks(zion){
                 "tooltip": "delete attribute from device",
                 "helpUrl": "",
                 "message0": "Delete Attribute from device: %1 Scope %2 Key %3",
-                "args0": [          
+                "args0": [
                     {
                         "type": "input_value",
                         "name": "device",
@@ -941,7 +962,7 @@ function loadZionBlocks(zion){
             });
         }
     };
-    
+
     Blockly.Blocks['send_device_alarm'] = {
         init: function () {
             this.jsonInit({
@@ -966,9 +987,9 @@ function loadZionBlocks(zion){
             });
         }
     };
-} 
+}
 
-function loadRos2Blocks(ros2blocks){
+function loadRos2Blocks(ros2blocks) {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "ros2_command",
@@ -1022,9 +1043,9 @@ function loadRos2Blocks(ros2blocks){
             "message0": "Type %1",
             "args0": [
                 {
-                "type": "field_dropdown",
-                "name": "message_type",
-                "options": ros2blocks.default_types
+                    "type": "field_dropdown",
+                    "name": "message_type",
+                    "options": ros2blocks.default_types
                 }
             ],
             "output": "GenericRos2MessageType",
@@ -1045,7 +1066,7 @@ function loadRos2Blocks(ros2blocks){
                     "type": "input_value",
                     "name": "topic",
                     "check": "String"
-                }                
+                }
             ],
             "tooltip": "Publish a message to a ROS 2 topic",
             "helpUrl": "",
@@ -1144,48 +1165,45 @@ function loadIronBoyBlocks(ironboy) {
                 "inputsInline": true
             });
         }
-        
+
     }
-    
+
     Blockly.Blocks['command_list'] = {
-        init: function() {
+        init: function () {
             this.jsonInit({
-            "type": "command_list",
-            "message0": "Command %1",
-            "args0": [
-                {
-                "type": "field_dropdown",
-                "name": "command",
-                "options": ironboy.commands
-                }
-            ],
-            "output": "IronBoyCommand",
-            "colour": "#EB6152",
-            "tooltip": "Select an Iron Boy movement command",
-            "helpUrl": ""
+                "type": "command_list",
+                "message0": "Command %1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "command",
+                        "options": ironboy.commands
+                    }
+                ],
+                "output": "IronBoyCommand",
+                "colour": "#EB6152",
+                "tooltip": "Select an Iron Boy movement command",
+                "helpUrl": ""
             });
         }
     };
 }
 
-function loadGinosAIBlocks(ginos){
+function loadGinosAIBlocks(ginos, file_manager) {
+    let directory = [];
+    let optionMapping = {};
+
+    file_manager.forEach(el => {
+        directory.push([el['directory']['name'], el['directory']['base_path']]);
+        optionMapping[el['directory']['base_path']] = [['---', '']];
+
+        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
+            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+            return [f_path, f_path];
+        }));
+    });
+
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
-        {
-            "type": "ginos_summarize_text",
-            "tooltip": "",
-            "helpUrl": "",
-            "message0": "Summarize this file: %1",
-            "args0": [
-                {
-                "type": "input_value",
-                "name": "input_path",
-                "check": "String"
-                }
-            ],
-            "output": "String",
-            "colour": "#EB6152",
-            },
-                    
         {
             "type": "ginos_ai_prompt",
             "message0": "AI prompt %1",
@@ -1198,6 +1216,28 @@ function loadGinosAIBlocks(ginos){
             "output": "String",
             "colour": "#EB6152",
             "tooltip": "AI response from Ginos",
+            "helpUrl": ""
+        },
+        {
+            "type": "ginos_load_dataframe",
+            "message0": "Create dataframe from %1 %2",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "directory",
+                    "options": directory
+                },
+                {
+                    "type": "field_dependent_dropdown",
+                    "name": "filepath",
+                    "parentName": "directory",
+                    "optionMapping": optionMapping,
+                    "defaultOptions": [['---', '']],
+                }
+            ],
+            "output": "Boolean",
+            "colour": "#EB6152",
+            "tooltip": "Load dataframe locally",
             "helpUrl": ""
         },
         {
@@ -1248,29 +1288,12 @@ function loadGinosAIBlocks(ginos){
             "tooltip": "",
             "helpUrl": ""
         },
-        {
-            "type": "read_static_file",
-            "tooltip": "read from file.csv",
-            "helpUrl": "read from file.csv",
-            "message0": "Input file : %1",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "path",
-                    "check": "String"
-                }
-            ],
-            "previousStatement": null,
-            "nextStatement": null,
-            "colour": 15,
-            "inputsInline": false
-        }
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadMQTTBlocks(){
+function loadMQTTBlocks() {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "mqtt_subscribe",
@@ -1346,7 +1369,7 @@ function loadMQTTBlocks(){
 
 }
 
-function defineImportsAndLibraries(){
+function defineImportsAndLibraries() {
     return `
 # Shapes by Next Industries
 
@@ -1354,6 +1377,7 @@ import time
 import random
 import types
 import json
+import os
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -1574,40 +1598,11 @@ def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""
 
     return ginos.prompt(prompt_object)
 
-def get_doc_content(file_path):
-    path = Path(file_path)
-    
-    if not path.exists():
-        return None
-        
-    extension = path.suffix.lower()
-    
-    try:
-        if extension == '.txt' or extension == '.md':
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read()
-        else:
-            return None
-        
-    except Exception as e:
-
-        return None
-
-def summarize_text(ginos: GinosInterface | None,file_path: str):
-
+def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
     if not ginos:
-        return
-    
-    extracted_file_content = get_doc_content(file_path)
-    
-    if not extracted_file_content:
-        return None
+        return False
 
-    prompt_per_riassunto = "summarize this text: " + extracted_file_content
-
-    response = ginos_ai_prompt(ginos, prompt_per_riassunto)
-
-    return response
+    return ginos.add_file_to_context(os.path.join(directory, file_path))
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -1650,7 +1645,7 @@ function defineCustomGenerators() {
 
     python.pythonGenerator.forBlock['tactigon_shape_setup'] = function (block, generator) {
         var statements_body = Blockly.Python.statementToCode(block, 'setup_code');
-        
+
         if (!statements_body) {
             statements_body = Blockly.Python.INDENT + "pass"
         }
@@ -1659,7 +1654,7 @@ function defineCustomGenerators() {
             return v.name;
         }).join(', ');
 
-        if (variables.length > 0){
+        if (variables.length > 0) {
             variables = `${Blockly.Python.INDENT}global ${variables}\n`;
         }
 
@@ -1680,7 +1675,7 @@ function defineCustomGenerators() {
 
     python.pythonGenerator.forBlock['tactigon_shape_close'] = function (block, generator) {
         var statements_body = Blockly.Python.statementToCode(block, 'setup_code');
-        
+
         if (!statements_body) {
             statements_body = Blockly.Python.INDENT + "pass"
         }
@@ -1689,7 +1684,7 @@ function defineCustomGenerators() {
             return v.name;
         }).join(', ');
 
-        if (variables.length > 0){
+        if (variables.length > 0) {
             variables = `${Blockly.Python.INDENT}global ${variables}\n`;
         }
 
@@ -1710,7 +1705,7 @@ function defineCustomGenerators() {
 
     python.pythonGenerator.forBlock['tactigon_shape_function'] = function (block, generator) {
         var statements_body = Blockly.Python.statementToCode(block, 'BODY');
-        
+
         if (!statements_body) {
             statements_body = Blockly.Python.INDENT + "pass"
         }
@@ -1719,7 +1714,7 @@ function defineCustomGenerators() {
             return v.name;
         }).join(', ');
 
-        if (variables.length > 0){
+        if (variables.length > 0) {
             variables = `${Blockly.Python.INDENT}global ${variables}\n`;
         }
 
@@ -1736,16 +1731,14 @@ function defineCustomGenerators() {
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
             Blockly.Python.INDENT + "touch = tskin.touch\n" +
-            statements_body + '\n';
+            statements_body + '\n' +
+            Blockly.Python.INDENT + "return True\n";
         return code;
     };
 
-    python.pythonGenerator.forBlock['tactigon_shape_debug'] = function (block, generator) {
-        var message = generator.valueToCode(block, 'TEXT', python.Order.ATOMIC);
-        var code = `debug(logging_queue, ${message})\n`;
-        return code;
-    };
-    
+
+
+    defineShapesGenerators();
     defineTSkinGenerators();
     defineSpeechGenerators();
     defineKeyboardGenerators();
@@ -1758,7 +1751,19 @@ function defineCustomGenerators() {
     defineMQTTGenerators();
 }
 
-function defineTSkinGenerators(){
+function defineShapesGenerators() {
+    python.pythonGenerator.forBlock['tactigon_shape_debug'] = function (block, generator) {
+        var message = generator.valueToCode(block, 'TEXT', python.Order.ATOMIC);
+        var code = `debug(logging_queue, ${message})\n`;
+        return code;
+    };
+
+    python.pythonGenerator.forBlock['shapes_stop'] = function () {
+        return "return False";
+    };
+}
+
+function defineTSkinGenerators() {
     python.pythonGenerator.forBlock['tskin_gesture_list'] = function (block) {
         var gesture = block.getFieldValue('gesture');
         var code = `check_gesture(gesture, "${gesture}")`;
@@ -1786,12 +1791,12 @@ function defineTSkinGenerators(){
     };
 }
 
-function defineSpeechGenerators(){
+function defineSpeechGenerators() {
     python.pythonGenerator.forBlock['tskin_listen'] = function (block) {
         let args = block.inputList[0].fieldRow
             .filter((f) => f.selectedOption && f.selectedOption[1] != "")
             .map((f) => {
-                if (f.selectedOption[1] == "---"){
+                if (f.selectedOption[1] == "---") {
                     return `[${f.optionMapping.position.filter((o) => o[0] != "---").map((o) => `HotWord("${o[0]}")`).join(", ")}]`
                 }
                 return `HotWord("${f.selectedOption[1]}")`;
@@ -1816,7 +1821,7 @@ function defineSpeechGenerators(){
     // };
 }
 
-function defineKeyboardGenerators(){
+function defineKeyboardGenerators() {
     python.pythonGenerator.forBlock['keyboard_press'] = function (block, generator) {
         var message = generator.valueToCode(block, 'NAME', python.Order.ATOMIC);
         var code = `keyboard_press(keyboard, HotKey.parse(${message}))\n`;
@@ -1866,7 +1871,7 @@ function defineKeyboardGenerators(){
     };
 }
 
-function defineBraccioGenerators(){
+function defineBraccioGenerators() {
     python.pythonGenerator.forBlock['braccio_move'] = function (block, generator) {
         const x = generator.valueToCode(block, 'x', python.Order.ATOMIC);
         const y = generator.valueToCode(block, 'y', python.Order.ATOMIC);
@@ -1897,7 +1902,7 @@ function defineDictionaryGenerators() {
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['dict_builder'] = function(block) {
+    python.pythonGenerator.forBlock['dict_builder'] = function (block) {
         const pairBlock = block.getInputTargetBlock('PAIRS');
         const pairCode = Blockly.Python.blockToCode(pairBlock).slice(0, -2); // remove trailing comma and space
         const code = "{" + pairCode + "}";
@@ -2003,7 +2008,7 @@ function defineZionGenerators() {
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
-    
+
     python.pythonGenerator.forBlock['send_device_alarm'] = function (block, generator) {
         var device = generator.valueToCode(block, 'device', python.Order.ATOMIC);
         var name = generator.valueToCode(block, 'name', python.Order.ATOMIC);
@@ -2024,18 +2029,18 @@ function defineZionGenerators() {
     };
 }
 
-function defineRos2Generators(){
-    python.pythonGenerator.forBlock['ros2_command'] = function(block, generator) {
+function defineRos2Generators() {
+    python.pythonGenerator.forBlock['ros2_command'] = function (block, generator) {
         const command = block.getFieldValue('command');
         return `ros2_run(ros2, "${command}")\n`;
     };
 
-    python.pythonGenerator.forBlock['ros2_subscribe'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_subscribe'] = function (block, generator) {
         let variables = block.workspace.getAllVariables().map((v) => {
             return v.name;
         }).join(', ');
 
-        if (variables.length > 0){
+        if (variables.length > 0) {
             variables = `${Blockly.Python.INDENT}global ${variables}\n`;
         }
 
@@ -2044,11 +2049,11 @@ function defineRos2Generators(){
         const function_name = clean_topic_names(value_topic);
         const statement_function = generator.statementToCode(block, 'function');
 
-        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables +  statement_function;
+        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables + statement_function;
         return code;
     }
 
-    python.pythonGenerator.forBlock['ros2_publish'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_publish'] = function (block, generator) {
         const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
         const message_type = generator.valueToCode(block, 'message_type', python.Order.ATOMIC);
 
@@ -2056,57 +2061,63 @@ function defineRos2Generators(){
         return code;
     }
 
-    python.pythonGenerator.forBlock['ros2_message_type'] = function(block) {
+    python.pythonGenerator.forBlock['ros2_message_type'] = function (block) {
         const command = block.getFieldValue('message_type');
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_message_String'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_message_String'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const command = `ros2_models.String(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_message_Bool'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_message_Bool'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const command = `ros2_models.Bool(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_message_Int64'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_message_Int64'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const command = `ros2_models.Int64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_message_Float64'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_message_Float64'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const command = `ros2_models.Float64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 }
 
-function defineIronBoyGenerators(){
-    python.pythonGenerator.forBlock['ironboy_command'] = function(block, generator) {
+function defineIronBoyGenerators() {
+    python.pythonGenerator.forBlock['ironboy_command'] = function (block, generator) {
         const command = generator.valueToCode(block, 'command', python.Order.ATOMIC);
         const reps = generator.valueToCode(block, 'reps', python.Order.ATOMIC);
         const code = `iron_boy_command(ironboy, logging_queue, ${command}, ${reps})\n`;
         return code;
     };
 
-    python.pythonGenerator.forBlock['command_list'] = function(block) {
+    python.pythonGenerator.forBlock['command_list'] = function (block) {
         const command = block.getFieldValue('command');
         return [`IronBoyCommand.${command}`, Blockly.Python.ORDER_ATOMIC];
     };
 }
 
-function defineGinosAIGenerators(){
-    python.pythonGenerator.forBlock["ginos_ai_prompt"] = function(block, generator) {
+function defineGinosAIGenerators() {
+    python.pythonGenerator.forBlock["ginos_ai_prompt"] = function (block, generator) {
         var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
         // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
         // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
         var code = `ginos_ai_prompt(ginos, ${prompt})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ginos_load_dataframe"] = function (block, generator) {
+        const dir = block.getFieldValue('directory');
+        const fpath = block.getFieldValue('filepath');
+        return [`ginos_load_dataframe(ginos, "${dir}", "${fpath}")`, python.Order.ATOMIC];
     };
 
     // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
@@ -2126,27 +2137,21 @@ function defineGinosAIGenerators(){
     //     var code = ``;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // };
-    
-    python.pythonGenerator.forBlock['ginos_summarize_text'] = function(block, generator) {
-    const text = generator.valueToCode(block, 'input_path', python.Order.ATOMIC);
-        var code = `summarize_text(ginos,${text},logging_queue)`;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    }
 
-    // python.pythonGenerator.forBlock['read_static_file'] = function(block, generator) {
-    //     const filepath = generator.valueToCode(block, 'path', python.Order.ATOMIC);
-    //     var code = `extract_data(${filepath},logging_queue)`
-    //     return code;
+    // python.pythonGenerator.forBlock['ginos_summarize_text'] = function (block, generator) {
+    //     const text = generator.valueToCode(block, 'text', python.Order.ATOMIC);
+    //     var code = `summarize_text(ginos,${text},logging_queue)`;
+    //     return [code, Blockly.Python.ORDER_ATOMIC];
     // }
 }
 
-function defineMQTTGenerators(){
-    python.pythonGenerator.forBlock['mqtt_subscribe'] = function(block, generator) {
+function defineMQTTGenerators() {
+    python.pythonGenerator.forBlock['mqtt_subscribe'] = function (block, generator) {
         let variables = block.workspace.getAllVariables().map((v) => {
             return v.name;
         }).join(', ');
 
-        if (variables.length > 0){
+        if (variables.length > 0) {
             variables = `${Blockly.Python.INDENT}global ${variables}\n`;
         }
 
@@ -2154,11 +2159,11 @@ function defineMQTTGenerators(){
         const function_name = clean_topic_names(value_topic);
         const statement_function = generator.statementToCode(block, 'function');
 
-        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables +  statement_function;
+        const code = `def ${function_name}(logging_queue: LoggingQueue):\n` + variables + statement_function;
         return code;
     }
 
-    python.pythonGenerator.forBlock['mqtt_publish'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_publish'] = function (block, generator) {
         const value_payload = generator.valueToCode(block, 'payload', python.Order.ATOMIC);
         const value_topic = generator.valueToCode(block, 'topic', python.Order.ATOMIC);
 
@@ -2166,18 +2171,19 @@ function defineMQTTGenerators(){
         return code;
     }
 
-    python.pythonGenerator.forBlock['mqtt_register'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_register'] = function (block, generator) {
         const code = `mqtt_register(mqtt)\n`
         return code;
     }
 
-    python.pythonGenerator.forBlock['mqtt_unregister'] = function(block, generator) {
+    python.pythonGenerator.forBlock['mqtt_unregister'] = function (block, generator) {
         const code = `mqtt_unregister(mqtt)\n`
         return code;
     }
 }
 
-function clean_topic_names(topic){
+
+function clean_topic_names(topic) {
     return topic
         .replaceAll("/", "_")
         .replaceAll("\\", "_")
