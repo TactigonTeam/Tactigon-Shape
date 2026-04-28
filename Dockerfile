@@ -18,7 +18,7 @@
 #********************************************************************************/
 
 
-FROM ros:kilted-ros-core
+FROM eprosima/vulcanexus:jazzy-base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
@@ -40,6 +40,13 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+COPY ros/msgs/camera_tracking_msgs /app/msgs/camera_tracking_msgs 
+
+SHELL ["/bin/bash", "-c"]
+RUN source /opt/vulcanexus/jazzy/setup.bash && \
+    # colcon build --packages-select camera_tracking_msgs
+    colcon build
+    
 COPY config /app/config
 COPY models /app/models
 COPY speech /app/speech
@@ -64,4 +71,4 @@ EXPOSE 50007
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD curl -f http://localhost:5123/ || exit 1
 
-CMD ["python3", "-m", "tactigon_shapes", "--address=0.0.0.0", "--port=5123"]
+CMD ["/bin/bash", "-c", "source /opt/vulcanexus/jazzy/setup.bash && source /app/install/setup.bash && exec python3 -m tactigon_shapes --address=0.0.0.0 --port=5123"]
