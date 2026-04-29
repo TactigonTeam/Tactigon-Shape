@@ -15,13 +15,13 @@ import sys
 import rclpy
 from rclpy.logging import get_logger
 
-from camera_tracking.node import CameraTrakingNode
+from camera_tracking.node import CameraTrackingNode
 
 def main(args=None):
     config_path = sys.argv[1] if len(sys.argv) > 1 else None
 
     if not config_path:
-        get_logger(CameraTrakingNode.__name__).error("Cannot start Braccio node. Config file path is missing")
+        get_logger(CameraTrackingNode.__name__).error("Cannot start Braccio node. Config file path is missing")
         return
     
     spin_node(config_path, args)
@@ -29,7 +29,7 @@ def main(args=None):
 def spin_node(config_path: str, args=None):
     rclpy.init(args=args)
 
-    node = CameraTrakingNode(config_path)
+    node = CameraTrackingNode(config_path)
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

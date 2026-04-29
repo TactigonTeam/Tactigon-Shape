@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY ros/msgs/camera_tracking_msgs /app/msgs/camera_tracking_msgs 
+COPY ros/msgs /app/msgs 
 
 SHELL ["/bin/bash", "-c"]
 RUN source /opt/vulcanexus/jazzy/setup.bash && \

@@ -27,14 +27,14 @@ from mediapipe.tasks.python import vision
 from camera_tracking_msgs.msg import Point2D, Marker, MarkerList
 from camera_tracking.models import CameraTrackingConfig
 
-class CameraTrakingNode(Node):
+class CameraTrackingNode(Node):
     config: CameraTrackingConfig
     red = (0, 0, 255)
     green = (0, 255, 0)
     marker_refresh_rate = 60  # frames
 
     def __init__(self, config_path: str):
-        Node.__init__(self, CameraTrakingNode.__name__)
+        Node.__init__(self, CameraTrackingNode.__name__)
         self.get_logger().info("Starting Camera Tracking Node...")
 
         self.config = self.load_config(config_path)

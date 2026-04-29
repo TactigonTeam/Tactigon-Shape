@@ -14,6 +14,7 @@
 from rclpy.node import QoSProfile
 from std_msgs.msg import String, Int16, Int32, UInt16, UInt32, Bool, Byte, Float32, Float64, Int8, UInt8, Int64, UInt64, ColorRGBA
 from rcl_interfaces.msg import Log
+from camera_tracking_msgs.msg import Point2D, Marker, MarkerList
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -21,7 +22,8 @@ from typing import Any
 
 StrMessageTypes = String | Int64 | Bool | Float64
 InterfacesMessageTypes = Log
-RosMessageTypes = StrMessageTypes | InterfacesMessageTypes  
+CameraTrackingMessageTypes = Point2D | Marker | MarkerList
+RosMessageTypes = StrMessageTypes | InterfacesMessageTypes | CameraTrackingMessageTypes 
 
 def get_message_type_by_name(name: str) -> RosMessageTypes:
     type_index = [t.__name__ for t in RosMessageTypes.__args__].index(name)    
