@@ -44,27 +44,16 @@ COPY ros/msgs /app/msgs
 
 SHELL ["/bin/bash", "-c"]
 RUN source /opt/vulcanexus/jazzy/setup.bash && \
-    # colcon build --packages-select camera_tracking_msgs
     colcon build
     
+COPY ./requirements.txt /app/requirements.txt
 COPY config /app/config
 COPY models /app/models
 COPY speech /app/speech
 COPY tactigon_shapes /app/tactigon_shapes
 COPY main.py /app/main.py
 
-RUN pip install --no-cache-dir \
-    flask==3.0.3 \
-    flask-socketio==5.5.1 \
-    gevent==24.2.1 \
-    gevent-websocket==0.10.1 \
-    tactigon-gear==5.5.2 \
-    PyAudio==0.2.14 \
-    pynput==1.7.7 \
-    sympy==1.13.2 \
-    tactigon-ironboy==1.0.1 \
-    paho-mqtt==2.1.0 \
-    httpx
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 EXPOSE 5123
 EXPOSE 50007

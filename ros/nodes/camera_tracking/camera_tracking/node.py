@@ -121,7 +121,6 @@ class CameraTrackingNode(Node):
     def on_image(self, msg: Image):
         self.marker_refresh_counter += 1
         self.is_pointing = None
-        #self.get_logger().info("aaaaaaa")
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
             grayscale_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
@@ -164,7 +163,7 @@ class CameraTrackingNode(Node):
             self.finger_tip = None
             if hand_tracking.hand_landmarks: # type: ignore
                 for hand_landmarks in hand_tracking.hand_landmarks: # type: ignore
-                    self.get_logger().info(f"Hand landmarks: {hand_landmarks}")
+                    self.get_logger().debug(f"Hand landmarks: {hand_landmarks}")
 
                     finger_tip_landmark = hand_landmarks[8]
                     h, w, _ = cv_image.shape

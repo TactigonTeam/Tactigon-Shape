@@ -8,7 +8,7 @@ FROM eprosima/vulcanexus:jazzy-base
 RUN apt-get update && apt-get install -y \
     ros-jazzy-cv-bridge \
     ros-jazzy-usb-cam \
-    # ros-jazzy-v4l2-camera \
+    ros-jazzy-web-video-server \
     python3-opencv \
     python3-pip \
     v4l-utils \
@@ -36,5 +36,7 @@ RUN source /opt/vulcanexus/jazzy/setup.bash && \
     colcon build --packages-select camera_tracking_msgs && \
     colcon build --packages-select camera_tracking
     #colcon build
+
+EXPOSE 8081
 
 ENTRYPOINT ["/app/camera_tracking/entrypoint.sh"]

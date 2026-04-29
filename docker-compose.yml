@@ -108,6 +108,8 @@ services:
       restart: unless-stopped
       networks:
         - tactigon-net 
+      ports:
+        - "8081:8081"
       privileged: true
       environment:
         - ROS_DOMAIN_ID=0

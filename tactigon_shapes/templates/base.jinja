@@ -242,6 +242,9 @@
                     <a href="{{ url_for('file_manager.index') }}" class="btn btn-link text-decoration-none text-light" title="File Manager">
                         <i class="mi-outlined mi-folder-open" style="font-size: 24px"></i>
                     </a>
+                    <a href="http://{{ request.host.split(':')[0] }}:8081/" target="_blank" class="btn btn-link text-decoration-none text-light" title="Camera feed">
+                        <i class="mi-round mi-videocam" style="font-size: 24px"></i>
+                    </a>
                     <a href="{{ url_for('ros2.index') }}" class="btn btn-link text-decoration-none text-light" title="ROS 2">
                         <i class="mi-round mi-keyboard-command-key" style="font-size: 24px"></i>
                     </a>
