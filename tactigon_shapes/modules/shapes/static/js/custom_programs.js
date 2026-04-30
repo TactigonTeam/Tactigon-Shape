@@ -1,0 +1,402 @@
+/********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
+
+function defineImportsAndLibraries() {
+    return `
+# Shapes by Next Industries
+
+import time
+import random
+import types
+import json
+import os
+from numbers import Number
+from datetime import datetime
+from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
+from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
+from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ginos.extension import GinosInterface
+from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
+from typing import Union, Any
+from pathlib import Path
+
+
+def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
+    if not gesture:
+        return False
+    
+    return gesture.gesture == gesture_to_find
+
+def check_touch(touch: Touch | None, finger_gesture: str) -> bool:
+    if not touch:
+        return False
+    _g_one = None
+    try:
+        _g_one = OneFingerGesture[finger_gesture]
+        if touch.one_finger == _g_one:
+            return True
+    except:
+        pass
+    _g_two = None
+    try:
+        _g_two = TwoFingerGesture[finger_gesture]
+        if touch.two_finger == _g_two:
+            return True
+    except:
+        pass
+    return False
+
+def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
+    def build_tspeech(hws: list[Union[HotWord, list[HotWord]]]) -> TSpeechObject | None:
+        if not hws:
+            return None
+
+        hw, *rest = hws
+
+        return TSpeechObject(
+            [
+                TSpeech(hw, build_tspeech(rest))
+            ]
+        )
+
+    tspeech = build_tspeech(hotwords)
+
+    if tspeech and tskin.can_listen:
+        debug(logging_queue, f"Waiting for command...")
+        r = tskin.listen(tspeech)
+        if r:
+            debug(logging_queue, "listening....")
+            t = None
+            while True:
+                t = tskin.transcription
+
+                if t:
+                    break
+
+                text_so_far = tskin.text_so_far
+                if text_so_far:
+                    debug(logging_queue, f"listening: {text_so_far}")
+                    
+                time.sleep(tskin.TICK)
+
+            if t and t.path is not None:
+                debug(logging_queue, f"Command found: {[hw.word for hw in t.path]}")
+                return [hw.word for hw in t.path]
+
+    debug(logging_queue, "Cannot listen...")
+    return []
+
+def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
+    for k in commands:
+        _k = k.char if isinstance(k, KeyCode) and k.char else k
+        keyboard.press(_k)
+    for k in commands[::-1]:
+        _k = k.char if isinstance(k, KeyCode) and k.char else k
+        keyboard.release(_k)
+
+def braccio_move(braccio: BraccioInterface | None, logging_queue: LoggingQueue, x: float, y: float, z: float):
+    if braccio:
+        res = braccio.move(x, y, z)
+        if res:
+            if res[0]:
+                debug(logging_queue, f"Braccio command executed in {round(res[2], 2)}s.")
+            else:
+                debug(logging_queue, f"Braccio command error: {res[1].name}")
+        else:
+            debug(logging_queue, "Braccio not connected")
+    else:
+        debug(logging_queue, "Braccio not configured")
+
+def braccio_wrist(braccio: BraccioInterface | None, logging_queue: LoggingQueue, wrist: Wrist):
+    if braccio:
+        res = braccio.wrist(wrist)
+        if res:
+            if res[0]:
+                debug(logging_queue, f"Braccio command executed in {round(res[2], 2)}s.")
+            else:
+                debug(logging_queue, f"Braccio command error: {res[1].name}")
+        else:
+            debug(logging_queue, "Braccio not connected")
+    else:
+        debug(logging_queue, "Braccio not configured")
+
+def braccio_gripper(braccio: BraccioInterface | None, logging_queue: LoggingQueue, gripper: Gripper):
+    if braccio:
+        res = braccio.gripper(gripper)
+        if res:
+            if res[0]:
+                debug(logging_queue, f"Braccio command executed in {round(res[2], 2)}s.")
+            else:
+                debug(logging_queue, f"Braccio command error: {res[1].name}")
+        else:
+            debug(logging_queue, "Braccio not connected")
+    else:
+        debug(logging_queue, "Braccio not configured")
+
+def zion_device_last_telemetry(zion: ZionInterface | None, device_id: str, keys: str) -> dict:
+    if not zion:
+        return {}
+    
+    data = zion.device_last_telemetry(device_id, keys)
+
+    if not data:
+        return {}
+
+    return data
+
+def zion_device_attr(zion: ZionInterface | None, device_id: str, scope: Scope, keys: str) -> dict:
+    if not zion:
+        return {}
+    
+    data = zion.device_attr(device_id, scope, keys)
+
+    if not data:
+        return {}
+
+    return data
+
+def zion_device_alarm(zion: ZionInterface | None, device_id: str, severity: AlarmSeverity, search_status: AlarmSearchStatus) -> list[dict]:
+    if not zion:
+        return []
+    
+    data = zion.device_alarm(device_id, severity, search_status)
+
+    return [alarm.toJSON() for alarm in data]
+
+def zion_send_device_last_telemetry(zion: ZionInterface | None, device_id: str, key: str, data) -> bool:
+    if not zion:
+        return False
+
+    payload = {}
+    payload[key] = data
+
+    return zion.send_device_last_telemetry(device_id, payload)
+
+def zion_delete_device_attr(zion: ZionInterface | None, device_id: str, scope: Scope, keys: str) -> bool:
+    if not zion:
+        return False
+
+    return zion.delete_device_attr(device_id, scope, keys)
+
+def zion_send_device_attr(zion: ZionInterface | None, device_id: str, scope: Scope, key: str, data) -> bool:
+    if not zion:
+        return False
+
+    payload = {}
+    payload[key] = data
+
+    return zion.send_device_attr(device_id, payload, scope)    
+
+def zion_send_device_alarm(zion: ZionInterface | None, device_id: str, name: str) -> bool:
+    if not zion:
+        return False
+
+    return zion.upsert_device_alarm(device_id, name, name) 
+
+def debug(logging_queue: LoggingQueue, msg: Any):
+
+    if isinstance(msg,(float)):
+        rounded=round(msg,4)
+        logging_queue.debug(str(rounded))
+    elif isinstance(msg, types.GeneratorType):
+        for line in msg:
+            logging_queue.prompt(line)
+    else:
+        logging_queue.debug(str(msg).replace("\\n","<br>"))
+
+def iron_boy_command(ironboy: IronBoyInterface | None, logging_queue: LoggingQueue, cmd: IronBoyCommand, reps: int = 1):
+    if ironboy:
+        command = ironboy.command(cmd,reps)
+
+        if not command:
+            debug(logging_queue, "command error")
+    else:
+        debug(logging_queue, "ironboy not configured")
+
+def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""):
+    if not ginos:
+        return
+
+    prompt_object = LLMPromptRequest(
+        model=ginos.model,
+        prompt=prompt,
+    )
+
+    return ginos.prompt(prompt_object)
+
+def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
+    if not ginos:
+        return False
+
+    return ginos.add_file_to_context(os.path.join(directory, file_path))
+
+def ros2_run(ros2: Ros2Interface | None, command: str):
+    if not ros2:
+        return
+
+    ros2.run(command)
+
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+    if not ros2:
+        return
+    
+    ros2.publish(topic, message)
+
+def mqtt_publish(mqtt: MQTTClient | None, topic: str, payload: Any):
+    if not mqtt:
+        return
+    
+    mqtt.publish(topic, payload)
+
+def mqtt_register(mqtt: MQTTClient | None):
+    if not mqtt:
+        return
+    
+    mqtt.register()
+
+def mqtt_unregister(mqtt: MQTTClient | None):
+    if not mqtt:
+        return
+    
+    mqtt.unregister()
+
+
+# ---------- Generated code ---------------
+
+`;
+}
+
+function defineCustomGenerators() {
+    Blockly.Python.INDENT = '    ';
+
+    python.pythonGenerator.forBlock['tactigon_shape_setup'] = function (block, generator) {
+        var statements_body = Blockly.Python.statementToCode(block, 'setup_code');
+
+        if (!statements_body) {
+            statements_body = Blockly.Python.INDENT + "pass"
+        }
+
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0) {
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        var code = 'def tactigon_shape_setup(\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
+            variables +
+            statements_body;
+        return code;
+    };
+
+    python.pythonGenerator.forBlock['tactigon_shape_close'] = function (block, generator) {
+        var statements_body = Blockly.Python.statementToCode(block, 'setup_code');
+
+        if (!statements_body) {
+            statements_body = Blockly.Python.INDENT + "pass"
+        }
+
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0) {
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        var code = 'def tactigon_shape_close(\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
+            variables +
+            statements_body;
+        return code;
+    };
+
+    python.pythonGenerator.forBlock['tactigon_shape_function'] = function (block, generator) {
+        var statements_body = Blockly.Python.statementToCode(block, 'BODY');
+
+        if (!statements_body) {
+            statements_body = Blockly.Python.INDENT + "pass"
+        }
+
+        let variables = block.workspace.getAllVariables().map((v) => {
+            return v.name;
+        }).join(', ');
+
+        if (variables.length > 0) {
+            variables = `${Blockly.Python.INDENT}global ${variables}\n`;
+        }
+
+        var code = 'def tactigon_shape_function(\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
+            variables +
+            Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
+            Blockly.Python.INDENT + "touch = tskin.touch\n" +
+            statements_body + '\n' +
+            Blockly.Python.INDENT + "return True\n";
+        return code;
+    };
+
+
+
+    defineShapesGenerators();
+    defineTSkinGenerators();
+    defineSpeechGenerators();
+    defineKeyboardGenerators();
+    defineBraccioGenerators();
+    defineDictionaryGenerators();
+    defineZionGenerators();
+    defineRos2Generators();
+    defineIronBoyGenerators();
+    defineGinosAIGenerators();
+    defineMQTTGenerators();
+}
