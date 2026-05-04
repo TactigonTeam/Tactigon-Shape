@@ -5,6 +5,8 @@
 
 /config/shapes/import
 /config/shapes/export
+install/
+log/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
