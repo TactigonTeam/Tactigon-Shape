@@ -117,10 +117,6 @@ services:
         - DISPLAY=${DISPLAY:-:0}
       devices:
         - /dev:/dev
-        # - /dev/bus/usb:/dev/bus/usb   # Permette l'accesso diretto all'USB
-        # - /dev/video2:/dev/video2
-        # - /dev/video3:/dev/video3     # Spesso le cam UVC creano due nodi
-        # - /dev/media1:/dev/media1     # FONDAMENTALE per libcamera
       volumes:
         - /var/run/dbus:/var/run/dbus
         - /tmp/.X11-unix:/tmp/.X11-unix
