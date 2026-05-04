@@ -34,7 +34,7 @@ from typing import Tuple, Any
 from pathlib import Path
 from flask import Flask
 from werkzeug.datastructures import FileStorage
-from pynput.keyboard import Controller as KeyboardController
+# from pynput.keyboard import Controller as KeyboardController
 
 from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
@@ -51,6 +51,9 @@ from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 IMPORT_FOLDER_NAME = 'import'
 IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
+
+class KeyboardController:
+    pass
 
 class LoggingQueue(Queue):
     def debug(self, msg: str):
@@ -75,8 +78,8 @@ class ShapeThread(ExtensionThread):
 
     _logger: logging.Logger
     _tskin: TSkin
-    _keyboard: KeyboardController
     _logging_queue: LoggingQueue
+    _keyboard: KeyboardController | None = None
     _braccio_interface: BraccioInterface | None = None
     _zion_interface: ZionInterface | None = None
     _ironboy_interface: IronBoyInterface | None = None
@@ -91,7 +94,7 @@ class ShapeThread(ExtensionThread):
             base_path: str, 
             app: ShapeConfig, 
             tskin: TSkin,
-            keyboard: KeyboardController, 
+            keyboard: KeyboardController | None, 
             braccio: BraccioInterface | None, 
             zion: ZionInterface | None, 
             ros2: Ros2Interface | None,
@@ -302,7 +305,7 @@ class ShapesApp(ExtensionApp):
     config_file_path: str
     config: list[ShapeConfig]
     shapes_file_path: str
-    keyboard: KeyboardController
+    keyboard: KeyboardController | None = None
     current_id: UUID | None = None
     logging_queue: LoggingQueue
     in_flight_log: DebugMessage | None = None
@@ -317,7 +320,7 @@ class ShapesApp(ExtensionApp):
     def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
         self.shapes_file_path = config_path
-        self.keyboard = KeyboardController()
+        # self.keyboard = KeyboardController()
         self.logging_queue = LoggingQueue()
         self._logger = logging.getLogger(ShapesApp.__name__)
 

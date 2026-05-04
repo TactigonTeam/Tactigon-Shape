@@ -1390,7 +1390,6 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
 
@@ -1460,13 +1459,13 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
     debug(logging_queue, "Cannot listen...")
     return []
 
-def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
-    for k in commands:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.press(_k)
-    for k in commands[::-1]:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.release(_k)
+# def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
+#     for k in commands:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.press(_k)
+#     for k in commands[::-1]:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.release(_k)
 
 def braccio_move(braccio: BraccioInterface | None, logging_queue: LoggingQueue, x: float, y: float, z: float):
     if braccio:
