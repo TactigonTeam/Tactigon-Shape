@@ -1134,6 +1134,22 @@ function loadRos2Blocks(ros2blocks) {
             "helpUrl": "",
             "colour": 225
         },
+        {
+            "type": "ros2_topic_list",
+            "tooltip": "Returns a list of the ROS2 active topics",
+            "helpUrl": "",
+            "message0": "List ROS2 Topics",
+            "output": "Array",
+            "colour": 225
+        },
+        {
+            "type": "ros2_node_list",
+            "tooltip": "Returns a list of the ROS2 active nodes",
+            "helpUrl": "",
+            "message0": "List ROS2 Nodes",
+            "output": "Array",
+            "colour": 225
+        }
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1393,6 +1409,8 @@ from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
+import rclpy
+from rclpy.node import Node
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -1634,7 +1652,65 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
+def get_ros2_topics():
+    """
+    Ritorna una lista di stringhe con i nomi dei topic ROS 2 attivi.
+    """
+    # Inizializza rclpy se non è già attivo
+    if not rclpy.ok():
+        rclpy.init()
 
+    # Creo nodo temporaneo
+    temp_node = rclpy.create_node('shape_topic_discovery')
+    
+    try:
+        time.sleep(0.5)
+
+        # Questo metodo ritorna una lista di tuple: [('/topic_name', ['tipo_msg']), ...]
+        topics_and_types = temp_node.get_topic_names_and_types()
+        
+        # Se volessi estrarre solo il primo elemento (il nome) di ogni tupla
+        # topics = [t[0] for t in topics_and_types]
+        # return topics
+
+        risultato = []
+        for name, types in topics_and_types:
+            risultato.append([
+                name,
+                types[0]
+            ])
+            
+        return risultato
+    except Exception as e:
+        print(f"Errore recupero topic: {e}")
+        return []
+    finally:
+        # Distruggo il nodo temporaneo
+        temp_node.destroy_node()
+
+def get_ros2_nodes():
+    """
+    Ritorna una lista di stringhe con i nomi dei nodi ROS 2 attivi.
+    """
+    # Inizializza rclpy se non è già attivo
+    if not rclpy.ok():
+        rclpy.init()
+
+    # Creo nodo temporaneo
+    temp_node = rclpy.create_node('shape_node_discovery')
+    
+    try:
+        time.sleep(0.5)
+
+        nodes = temp_node.get_node_names()
+        return nodes
+    except Exception as e:
+        print(f"Errore recupero nodi: {e}")
+        return []
+    finally:
+        # Distruggo il nodo temporaneo
+        temp_node.destroy_node()
+        
 # ---------- Generated code ---------------
 
 `;
@@ -2089,6 +2165,16 @@ function defineRos2Generators() {
         const command = `ros2_models.Float64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
+
+    python.pythonGenerator.forBlock['ros2_topic_list'] = function(block, generator) {
+        const code = `get_ros2_topics()`;
+        return[code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
+        const code = `get_ros2_nodes()`;
+        return[code, python.Order.ATOMIC];
+    };
 }
 
 function defineIronBoyGenerators() {
@@ -2182,6 +2268,40 @@ function defineMQTTGenerators() {
     }
 }
 
+function defineCustomMathGenerators() {
+    python.pythonGenerator.forBlock['to_uppercase'] = function(block, generator) {
+        const text_to_print = generator.valueToCode(block, 'TEXT', python.Order.ATOMIC) || "''";
+        const code = `debug(logging_queue, ${text_to_print}.upper())\n`;
+        return code;
+    };
+    python.pythonGenerator.forBlock['quadratic_equation'] = function (block, generator) {
+        // Prendo i valori. Se sono vuoti, uso '0' di default
+        const value_a = generator.valueToCode(block, 'a_coeff', python.Order.ATOMIC) || '0';
+        const value_b = generator.valueToCode(block, 'b_coeff', python.Order.ATOMIC) || '0';
+        const value_c = generator.valueToCode(block, 'c_coeff', python.Order.ATOMIC) || '0';
+
+        // Prendo le scelte dei segni
+        const op_1 = block.getFieldValue('op_1');
+        const op_2 = block.getFieldValue('op_2');
+        const op_3 = block.getFieldValue('op_3');
+
+        // Applico i segni ai valori di A, B e C nel codice Python
+        const a_finale = (op_1 === 'MINUS') ? '-' + value_a : value_a;
+        const b_finale = (op_2 === 'MINUS') ? '-' + value_b : value_b;
+        const c_finale = (op_3 === 'MINUS') ? '-' + value_c : value_c;
+
+        const code = `quad_equation(${a_finale}, ${b_finale}, ${c_finale})`;
+        return [code, python.Order.ATOMIC];
+    };
+    python.pythonGenerator.forBlock['example_block'] = function(block, generator) {
+    
+        const value_number_to_be_squared = generator.valueToCode(block, 'number_to_be_squared', python.Order.ATOMIC);
+
+        const code = `power(${value_number_to_be_squared})`;
+        
+        return[code, python.Order.ATOMIC];
+    };
+}
 
 function clean_topic_names(topic) {
     return topic

@@ -4,5 +4,6 @@
     "tracking_topic": "/camera_tracking/image",
     "marker_topic": "/camera_tracking/markers",
     "pointing_topic": "/camera_tracking/pointing",
-    "marker_definition": "ARUCO_4X4_100"
+    "marker_definition": "ARUCO_4X4_100",
+    "marker_detection_margin": 50
 }
