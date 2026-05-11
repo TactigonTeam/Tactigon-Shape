@@ -25,6 +25,7 @@ from queue import Queue, Empty
 from functools import wraps
 from flask import Flask
 from werkzeug.datastructures import FileStorage
+import time
 
 from typing import Callable, Any
 
@@ -78,6 +79,13 @@ class Ros2Process(Process):
         self._callback = fn
         self._stop_event = Event()
         self._in, self._out = Pipe()
+
+        # Discovery one-way pipe (Topics & Nodes)
+        # request
+        self._req_rx, self._req_tx = Pipe(duplex=False)
+        # response
+        self._res_rx, self._res_tx = Pipe(duplex=False)
+
         self._logger = logging.getLogger(Ros2Process.__name__)
 
     def wrap_callback(self, fn: Callable[[RosMessage], None]):
@@ -157,6 +165,29 @@ class Ros2Process(Process):
                     elif action == NodeActions.UNSUBSCRIBE:
                         node.unsubscribe(payload.get("topic", ""))
 
+                # While loop to process all pending requests immediately
+                while self._req_rx.poll():
+                    cmd = self._req_rx.recv()
+                    self._logger.info(f"ROS2 Process received discovery request: {cmd}")
+                    
+                    if cmd == "GET_TOPICS":
+                        topics_and_types = node.get_topic_names_and_types()        
+
+                        results = []
+                        for name, types in topics_and_types:
+                            results.append([
+                                name,
+                                types[0]
+                            ])
+
+                        self._logger.info(f"Sending topics back: {len(results)} found")
+                        self._res_tx.send(results)
+                        
+                    elif cmd == "GET_NODES":
+                        nodes = node.get_node_names()
+                        self._logger.info(f"Sending nodes back: {len(nodes)} found")
+                        self._res_tx.send(nodes)
+
                 # time.sleep(node.TICK)
 
             node.destroy_node()
@@ -203,6 +234,74 @@ class Ros2Process(Process):
             )
         )
         return True
+    
+    def get_topics(self, timeout: float = 5.0) -> list[str]:
+        """
+        Fetches active topics using a polling loop.
+        Waits for discovery to populate before returning.
+        """
+        t = 0.0
+        _TICK = 0.1 # Polling interval
+        last_result = []
+
+        while t < timeout:
+            # Flush any stale data from the response pipe
+            while self._res_rx.poll():
+                self._res_rx.recv()
+            
+            # Send a new discovery request
+            self._req_tx.send("GET_TOPICS")
+            
+            # Brief wait for the child process to reply to this specific request
+            time.sleep(0.05) 
+            if self._res_rx.poll():
+                last_result = self._res_rx.recv()
+                
+                # If there's more topics than the standard system topics, 
+                # discovery is likely complete.
+                if len(last_result) > 3:
+                    return last_result
+            
+            # Increment timer and sleep before next poll
+            t += _TICK
+            time.sleep(_TICK)
+            
+        self._logger.warning(f"Discovery timeout. Returning partial topics: {last_result}")
+        return last_result
+
+    def get_nodes(self, timeout: float = 5.0) -> list[str]:
+        """
+        Fetches active nodes using a polling loop. 
+        Waits for discovery to populate before returning.
+        """
+        t = 0.0
+        _TICK = 0.1
+        last_result = []
+
+        while t < timeout:
+            # Flush any stale data from the response pipe
+            while self._res_rx.poll():
+                self._res_rx.recv()
+            
+            # Send a new discovery request
+            self._req_tx.send("GET_NODES")
+            
+            # Brief wait for the child process to reply to this specific request
+            time.sleep(0.05)
+            if self._res_rx.poll():
+                last_result = self._res_rx.recv()
+                
+                # If there's more nodes than the standard system nodes, 
+                # discovery is likely complete.
+                if len(last_result) > 1:
+                    return last_result
+            
+            # Increment timer and sleep before next poll
+            t += _TICK
+            time.sleep(_TICK)
+            
+        self._logger.warning(f"Discovery timeout. Returning partial nodes: {last_result}")
+        return last_result
 
 class ProcessManager:
     _processes: list[subprocess.Popen]
@@ -380,3 +479,16 @@ class Ros2Interface:
             )
         
         return False
+
+    def get_active_topics(self) -> list[str]:
+        """Discovery wrapper for Topics."""
+        if self._process and self.is_running:
+            return self._process.get_topics(timeout=5.0)
+        return []
+
+    def get_active_nodes(self) -> list[str]:
+        """Discovery wrapper for Nodes."""
+        if self._process and self.is_running:
+            return self._process.get_nodes(timeout=5.0)
+        return []
+    

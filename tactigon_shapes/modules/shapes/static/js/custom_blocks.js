@@ -1652,64 +1652,25 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
-def get_ros2_topics():
+def ros2_get_active_topics(ros2: Ros2Interface | None):
     """
-    Ritorna una lista di stringhe con i nomi dei topic ROS 2 attivi.
+    Returns a list of lists containing the name and the type of the active ROS2 topics.
     """
-    # Inizializza rclpy se non è già attivo
-    if not rclpy.ok():
-        rclpy.init()
-
-    # Creo nodo temporaneo
-    temp_node = rclpy.create_node('shape_topic_discovery')
-    
-    try:
-        time.sleep(0.5)
-
-        # Questo metodo ritorna una lista di tuple: [('/topic_name', ['tipo_msg']), ...]
-        topics_and_types = temp_node.get_topic_names_and_types()
-        
-        # Se volessi estrarre solo il primo elemento (il nome) di ogni tupla
-        # topics = [t[0] for t in topics_and_types]
-        # return topics
-
-        risultato = []
-        for name, types in topics_and_types:
-            risultato.append([
-                name,
-                types[0]
-            ])
-            
-        return risultato
-    except Exception as e:
-        print(f"Errore recupero topic: {e}")
+    if not ros2:
         return []
-    finally:
-        # Distruggo il nodo temporaneo
-        temp_node.destroy_node()
-
-def get_ros2_nodes():
-    """
-    Ritorna una lista di stringhe con i nomi dei nodi ROS 2 attivi.
-    """
-    # Inizializza rclpy se non è già attivo
-    if not rclpy.ok():
-        rclpy.init()
-
-    # Creo nodo temporaneo
-    temp_node = rclpy.create_node('shape_node_discovery')
     
-    try:
-        time.sleep(0.5)
+    result = ros2.get_active_topics()
+    return result if result is not None else []
 
-        nodes = temp_node.get_node_names()
-        return nodes
-    except Exception as e:
-        print(f"Errore recupero nodi: {e}")
+def ros2_get_active_nodes(ros2: Ros2Interface | None):
+    """
+    Returns a list of strings containing the name of the active ROS2 nodes.
+    """
+    if not ros2:
         return []
-    finally:
-        # Distruggo il nodo temporaneo
-        temp_node.destroy_node()
+    
+    result = ros2.get_active_nodes()
+    return result if result is not None else []
         
 # ---------- Generated code ---------------
 
@@ -2167,12 +2128,12 @@ function defineRos2Generators() {
     };
 
     python.pythonGenerator.forBlock['ros2_topic_list'] = function(block, generator) {
-        const code = `get_ros2_topics()`;
+        const code = `ros2_get_active_topics(ros2)`;
         return[code, python.Order.ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
-        const code = `get_ros2_nodes()`;
+        const code = `ros2_get_active_nodes(ros2)`;
         return[code, python.Order.ATOMIC];
     };
 }
