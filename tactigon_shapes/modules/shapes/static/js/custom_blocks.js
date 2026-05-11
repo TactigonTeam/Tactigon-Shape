@@ -2268,40 +2268,6 @@ function defineMQTTGenerators() {
     }
 }
 
-function defineCustomMathGenerators() {
-    python.pythonGenerator.forBlock['to_uppercase'] = function(block, generator) {
-        const text_to_print = generator.valueToCode(block, 'TEXT', python.Order.ATOMIC) || "''";
-        const code = `debug(logging_queue, ${text_to_print}.upper())\n`;
-        return code;
-    };
-    python.pythonGenerator.forBlock['quadratic_equation'] = function (block, generator) {
-        // Prendo i valori. Se sono vuoti, uso '0' di default
-        const value_a = generator.valueToCode(block, 'a_coeff', python.Order.ATOMIC) || '0';
-        const value_b = generator.valueToCode(block, 'b_coeff', python.Order.ATOMIC) || '0';
-        const value_c = generator.valueToCode(block, 'c_coeff', python.Order.ATOMIC) || '0';
-
-        // Prendo le scelte dei segni
-        const op_1 = block.getFieldValue('op_1');
-        const op_2 = block.getFieldValue('op_2');
-        const op_3 = block.getFieldValue('op_3');
-
-        // Applico i segni ai valori di A, B e C nel codice Python
-        const a_finale = (op_1 === 'MINUS') ? '-' + value_a : value_a;
-        const b_finale = (op_2 === 'MINUS') ? '-' + value_b : value_b;
-        const c_finale = (op_3 === 'MINUS') ? '-' + value_c : value_c;
-
-        const code = `quad_equation(${a_finale}, ${b_finale}, ${c_finale})`;
-        return [code, python.Order.ATOMIC];
-    };
-    python.pythonGenerator.forBlock['example_block'] = function(block, generator) {
-    
-        const value_number_to_be_squared = generator.valueToCode(block, 'number_to_be_squared', python.Order.ATOMIC);
-
-        const code = `power(${value_number_to_be_squared})`;
-        
-        return[code, python.Order.ATOMIC];
-    };
-}
 
 function clean_topic_names(topic) {
     return topic
