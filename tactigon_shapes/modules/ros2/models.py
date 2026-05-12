@@ -48,6 +48,8 @@ class NodeActions(Enum):
     ADD_SUBSCRIPTION = "add_subscriber"
     PUBLISH = "publish"
     UNSUBSCRIBE = "unsubscribe"
+    GET_TOPICS = "get_topics"
+    GET_NODES = "get_nodes"
 
 @dataclass
 class NodeAction:
@@ -80,6 +82,20 @@ class NodeAction:
         return cls(
             NodeActions.UNSUBSCRIBE,
             payload
+        )
+    
+    @classmethod
+    def GetTopics(cls):
+        return cls(
+            NodeActions.GET_TOPICS,
+            {}
+        )
+
+    @classmethod
+    def GetNodes(cls):
+        return cls(
+            NodeActions.GET_NODES,
+            {}
         )
     
 @dataclass

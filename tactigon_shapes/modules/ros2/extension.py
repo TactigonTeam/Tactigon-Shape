@@ -61,6 +61,18 @@ class ShapeNode(Node):
         if subscription:
             self.destroy_subscription(subscription)
 
+    def get_topics(self) -> list:
+        """Wrapper to fetch topics and their types natively."""
+        topics_and_types = self.get_topic_names_and_types()
+        results =[]
+        for name, types in topics_and_types:
+            results.append([name, types[0]])
+        return results
+
+    def get_nodes(self) -> list:
+        """Wrapper to fetch node names natively."""
+        return self.get_node_names()
+
     def _callback(self, topic: str, fn: Callable[[RosMessage], None]):
         @wraps(fn)
         def wrapper(msg):
@@ -73,26 +85,50 @@ class Ros2Process(Process):
     _thread_stop_event: ThreadEvent
     _logger: logging.Logger
 
+    DISCOVERY_TTL: float = 0.02
+
     def __init__(self, config: Ros2ShapeConfig, fn: Callable[[RosMessage], None] | None = None):
         Process.__init__(self, daemon=True)
         self._config = config
         self._callback = fn
         self._stop_event = Event()
         self._in, self._out = Pipe()
-
-        # Discovery one-way pipe (Topics & Nodes)
-        # request
-        self._req_rx, self._req_tx = Pipe(duplex=False)
-        # response
-        self._res_rx, self._res_tx = Pipe(duplex=False)
-
         self._logger = logging.getLogger(Ros2Process.__name__)
 
+        # Discovery cache: written by wrap_callback, read instantly by get_topics/get_nodes.
+        # Holds the most recent snapshot; starts empty and fills after the first background refresh.
+        self._cached_topics: list = []
+        self._cached_nodes: list = []
+
+        # Sentinels for in-flight responses from the ROS 2 child process.
+        # Reset to None before each request; wrap_callback sets them when the answer arrives.
+        self._pending_topics: list | None = None
+        self._pending_nodes: list | None = None
+
     def wrap_callback(self, fn: Callable[[RosMessage], None]):
+        # Reads continuously from the pipe and dispatches messages:
+        # - discovery dicts  → update the cache and the in-flight sentinel
+        # - ROS messages      → forward to the user callback
+
         while not self._stop_event.is_set():
             msg = self.get_msg()
-            if msg:
-                fn(msg)
+            if msg is None:
+                time.sleep(0.01)
+                continue
+
+            if isinstance(msg, dict) and "discovery_type" in msg:
+                if msg["discovery_type"] == "topics":
+                    self._cached_topics = msg["data"]   # update persistent cache
+                    self._pending_topics = msg["data"]  # unblock any _wait_for_pending call
+                elif msg["discovery_type"] == "nodes":
+                    self._cached_nodes = msg["data"]
+                    self._pending_nodes = msg["data"]
+
+            else:
+                try:
+                    fn(msg)
+                except AttributeError:
+                    pass
 
     def __enter__(self):
         self.start()
@@ -137,6 +173,12 @@ class Ros2Process(Process):
         try:
             node = ShapeNode()
 
+            # Populate the cache immediately so the very first get_topics/get_nodes call
+            # never returns an empty list, even before the first TTL tick.
+            self._in.send({"discovery_type": "topics", "data": node.get_topics()})
+            self._in.send({"discovery_type": "nodes",  "data": node.get_nodes()})
+            last_discovery_refresh = time.monotonic()
+
             while rclpy.ok() and not self._stop_event.is_set():
                 rclpy.spin_once(node, timeout_sec=0)
                 if self._in.poll():
@@ -164,31 +206,20 @@ class Ros2Process(Process):
                         )
                     elif action == NodeActions.UNSUBSCRIBE:
                         node.unsubscribe(payload.get("topic", ""))
-
-                # While loop to process all pending requests immediately
-                while self._req_rx.poll():
-                    cmd = self._req_rx.recv()
-                    self._logger.info(f"ROS2 Process received discovery request: {cmd}")
-                    
-                    if cmd == "GET_TOPICS":
-                        topics_and_types = node.get_topic_names_and_types()        
-
-                        results = []
-                        for name, types in topics_and_types:
-                            results.append([
-                                name,
-                                types[0]
-                            ])
-
-                        self._logger.info(f"Sending topics back: {len(results)} found")
-                        self._res_tx.send(results)
-                        
-                    elif cmd == "GET_NODES":
-                        nodes = node.get_node_names()
-                        self._logger.info(f"Sending nodes back: {len(nodes)} found")
-                        self._res_tx.send(nodes)
+                    elif action == NodeActions.GET_TOPICS:
+                        self._in.send({"discovery_type": "topics", "data": node.get_topics()})
+                    elif action == NodeActions.GET_NODES:
+                        self._in.send({"discovery_type": "nodes", "data": node.get_nodes()})
 
                 # time.sleep(node.TICK)
+                # Periodic background refresh: push fresh snapshots without being asked.
+                # This keeps the cache warm so callers never have to block.
+                now = time.monotonic()
+                if now - last_discovery_refresh >= self.DISCOVERY_TTL:
+                    self._in.send({"discovery_type": "topics", "data": node.get_topics()})
+                    self._in.send({"discovery_type": "nodes",  "data": node.get_nodes()})
+                    last_discovery_refresh = now
+
 
             node.destroy_node()
         except Exception as e:
@@ -235,73 +266,57 @@ class Ros2Process(Process):
         )
         return True
     
-    def get_topics(self, timeout: float = 5.0) -> list[str]:
+    def get_topics(self, timeout: float = 5.0) -> list:
+        # """
+        # Sends the command GET_TOPICS and waits for the wrap_callback
+        # to populate _latest_topics, with a safety timeout.
+        # """
+        # self._latest_topics = None
+        # self._send_command(NodeAction.GetTopics())
+ 
+        # deadline = time.monotonic() + timeout
+        # while time.monotonic() < deadline:
+        #     if self._latest_topics is not None:
+        #         return self._latest_topics
+        #     time.sleep(0.02)
+ 
+        # self._logger.warning("get_topics: timed out, returning empty list")
+        # return []
         """
-        Fetches active topics using a polling loop.
-        Waits for discovery to populate before returning.
+        Returns the latest known topic snapshot from the background cache.
+ 
+        The cache is refreshed every DISCOVERY_TTL seconds by the ROS 2 child
+        process without any blocking on the caller side. Newly advertised topics
+        (e.g. from a slow Docker container) will appear automatically on the
+        next cache tick — no polling or sleep required in user code.
         """
-        t = 0.0
-        _TICK = 0.1 # Polling interval
-        last_result = []
 
-        while t < timeout:
-            # Flush any stale data from the response pipe
-            while self._res_rx.poll():
-                self._res_rx.recv()
-            
-            # Send a new discovery request
-            self._req_tx.send("GET_TOPICS")
-            
-            # Brief wait for the child process to reply to this specific request
-            time.sleep(0.05) 
-            if self._res_rx.poll():
-                last_result = self._res_rx.recv()
-                
-                # If there's more topics than the standard system topics, 
-                # discovery is likely complete.
-                if len(last_result) > 3:
-                    return last_result
-            
-            # Increment timer and sleep before next poll
-            t += _TICK
-            time.sleep(_TICK)
-            
-        self._logger.warning(f"Discovery timeout. Returning partial topics: {last_result}")
-        return last_result
+        return self._cached_topics
 
-    def get_nodes(self, timeout: float = 5.0) -> list[str]:
+    
+    def get_nodes(self, timeout: float = 5.0) -> list:
+        # """
+        # Sends the command GET_NODES and waits for the wrap_callback
+        # to populate _latest_nodes, with a safety timeout.
+        # """
+        # self._latest_nodes = None
+        # self._send_command(NodeAction.GetNodes())
+ 
+        # deadline = time.monotonic() + timeout
+        # while time.monotonic() < deadline:
+        #     if self._latest_nodes is not None:
+        #         return self._latest_nodes
+        #     time.sleep(0.02)
+ 
+        # self._logger.warning("get_nodes: timed out, returning empty list")
+        # return []
         """
-        Fetches active nodes using a polling loop. 
-        Waits for discovery to populate before returning.
+        Returns the latest known node snapshot from the background cache.
+ 
+        Same non-blocking cache strategy as get_topics — see that docstring.
         """
-        t = 0.0
-        _TICK = 0.1
-        last_result = []
+        return self._cached_nodes
 
-        while t < timeout:
-            # Flush any stale data from the response pipe
-            while self._res_rx.poll():
-                self._res_rx.recv()
-            
-            # Send a new discovery request
-            self._req_tx.send("GET_NODES")
-            
-            # Brief wait for the child process to reply to this specific request
-            time.sleep(0.05)
-            if self._res_rx.poll():
-                last_result = self._res_rx.recv()
-                
-                # If there's more nodes than the standard system nodes, 
-                # discovery is likely complete.
-                if len(last_result) > 1:
-                    return last_result
-            
-            # Increment timer and sleep before next poll
-            t += _TICK
-            time.sleep(_TICK)
-            
-        self._logger.warning(f"Discovery timeout. Returning partial nodes: {last_result}")
-        return last_result
 
 class ProcessManager:
     _processes: list[subprocess.Popen]
@@ -480,13 +495,13 @@ class Ros2Interface:
         
         return False
 
-    def get_active_topics(self) -> list[str]:
+    def get_topics(self) -> list[str]:
         """Discovery wrapper for Topics."""
         if self._process and self.is_running:
             return self._process.get_topics(timeout=5.0)
         return []
 
-    def get_active_nodes(self) -> list[str]:
+    def get_nodes(self) -> list[str]:
         """Discovery wrapper for Nodes."""
         if self._process and self.is_running:
             return self._process.get_nodes(timeout=5.0)

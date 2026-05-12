@@ -1652,24 +1652,24 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
-def ros2_get_active_topics(ros2: Ros2Interface | None):
+def ros2_get_topics(ros2: Ros2Interface | None):
     """
     Returns a list of lists containing the name and the type of the active ROS2 topics.
     """
     if not ros2:
         return []
     
-    result = ros2.get_active_topics()
+    result = ros2.get_topics()
     return result if result is not None else []
 
-def ros2_get_active_nodes(ros2: Ros2Interface | None):
+def ros2_get_nodes(ros2: Ros2Interface | None):
     """
     Returns a list of strings containing the name of the active ROS2 nodes.
     """
     if not ros2:
         return []
     
-    result = ros2.get_active_nodes()
+    result = ros2.get_nodes()
     return result if result is not None else []
         
 # ---------- Generated code ---------------
@@ -2128,12 +2128,12 @@ function defineRos2Generators() {
     };
 
     python.pythonGenerator.forBlock['ros2_topic_list'] = function(block, generator) {
-        const code = `ros2_get_active_topics(ros2)`;
+        const code = `ros2_get_topics(ros2)`;
         return[code, python.Order.ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
-        const code = `ros2_get_active_nodes(ros2)`;
+        const code = `ros2_get_nodes(ros2)`;
         return[code, python.Order.ATOMIC];
     };
 }
