@@ -110,8 +110,8 @@ class Ros2Process(Process):
 
     def wrap_callback(self, fn: Callable[[RosMessage], None]):
         # Reads continuously from the pipe and dispatches messages:
-        # - discovery dicts  → update the cache and the in-flight sentinel
-        # - ROS messages      → forward to the user callback
+        # - discovery dicts  -> update the cache and the in-flight sentinel
+        # - ROS messages     -> forward to the user callback
 
         while not self._stop_event.is_set():
             msg = self.get_msg()
@@ -215,8 +215,8 @@ class Ros2Process(Process):
                         self._in.send({"discovery_type": "nodes", "data": node.get_nodes()})
 
                 # time.sleep(node.TICK)
-                # Periodic background refresh: push fresh snapshots without being asked.
-                # This keeps the cache warm so callers never have to block.
+
+                # Periodic background refresh: push fresh snapshots every DISCOVERY_TTL seconds.
                 now = time.monotonic()
                 if now - last_discovery_refresh >= self.DISCOVERY_TTL:
                     self._in.send({"discovery_type": "topics", "data": node.get_topics()})
@@ -281,11 +281,11 @@ class Ros2Process(Process):
         # In cached topics only the name is needed, not the type
         current_topics = [t[0] for t in self._cached_topics]
         
-        # Check if theres any external node/topic
+        # Check if there are any external node/topic
         has_external_topics = any(t not in system_topics for t in current_topics)
         has_external_nodes = any(n not in system_nodes for n in self._cached_nodes)
         
-        # If there's new topic and nodes -> return True
+        # If there are new topic and nodes -> return True
         if has_external_topics and has_external_nodes:
             self._ready_request_time = None  # Reset timer
             return True
@@ -301,7 +301,7 @@ class Ros2Process(Process):
             self._ready_request_time = None  # Reset timer for future use
             return True
             
-        # If no new topic/nodes & timeout not expired    -> return False
+        # If no new topic/nodes & timeout not expired -> return False
         return False
     
     def get_topics(self) -> list:
@@ -321,7 +321,7 @@ class Ros2Process(Process):
         Returns the latest known node snapshot from the background cache.
  
         The cache is refreshed every DISCOVERY_TTL seconds by the ROS 2 child
-        process without any blocking on the caller side. Newly advertised topics
+        process without any blocking on the caller side. Newly advertised nodes
         (e.g. from a slow Docker container) will appear automatically on the
         next cache tick, no polling or sleep required in user code.
         """
