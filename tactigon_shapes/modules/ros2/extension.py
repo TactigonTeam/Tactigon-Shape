@@ -105,6 +105,9 @@ class Ros2Process(Process):
         self._pending_topics: list | None = None
         self._pending_nodes: list | None = None
 
+        # Timers for timeout tracking
+        self._ready_request_time: float | None = None
+
     def wrap_callback(self, fn: Callable[[RosMessage], None]):
         # Reads continuously from the pipe and dispatches messages:
         # - discovery dicts  → update the cache and the in-flight sentinel
@@ -266,57 +269,63 @@ class Ros2Process(Process):
         )
         return True
     
-    def get_topics(self, timeout: float = 5.0) -> list:
-        # """
-        # Sends the command GET_TOPICS and waits for the wrap_callback
-        # to populate _latest_topics, with a safety timeout.
-        # """
-        # self._latest_topics = None
-        # self._send_command(NodeAction.GetTopics())
- 
-        # deadline = time.monotonic() + timeout
-        # while time.monotonic() < deadline:
-        #     if self._latest_topics is not None:
-        #         return self._latest_topics
-        #     time.sleep(0.02)
- 
-        # self._logger.warning("get_topics: timed out, returning empty list")
-        # return []
+    def is_ros2_node_ready(self, timeout: float = 5.0) -> bool:
+        """
+        Returns False if only default nodes/topics are found.
+        Returns True if external entities are discovered OR if the timeout expires.
+        """
+        # Topics & nodes automatically created by ROS 2
+        system_topics = {'/parameter_events', '/rosout'}
+        system_nodes = {ShapeNode.__name__} 
+        
+        # In cached topics only the name is needed, not the type
+        current_topics = [t[0] for t in self._cached_topics]
+        
+        # Check if theres any external node/topic
+        has_external_topics = any(t not in system_topics for t in current_topics)
+        has_external_nodes = any(n not in system_nodes for n in self._cached_nodes)
+        
+        # If there's new topic and nodes -> return True
+        if has_external_topics and has_external_nodes:
+            self._ready_request_time = None  # Reset timer
+            return True
+            
+        now = time.monotonic()
+        
+        if self._ready_request_time is None:
+            self._ready_request_time = now  # Start the timer on the first call
+            
+        # If the timeout expires -> return True
+        if (now - self._ready_request_time) >= timeout:
+            self._logger.warning("is_ros2_node_ready: Timeout expired. Returning True to prevent infinite loop.")
+            self._ready_request_time = None  # Reset timer for future use
+            return True
+            
+        # If no new topic/nodes & timeout not expired    -> return False
+        return False
+    
+    def get_topics(self) -> list:
         """
         Returns the latest known topic snapshot from the background cache.
  
         The cache is refreshed every DISCOVERY_TTL seconds by the ROS 2 child
         process without any blocking on the caller side. Newly advertised topics
         (e.g. from a slow Docker container) will appear automatically on the
-        next cache tick — no polling or sleep required in user code.
+        next cache tick, no polling or sleep required in user code.
         """
 
         return self._cached_topics
 
-    
-    def get_nodes(self, timeout: float = 5.0) -> list:
-        # """
-        # Sends the command GET_NODES and waits for the wrap_callback
-        # to populate _latest_nodes, with a safety timeout.
-        # """
-        # self._latest_nodes = None
-        # self._send_command(NodeAction.GetNodes())
- 
-        # deadline = time.monotonic() + timeout
-        # while time.monotonic() < deadline:
-        #     if self._latest_nodes is not None:
-        #         return self._latest_nodes
-        #     time.sleep(0.02)
- 
-        # self._logger.warning("get_nodes: timed out, returning empty list")
-        # return []
+    def get_nodes(self) -> list:
         """
         Returns the latest known node snapshot from the background cache.
  
-        Same non-blocking cache strategy as get_topics — see that docstring.
+        The cache is refreshed every DISCOVERY_TTL seconds by the ROS 2 child
+        process without any blocking on the caller side. Newly advertised topics
+        (e.g. from a slow Docker container) will appear automatically on the
+        next cache tick, no polling or sleep required in user code.
         """
         return self._cached_nodes
-
 
 class ProcessManager:
     _processes: list[subprocess.Popen]
@@ -495,15 +504,22 @@ class Ros2Interface:
         
         return False
 
-    def get_topics(self) -> list[str]:
-        """Discovery wrapper for Topics."""
+    def is_ros2_node_ready(self) -> bool:
+        """Wrapper for the boolean block in Shape. Defaults to 5 seconds timeout."""
         if self._process and self.is_running:
-            return self._process.get_topics(timeout=5.0)
+            return self._process.is_ros2_node_ready(timeout=5.0)
+        # If ROS 2 process is completely dead, return True to prevent Shape from freezing forever
+        return True
+    
+    def get_topics(self) -> list[str]:
+        """Discovery wrapper for Topics in Shape."""
+        if self._process and self.is_running:
+            return self._process.get_topics()
         return []
 
     def get_nodes(self) -> list[str]:
-        """Discovery wrapper for Nodes."""
+        """Discovery wrapper for Nodes in Shape."""
         if self._process and self.is_running:
-            return self._process.get_nodes(timeout=5.0)
+            return self._process.get_nodes()
         return []
     

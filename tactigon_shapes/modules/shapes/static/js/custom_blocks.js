@@ -1149,7 +1149,17 @@ function loadRos2Blocks(ros2blocks) {
             "message0": "List ROS2 Nodes",
             "output": "Array",
             "colour": 225
-        }
+        },
+        {
+            "type": "ros2_node_ready",
+            "tooltip": "",
+            "helpUrl": "",
+            "message0": "Is ROS2 node ready",
+            "output": null,
+            "colour": 225,
+            "inputsInline": false
+        }                                     
+                    
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1671,6 +1681,11 @@ def ros2_get_nodes(ros2: Ros2Interface | None):
     
     result = ros2.get_nodes()
     return result if result is not None else []
+
+def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
+    if not ros2:
+        return True # Avoid blocking if ros2 is not configured
+    return ros2.is_ros2_node_ready()
         
 # ---------- Generated code ---------------
 
@@ -2134,6 +2149,11 @@ function defineRos2Generators() {
 
     python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
         const code = `ros2_get_nodes(ros2)`;
+        return[code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_node_ready'] = function(block, generator) {
+        const code = `ros2_is_ready(ros2)`;
         return[code, python.Order.ATOMIC];
     };
 }
