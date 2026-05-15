@@ -43,6 +43,7 @@ function loadCustomBlocks(response) {
     loadGinosAIBlocks(ginos, file_manager);
     loadMQTTBlocks();
     loadDictionaryBlocks();
+    loadCameraBlocks();
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1366,7 +1367,28 @@ function loadMQTTBlocks() {
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
+}
 
+function loadCameraBlocks() {
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "get_marker_id",
+            "tooltip": "Returns the pointed marker ID from the payload, otherwhise will return -1",
+            "helpUrl": "",
+            "message0": "Extract Marker ID from %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "PAYLOAD"
+                }
+            ],
+            "colour": "#ff5050",
+            "inputsInline": true,
+            "output": "Number"
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
 }
 
 function defineImportsAndLibraries() {
@@ -1634,7 +1656,6 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
-
 # ---------- Generated code ---------------
 
 `;
@@ -1749,6 +1770,7 @@ function defineCustomGenerators() {
     defineIronBoyGenerators();
     defineGinosAIGenerators();
     defineMQTTGenerators();
+    defineCameraGenerators();
 }
 
 function defineShapesGenerators() {
@@ -2182,6 +2204,14 @@ function defineMQTTGenerators() {
     }
 }
 
+function defineCameraGenerators() {
+    python.pythonGenerator.forBlock['get_marker_id'] = function(block, generator) {
+        const value_payload = generator.valueToCode(block, 'PAYLOAD', generator.ORDER_MEMBER) || '{}';
+        const code = `${value_payload}.get('id', -1)`;
+
+        return [code, generator.ORDER_FUNCTION_CALL];
+    };
+}
 
 function clean_topic_names(topic) {
     return topic
