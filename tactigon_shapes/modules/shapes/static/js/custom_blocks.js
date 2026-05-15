@@ -1134,6 +1134,32 @@ function loadRos2Blocks(ros2blocks) {
             "helpUrl": "",
             "colour": 225
         },
+        {
+            "type": "ros2_topic_list",
+            "tooltip": "Returns a list of the ROS2 active topics",
+            "helpUrl": "",
+            "message0": "List ROS2 Topics",
+            "output": "Array",
+            "colour": 225
+        },
+        {
+            "type": "ros2_node_list",
+            "tooltip": "Returns a list of the ROS2 active nodes",
+            "helpUrl": "",
+            "message0": "List ROS2 Nodes",
+            "output": "Array",
+            "colour": 225
+        },
+        {
+            "type": "ros2_node_ready",
+            "tooltip": "",
+            "helpUrl": "",
+            "message0": "Is ROS2 node ready",
+            "output": null,
+            "colour": 225,
+            "inputsInline": false
+        }                                     
+                    
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1393,6 +1419,8 @@ from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
+import rclpy
+from rclpy.node import Node
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -1634,7 +1662,31 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
+def ros2_get_topics(ros2: Ros2Interface | None):
+    """
+    Returns a list of lists containing the name and the type of the active ROS2 topics.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_topics()
+    return result if result is not None else []
 
+def ros2_get_nodes(ros2: Ros2Interface | None):
+    """
+    Returns a list of strings containing the name of the active ROS2 nodes.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_nodes()
+    return result if result is not None else []
+
+def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
+    if not ros2:
+        return True # Avoid blocking if ros2 is not configured
+    return ros2.is_ros2_node_ready()
+        
 # ---------- Generated code ---------------
 
 `;
@@ -2088,6 +2140,21 @@ function defineRos2Generators() {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const command = `ros2_models.Float64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_topic_list'] = function(block, generator) {
+        const code = `ros2_get_topics(ros2)`;
+        return[code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
+        const code = `ros2_get_nodes(ros2)`;
+        return[code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_node_ready'] = function(block, generator) {
+        const code = `ros2_is_ready(ros2)`;
+        return[code, python.Order.ATOMIC];
     };
 }
 
