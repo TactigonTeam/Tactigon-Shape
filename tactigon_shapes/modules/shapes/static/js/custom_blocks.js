@@ -1656,6 +1656,14 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
+def get_marker_id(payload) -> int:
+    try:
+        _parsed_id = int(payload.get('id', -1))
+        marker_id = _parsed_id if 0 <= _parsed_id <= 999 else -1
+    except (ValueError, TypeError, AttributeError):
+        marker_id = -1
+    return marker_id
+
 # ---------- Generated code ---------------
 
 `;
@@ -2207,7 +2215,7 @@ function defineMQTTGenerators() {
 function defineCameraGenerators() {
     python.pythonGenerator.forBlock['get_marker_id'] = function(block, generator) {
         const value_payload = generator.valueToCode(block, 'PAYLOAD', generator.ORDER_MEMBER) || '{}';
-        const code = `${value_payload}.get('id', -1)`;
+        const code = `get_marker_id(${value_payload})`;
 
         return [code, generator.ORDER_FUNCTION_CALL];
     };
