@@ -1158,8 +1158,8 @@ function loadRos2Blocks(ros2blocks) {
             "output": null,
             "colour": 225,
             "inputsInline": false
-        }                                     
-                    
+        }
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1314,6 +1314,55 @@ function loadGinosAIBlocks(ginos, file_manager) {
             "tooltip": "",
             "helpUrl": ""
         },
+        {
+            "type": "ginos_ml_train",
+            "tooltip": "Sends training data to an ML model through API call, returns training results as a string.",
+            "helpUrl": "",
+            "message0": "Data for training %1 Features %2 Targets %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Dict"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Dict"
+                }
+            ],
+            "output": "String",
+            "colour": "#EB6152"
+        },
+        {
+            "type": "ginos_ml_predict",
+            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a string.",
+            "helpUrl": "",
+            "message0": "Data for prediction %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                }
+            ],
+            "output": "String",
+            "colour": "#EB6152"
+        },
+        {
+            "type": "ginos_ml_state_machine",
+            "tooltip": "Returns the ML model state through API call as a string.",
+            "helpUrl": "",
+            "message0": "ML model state",
+            "output": "String",
+            "colour": "#EB6152"
+        }
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1686,7 +1735,19 @@ def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
     if not ros2:
         return True # Avoid blocking if ros2 is not configured
     return ros2.is_ros2_node_ready()
-        
+
+def ginos_ml_train(data, features, targets):
+    # TODO: implement training call to model
+    return "training results"
+
+def ginos_ml_predict(data):
+    # TODO: implement prediction call to model
+    return "prediction results"
+
+def ginos_ml_state_machine():
+    # TODO: implement state retrieval call to model
+    return "model state"
+
 # ---------- Generated code ---------------
 
 `;
@@ -2142,19 +2203,19 @@ function defineRos2Generators() {
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_topic_list'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_topic_list'] = function (block, generator) {
         const code = `ros2_get_topics(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_node_list'] = function (block, generator) {
         const code = `ros2_get_nodes(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_node_ready'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_node_ready'] = function (block, generator) {
         const code = `ros2_is_ready(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 }
 
@@ -2185,6 +2246,28 @@ function defineGinosAIGenerators() {
         const dir = block.getFieldValue('directory');
         const fpath = block.getFieldValue('filepath');
         return [`ginos_load_dataframe(ginos, "${dir}", "${fpath}")`, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ginos_ml_train"] = function (block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
+
+        const code = `ginos_ml_train(${data}, ${features}, ${targets})`;
+
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ginos_ml_predict"] = function (block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+
+        const code = `ginos_ml_predict(${data})`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ginos_ml_state_machine"] = function (block, generator) {
+        const code = `ginos_ml_state_machine()`;
+        return [code, python.Order.ATOMIC];
     };
 
     // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
