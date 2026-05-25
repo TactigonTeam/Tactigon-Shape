@@ -18,9 +18,10 @@
 #********************************************************************************/
 
 
-from tactigon_shapes.modules.ginos.models import LLMMessageRole
+from tactigon_shapes.modules.ginos.models import BianconiglioState, LLMMessageRole
 
 def get_ginos_blocks():
     return dict(
-        roles=[(role.name, role.value) for role in LLMMessageRole]
+        roles=[(role.name, role.value) for role in LLMMessageRole],
+        states=[(state.name, state.value) for state in BianconiglioState]
     )

@@ -1323,17 +1323,17 @@ function loadGinosAIBlocks(ginos, file_manager) {
                 {
                     "type": "input_value",
                     "name": "data",
-                    "check": "DataFrame"
+                    "check": "Array"
                 },
                 {
                     "type": "input_value",
                     "name": "features",
-                    "check": "Dict"
+                    "check": "Array"
                 },
                 {
                     "type": "input_value",
                     "name": "targets",
-                    "check": "Dict"
+                    "check": "Array"
                 }
             ],
             "output": "String",
@@ -1348,18 +1348,33 @@ function loadGinosAIBlocks(ginos, file_manager) {
                 {
                     "type": "input_value",
                     "name": "data",
-                    "check": "DataFrame"
+                    "check": "Array"
                 }
             ],
             "output": "String",
             "colour": "#EB6152"
         },
         {
-            "type": "ginos_ml_state_machine",
+            "type": "ginos_get_model_state",
             "tooltip": "Returns the ML model state through API call as a string.",
             "helpUrl": "",
-            "message0": "ML model state",
-            "output": "String",
+            "message0": "Get ML model state",
+            "output": "BianconiglioState",
+            "colour": "#EB6152"
+        },
+        {
+            "type": "ginos_ml_state_list",
+            "tooltip": "Attribute state from Ginos ML model (Bianconiglio)",
+            "helpUrl": "",
+            "message0": "State: %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": ginos.states
+                }
+            ],
+            "output": "BianconiglioState",
             "colour": "#EB6152"
         }
 
@@ -1463,7 +1478,7 @@ from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.ginos.models import LLMPromptRequest, BianconiglioState
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
@@ -1744,9 +1759,12 @@ def ginos_ml_predict(data):
     # TODO: implement prediction call to model
     return "prediction results"
 
-def ginos_ml_state_machine():
+def ginos_get_model_state():
     # TODO: implement state retrieval call to model
-    return "model state"
+    return "READY_TO_TRAIN"
+
+def ginos_ml_state_list(state):
+    return BianconiglioState(state).value
 
 # ---------- Generated code ---------------
 
@@ -2265,9 +2283,15 @@ function defineGinosAIGenerators() {
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_ml_state_machine"] = function (block, generator) {
-        const code = `ginos_ml_state_machine()`;
+    python.pythonGenerator.forBlock["ginos_get_model_state"] = function (block, generator) {
+        const code = `ginos_get_model_state()`;
         return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["ginos_ml_state_list"] = function (block) {
+        var state = block.getFieldValue('state');
+        var code = `ginos_ml_state_list("${state}")`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {

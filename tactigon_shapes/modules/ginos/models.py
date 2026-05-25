@@ -43,6 +43,11 @@ class LLMMessageRole(str, Enum):
     ASSISTANT = "assistant"
     TOOL = "tool"
 
+class BianconiglioState(Enum):
+    READY_TO_TRAIN = "READY_TO_TRAIN"
+    READY_TO_PREDICT = "READY_TO_PREDICT"
+    ERROR = "ERROR"
+
 class DataFrameFileExtension(str, Enum):
     CSV = "csv"
 
