@@ -17,10 +17,10 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
+from flask import current_app
+from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
 
-from tactigon_shapes.modules.ginos.models import LLMMessageRole
-
-def get_ginos_blocks():
-    return dict(
-        roles=[(role.name, role.value) for role in LLMMessageRole]
-    )
+def get_bianconiglio_interface() -> BianconiglioInterface | None:
+    if BianconiglioInterface.__name__ in current_app.extensions and isinstance(current_app.extensions[BianconiglioInterface.__name__], BianconiglioInterface):
+        return current_app.extensions[BianconiglioInterface.__name__]
+    return None

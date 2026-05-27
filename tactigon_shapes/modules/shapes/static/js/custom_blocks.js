@@ -31,6 +31,7 @@ function loadCustomBlocks(response) {
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos : {};
     const file_manager = response ? response.file_manager : {};
+    const bianconiglio = response ? response.bianconiglio : {};
 
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
@@ -43,6 +44,7 @@ function loadCustomBlocks(response) {
     loadGinosAIBlocks(ginos, file_manager);
     loadMQTTBlocks();
     loadDictionaryBlocks();
+    loadBianconiglioBlocks(bianconiglio);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1313,70 +1315,7 @@ function loadGinosAIBlocks(ginos, file_manager) {
             "colour": "#EB6152",
             "tooltip": "",
             "helpUrl": ""
-        },
-        {
-            "type": "ginos_ml_train",
-            "tooltip": "Sends training data to an ML model through API call, returns training results as a string.",
-            "helpUrl": "",
-            "message0": "Data for training %1 Features %2 Targets %3",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "data",
-                    "check": "Array"
-                },
-                {
-                    "type": "input_value",
-                    "name": "features",
-                    "check": "Array"
-                },
-                {
-                    "type": "input_value",
-                    "name": "targets",
-                    "check": "Array"
-                }
-            ],
-            "output": "String",
-            "colour": "#EB6152"
-        },
-        {
-            "type": "ginos_ml_predict",
-            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a string.",
-            "helpUrl": "",
-            "message0": "Data for prediction %1",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "data",
-                    "check": "Array"
-                }
-            ],
-            "output": "String",
-            "colour": "#EB6152"
-        },
-        {
-            "type": "ginos_get_model_state",
-            "tooltip": "Returns the ML model state through API call as a string.",
-            "helpUrl": "",
-            "message0": "Get ML model state",
-            "output": "BianconiglioState",
-            "colour": "#EB6152"
-        },
-        {
-            "type": "ginos_ml_state_list",
-            "tooltip": "Attribute state from Ginos ML model (Bianconiglio)",
-            "helpUrl": "",
-            "message0": "State: %1",
-            "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "state",
-                    "options": ginos.states
-                }
-            ],
-            "output": "BianconiglioState",
-            "colour": "#EB6152"
-        }
+        }        
 
     ]);
 
@@ -1459,6 +1398,77 @@ function loadMQTTBlocks() {
 
 }
 
+function loadBianconiglioBlocks(bianconiglio){
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "bianconiglio_ml_train",
+            "tooltip": "Sends training data to an ML model through API call, returns training results as a string.",
+            "helpUrl": "",
+            "message0": "Data for training %1 Features %2 Targets %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Array"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_ml_predict",
+            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a string.",
+            "helpUrl": "",
+            "message0": "Data for prediction %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "Array"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_get_model_state",
+            "tooltip": "Returns the ML model state through API call as a string.",
+            "helpUrl": "",
+            "message0": "Get ML model state",
+            "output": "BianconiglioState",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_ml_state_list",
+            "tooltip": "Attribute state from Bianconiglio ML model",
+            "helpUrl": "",
+            "message0": "State: %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": bianconiglio.states
+                }
+            ],
+            "output": "BianconiglioState",
+            "colour": "#ec8dc6"
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+
+}
+
 function defineImportsAndLibraries() {
     return `
 # Shapes by Next Industries
@@ -1478,8 +1488,10 @@ from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPromptRequest, BianconiglioState
+from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -1751,20 +1763,20 @@ def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
         return True # Avoid blocking if ros2 is not configured
     return ros2.is_ros2_node_ready()
 
-def ginos_ml_train(data, features, targets):
-    # TODO: implement training call to model
-    return "training results"
+def bianconiglio_ml_train(bianconiglio: BianconiglioInterface | None, data, features, targets):
+    if not bianconiglio:
+        return "ERROR"
+    return bianconiglio.train(data, features, targets)
 
-def ginos_ml_predict(data):
-    # TODO: implement prediction call to model
-    return "prediction results"
+def bianconiglio_ml_predict(bianconiglio: BianconiglioInterface | None, data):
+    if not bianconiglio:
+        return {}
+    return bianconiglio.predict(data)
 
-def ginos_get_model_state():
-    # TODO: implement state retrieval call to model
-    return "READY_TO_TRAIN"
-
-def ginos_ml_state_list(state):
-    return BianconiglioState(state).value
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None):
+    if not bianconiglio:
+        return "ERROR"
+    return bianconiglio.status()
 
 # ---------- Generated code ---------------
 
@@ -1798,6 +1810,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1828,6 +1841,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1858,6 +1872,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
@@ -1880,6 +1895,7 @@ function defineCustomGenerators() {
     defineIronBoyGenerators();
     defineGinosAIGenerators();
     defineMQTTGenerators();
+    defineBianconiglioGenerators();
 }
 
 function defineShapesGenerators() {
@@ -2266,34 +2282,6 @@ function defineGinosAIGenerators() {
         return [`ginos_load_dataframe(ginos, "${dir}", "${fpath}")`, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_ml_train"] = function (block, generator) {
-        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
-        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
-
-        const code = `ginos_ml_train(${data}, ${features}, ${targets})`;
-
-        return [code, python.Order.ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock["ginos_ml_predict"] = function (block, generator) {
-        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-
-        const code = `ginos_ml_predict(${data})`;
-        return [code, python.Order.ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock["ginos_get_model_state"] = function (block, generator) {
-        const code = `ginos_get_model_state()`;
-        return [code, python.Order.ATOMIC];
-    };
-
-    python.pythonGenerator.forBlock["ginos_ml_state_list"] = function (block) {
-        var state = block.getFieldValue('state');
-        var code = `ginos_ml_state_list("${state}")`;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
-
     // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
     //     // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
     //     // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
@@ -2354,6 +2342,37 @@ function defineMQTTGenerators() {
         const code = `mqtt_unregister(mqtt)\n`
         return code;
     }
+}
+
+function defineBianconiglioGenerators() {
+    python.pythonGenerator.forBlock["bianconiglio_ml_train"] = function (block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
+
+        const code = `bianconiglio_ml_train(bianconiglio, ${data}, ${features}, ${targets})`;
+
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_ml_predict"] = function (block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+
+        const code = `bianconiglio_ml_predict(bianconiglio, ${data})`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_get_model_state"] = function (block, generator) {
+        const code = `bianconiglio_get_model_state(bianconiglio)`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_ml_state_list"] = function (block, generator) {
+        const state = block.getFieldValue('state');
+        const code = `BianconiglioState("${state}").value`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+    
 }
 
 
