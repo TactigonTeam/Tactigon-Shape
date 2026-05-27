@@ -1424,7 +1424,7 @@ function loadBianconiglioBlocks(bianconiglio){
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "bianconiglio_ml_train",
-            "tooltip": "Sends training data to an ML model through API call, returns training results as a string.",
+            "tooltip": "Sends training data to an ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
             "message0": "Data for training %1 Features %2 Targets %3",
             "args0": [
@@ -1449,7 +1449,7 @@ function loadBianconiglioBlocks(bianconiglio){
         },
         {
             "type": "bianconiglio_ml_predict",
-            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a string.",
+            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
             "helpUrl": "",
             "message0": "Data for prediction %1",
             "args0": [
@@ -1464,7 +1464,7 @@ function loadBianconiglioBlocks(bianconiglio){
         },
         {
             "type": "bianconiglio_get_model_state",
-            "tooltip": "Returns the ML model state through API call as a string.",
+            "tooltip": "Returns the ML model state through API call as a dictionary.",
             "helpUrl": "",
             "message0": "Get ML model state",
             "output": "BianconiglioState",
