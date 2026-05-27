@@ -56,7 +56,7 @@ class BianconiglioInterface:
 
         self._logger.info("Bianconiglio configuration saved.")
 
-    def do_post(self, url: str, payload: dict) -> requests.Response | None:
+    def do_post(self, url: str, payload: dict, timeout: int = 10) -> requests.Response | None:
         """function used to make a POST request.
         header contains authentication token.
         error 401 is checked in case credentials fail or timeout
@@ -74,7 +74,7 @@ class BianconiglioInterface:
             res = requests.post(
                 url,
                 json=payload,
-                timeout=10
+                timeout=timeout
                 )
             
             self._logger.debug("POST %s payload: %s response: %s", url, payload, res.status_code)
@@ -86,11 +86,12 @@ class BianconiglioInterface:
                
         return None
 
-    def do_get(self, url: str) -> requests.Response | None:
+    def do_get(self, url: str, timeout: int = 5) -> requests.Response | None:
         """function used to make a GET request,
         error 401 is checked in case credentials fail or timeout
         Args:
             url (str): request URL
+            timeout (int): timeout in seconds
         Returns:
             dict | None: JSON of the response
         """
@@ -111,12 +112,15 @@ class BianconiglioInterface:
     def status(self) -> str:
         url = f"{self.config.url}{self.config.status_endpoint}"
         
-        response = self.do_get(url)
-        if response and response.status_code == 200:
-            data = response.json()
-            return data.get("state", "ERROR")
-            
-        return "ERROR"
+        try:
+            response = self.do_get(url, timeout=5)
+            if response and response.status_code == 200:
+                data = response.json()
+                return data.get("state", "ERROR")            
+            return "ERROR"
+        except Exception as e:
+            self._logger.error(f"Error getting status: {e}")
+            return "ERROR"
 
     def train(self, data: list[dict], features: list[str], targets: list[str]) -> dict:
         url = f"{self.config.url}{self.config.train_endpoint}"
@@ -131,15 +135,19 @@ class BianconiglioInterface:
 
         self._logger.info(f"Payload:\n{payload}")
 
-        response = self.do_post(url, payload)
-
-        if response and response.status_code == 200:
-            self._logger.info("Training successful")
-            return response.json()
-        else:
-            self._logger.error(f"Training failed. Status: {response.status_code if response else 'None'}")
-            if response:
-                self._logger.error(f"Error details: {response.text}")
+        try:
+            # 300 seconds timeout for training, which can be long
+            response = self.do_post(url, payload, timeout=300)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"Error from server during training. Code: {response.status_code}")
+                return {}
+        except requests.exceptions.Timeout:
+            print("TIMEOUT: The training is taking too long.")
+            return {}
+        except requests.exceptions.RequestException as e:
+            print(f"Error connecting during training: {e}")
             return {}
     
     def predict(self, data: list) -> dict:
@@ -149,11 +157,8 @@ class BianconiglioInterface:
         self._logger.info(f"Prediction datas:\ndata: {data}")
         self._logger.info(f"Data type: {type(data)}")
 
-        # if isinstance(data, dict):
-        #     data = [data]
-        
         try:
-            response = self.do_post(url, data)
+            response = self.do_post(url, data, timeout=10)
 
             if response and response.status_code == 200:
                 self._logger.info("Predict successful")
