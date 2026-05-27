@@ -44,6 +44,7 @@ function loadCustomBlocks(response) {
     loadGinosAIBlocks(ginos, file_manager);
     loadMQTTBlocks();
     loadDictionaryBlocks();
+    loadCameraBlocks();
     loadBianconiglioBlocks(bianconiglio);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
@@ -1395,7 +1396,28 @@ function loadMQTTBlocks() {
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
+}
 
+function loadCameraBlocks() {
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "get_marker_id",
+            "tooltip": "Returns the pointed marker ID from the payload, otherwhise will return -1",
+            "helpUrl": "",
+            "message0": "Extract Marker ID from %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "PAYLOAD"
+                }
+            ],
+            "colour": "#ff5050",
+            "inputsInline": true,
+            "output": "Number"
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
 }
 
 function loadBianconiglioBlocks(bianconiglio){
@@ -1762,6 +1784,15 @@ def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
     if not ros2:
         return True # Avoid blocking if ros2 is not configured
     return ros2.is_ros2_node_ready()
+        
+def get_marker_id(payload) -> int:
+    try:
+        _parsed_id = int(payload.get('id', -1))
+        marker_id = _parsed_id if 0 <= _parsed_id <= 999 else -1
+    except (ValueError, TypeError, AttributeError):
+        marker_id = -1
+    return marker_id
+
 
 def bianconiglio_ml_train(bianconiglio: BianconiglioInterface | None, data, features, targets):
     if not bianconiglio:
@@ -1895,6 +1926,7 @@ function defineCustomGenerators() {
     defineIronBoyGenerators();
     defineGinosAIGenerators();
     defineMQTTGenerators();
+    defineCameraGenerators();
     defineBianconiglioGenerators();
 }
 
@@ -2373,6 +2405,15 @@ function defineBianconiglioGenerators() {
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
     
+}
+
+function defineCameraGenerators() {
+    python.pythonGenerator.forBlock['get_marker_id'] = function(block, generator) {
+        const value_payload = generator.valueToCode(block, 'PAYLOAD', generator.ORDER_MEMBER) || '{}';
+        const code = `get_marker_id(${value_payload})`;
+
+        return [code, generator.ORDER_FUNCTION_CALL];
+    };
 }
 
 

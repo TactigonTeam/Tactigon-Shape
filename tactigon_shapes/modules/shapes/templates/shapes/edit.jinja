@@ -780,6 +780,15 @@
             <block type="keyboard_mod_plus_funckey"></block>
             <block type="keyboard_mod_plus_mod_plus_funckey"></block>
         </category>
+        <category name="Camera" colour="#ff5050">
+            <block type="get_marker_id">
+                <value name="PAYLOAD_IN">
+                    <block type="variables_get">
+                        <field name="VAR">payload</field>
+                    </block>
+                </value>
+            </block>
+        </category>
         <category name="Bianconiglio" colour="#ec8dc6">
             <block type="bianconiglio_ml_train"></block>
             <block type="bianconiglio_ml_predict"></block>
