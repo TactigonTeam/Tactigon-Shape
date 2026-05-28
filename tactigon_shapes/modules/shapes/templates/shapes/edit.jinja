@@ -753,12 +753,6 @@
                         </shadow>
                     </value>
                 </block>
-                <block type="ginos_load_dataframe">
-                    <value name="input_path">
-                        <shadow type="text">
-                        </shadow>
-                    </value>
-                </block>
                 <!--commentati i blocchi in sviluppo-->
                 {#
                 </block>
@@ -794,6 +788,12 @@
             <block type="bianconiglio_ml_predict"></block>
             <block type="bianconiglio_get_model_state"></block>
             <block type="bianconiglio_ml_state_list"></block>
+            <block type="bianconiglio_load_dataframe">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+            </block>
         </category>
     </xml>
 </div>

@@ -45,7 +45,7 @@ function loadCustomBlocks(response) {
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
-    loadBianconiglioBlocks(bianconiglio);
+    loadBianconiglioBlocks(bianconiglio, file_manager);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1420,7 +1420,19 @@ function loadCameraBlocks() {
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadBianconiglioBlocks(bianconiglio){
+function loadBianconiglioBlocks(bianconiglio, file_manager) {
+    let directory = [];
+    let optionMapping = {};
+
+    file_manager.forEach(el => {
+        directory.push([el['directory']['name'], el['directory']['base_path']]);
+        optionMapping[el['directory']['base_path']] = [['---', '']];
+
+        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
+            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+            return [f_path, f_path];
+        }));
+    });
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "bianconiglio_ml_train",
@@ -1431,7 +1443,7 @@ function loadBianconiglioBlocks(bianconiglio){
                 {
                     "type": "input_value",
                     "name": "data",
-                    "check": "Array"
+                    "check": "DataFrame"
                 },
                 {
                     "type": "input_value",
@@ -1456,7 +1468,7 @@ function loadBianconiglioBlocks(bianconiglio){
                 {
                     "type": "input_value",
                     "name": "data",
-                    "check": "Array"
+                    "check": "DataFrame"
                 }
             ],
             "output": "Dictionary",
@@ -1484,6 +1496,28 @@ function loadBianconiglioBlocks(bianconiglio){
             ],
             "output": "BianconiglioState",
             "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_load_dataframe",
+            "message0": "Create dataframe from %1 %2",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "directory",
+                    "options": directory
+                },
+                {
+                    "type": "field_dependent_dropdown",
+                    "name": "filepath",
+                    "parentName": "directory",
+                    "optionMapping": optionMapping,
+                    "defaultOptions": [['---', '']],
+                }
+            ],
+            "output": "DataFrame",
+            "colour": "#ec8dc6",
+            "tooltip": "Load dataframe locally",
+            "helpUrl": ""
         }
     ]);
 
@@ -1519,6 +1553,7 @@ from typing import Union, Any
 from pathlib import Path
 import rclpy
 from rclpy.node import Node
+import pandas as pd
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -1808,6 +1843,12 @@ def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return "ERROR"
     return bianconiglio.status()
+
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not bianconiglio:
+        return None
+
+    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
 
 # ---------- Generated code ---------------
 
@@ -2403,6 +2444,12 @@ function defineBianconiglioGenerators() {
         const state = block.getFieldValue('state');
         const code = `BianconiglioState("${state}").value`;
         return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
+        const dir = block.getFieldValue('directory');
+        const fpath = block.getFieldValue('filepath');
+        return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${fpath}")`, python.Order.ATOMIC];
     };
     
 }

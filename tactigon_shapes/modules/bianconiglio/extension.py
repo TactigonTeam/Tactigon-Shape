@@ -4,15 +4,16 @@ import json
 import pandas as pd
 import requests
 from flask import Flask
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig, DataFrameFileExtension
+from tactigon_shapes.modules.file_manager.extension import FileManager
 
 class BianconiglioInterface:
     config_file_path: str
-    #config: BianconiglioConfig | None
+    _dataframe: pd.DataFrame
 
     def __init__(self, config_file_path: str, app: Flask | None = None):
         self._logger = logging.getLogger(BianconiglioInterface.__name__)
-
+        self._dataframe = pd.DataFrame()
         self.config_file_path = config_file_path
         self.load_config()
 
@@ -32,9 +33,15 @@ class BianconiglioInterface:
     def config_file(self) -> str:
         return os.path.join(self.config_file_path, "config.json")
     
+    @property
+    def dataframe_extensions(self) -> list[str]:
+        return [f".{e.value}" for e in DataFrameFileExtension]
+    
     def load_config(self):
         """loads configuration from Bianconiglioconfig JSON
         """
+        self._logger.info(f"Bianconiglio configuration path: {self.config_file_path}")
+        self._logger.info(f"Bianconiglio configuration file: {self.config_file}")
         if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
             with open(self.config_file, "r") as f:
                 config_data = json.load(f)
@@ -122,13 +129,14 @@ class BianconiglioInterface:
             self._logger.error(f"Error getting status: {e}")
             return "ERROR"
 
-    def train(self, data: list[dict], features: list[str], targets: list[str]) -> dict:
+    def train(self, data: pd.DataFrame, features: list[str], targets: list[str]) -> dict:
         url = f"{self.config.url}{self.config.train_endpoint}"
 
+        self._logger.info(f"Training data type: {type(data)}")
         self._logger.info(f"Training datas:\ndata: {data}\nfeatures: {features}\ntargets: {targets}")
         
         payload = {
-            "data": data,
+            "data": data.to_dict(orient="records"),
             "features": features,
             "targets": targets
         }
@@ -150,7 +158,7 @@ class BianconiglioInterface:
             print(f"Error connecting during training: {e}")
             return {}
     
-    def predict(self, data: list) -> dict:
+    def predict(self, data: pd.DataFrame) -> dict:
 
         url = f"{self.config.url}{self.config.predict_endpoint}"
 
@@ -158,7 +166,7 @@ class BianconiglioInterface:
         self._logger.info(f"Data type: {type(data)}")
 
         try:
-            response = self.do_post(url, data, timeout=10)
+            response = self.do_post(url, data.to_dict(orient="records"), timeout=10)
 
             if response and response.status_code == 200:
                 self._logger.info("Predict successful")
@@ -172,3 +180,49 @@ class BianconiglioInterface:
         except Exception as e:
             self._logger.error(f"Predict error: {e}")
             return {}
+
+    def file_to_dataframe(self,file_path: str) -> pd.DataFrame | None:
+
+        if FileManager.get_file_extension(file_path) not in self.dataframe_extensions:
+            self._logger.error("File type not supported.")
+            return None
+
+        try:
+            df = None
+
+            if file_path.endswith('.csv'):
+                df = pd.read_csv(file_path)
+
+            elif file_path.endswith('.json'):
+                df = pd.read_json(file_path)
+
+            # elif file_path.endswith(('.txt', '.md')):
+            #     with open(file_path, 'r', encoding='utf-8') as f:
+            #         lines = [line.strip() for line in f.readlines() if line.strip()]
+
+            #     return pandas.DataFrame(lines, columns=['content'])
+            
+            return df
+        except Exception as e:
+            self._logger.error("Cannot read file into dataframe. %s", e.with_traceback)
+            
+        return None
+    
+    def get_dataframe(self, file_path: str) -> pd.DataFrame | None:
+            
+        new_df = self.file_to_dataframe(file_path)
+        
+        if new_df is None:
+            self._logger.error(f"Cannot get dataframe from file {file_path}")
+            return None
+        
+        if self._dataframe.empty:
+            self._logger.warning(f"Context _dataframe is empty or missing, initializing with {file_path}")
+            self._dataframe = new_df
+        else:
+            self._logger.warning(f"Dataframe already exists. Overriding with {file_path}.")
+            self._dataframe = new_df
+            # self._dataframe = pd.concat([self._dataframe, new_df], ignore_index=True)
+       
+        self._logger.info(f"Added {file_path} to context")
+        return self._dataframe

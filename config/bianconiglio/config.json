@@ -1,6 +1,4 @@
 {
-    "url": "http://192.168.1.46:8000",
-    "train_endpoint": "/train_dataset",
-    "predict_endpoint": "/predict",
-    "status_endpoint": "/status"
+    "url": "http://192.168.1.34:8000",
+    "url_jetson": "http://192.168.1.46:8000"
 }

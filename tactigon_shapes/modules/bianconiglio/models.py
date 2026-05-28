@@ -30,9 +30,12 @@ class BianconiglioState(Enum):
     FALLBACK = "FALLBACK"
     ERROR = "ERROR"
 
+class DataFrameFileExtension(str, Enum):
+    CSV = "csv"
+    JSON = "json"
 @dataclass
 class BianconiglioConfig:
-    url: str = "http://192.168.1.46:8000"
+    url: str = "http://192.168.1.34:8000"
     train_endpoint: str = "/train_dataset"
     predict_endpoint: str = "/predict"
     status_endpoint: str = "/status"
@@ -42,20 +45,14 @@ class BianconiglioConfig:
         return cls()
 
     @classmethod
-    def FromJSON(cls, json: dict):
+    def FromJSON(cls, data: dict):
         return cls(
-            url=json.get("url", "http://192.168.1.46:8000"),
-            train_endpoint=json.get("train_endpoint", "/train_dataset"),
-            predict_endpoint=json.get("predict_endpoint", "/predict"),
-            status_endpoint=json.get("status_endpoint", "/status")
+            url=data.get("url", "http://192.168.1.34:8000")
         )
 
     def toJSON(self) -> dict:
         return {
-            "url": self.url,
-            "train_endpoint": self.train_endpoint,
-            "predict_endpoint": self.predict_endpoint,
-            "status_endpoint": self.status_endpoint
+            "url": self.url
         }
 
     def is_valid(self) -> bool:
