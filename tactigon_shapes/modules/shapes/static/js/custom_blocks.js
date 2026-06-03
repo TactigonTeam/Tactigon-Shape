@@ -31,6 +31,7 @@ function loadCustomBlocks(response) {
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos : {};
     const file_manager = response ? response.file_manager : {};
+    const bianconiglio = response ? response.bianconiglio : {};
 
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
@@ -43,6 +44,8 @@ function loadCustomBlocks(response) {
     loadGinosAIBlocks(ginos, file_manager);
     loadMQTTBlocks();
     loadDictionaryBlocks();
+    loadCameraBlocks();
+    loadBianconiglioBlocks(bianconiglio, file_manager);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1134,6 +1137,32 @@ function loadRos2Blocks(ros2blocks) {
             "helpUrl": "",
             "colour": 225
         },
+        {
+            "type": "ros2_topic_list",
+            "tooltip": "Returns a list of the ROS2 active topics",
+            "helpUrl": "",
+            "message0": "List ROS2 Topics",
+            "output": "Array",
+            "colour": 225
+        },
+        {
+            "type": "ros2_node_list",
+            "tooltip": "Returns a list of the ROS2 active nodes",
+            "helpUrl": "",
+            "message0": "List ROS2 Nodes",
+            "output": "Array",
+            "colour": 225
+        },
+        {
+            "type": "ros2_node_ready",
+            "tooltip": "",
+            "helpUrl": "",
+            "message0": "Is ROS2 node ready",
+            "output": null,
+            "colour": 225,
+            "inputsInline": false
+        }
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1287,7 +1316,8 @@ function loadGinosAIBlocks(ginos, file_manager) {
             "colour": "#EB6152",
             "tooltip": "",
             "helpUrl": ""
-        },
+        }        
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1366,6 +1396,132 @@ function loadMQTTBlocks() {
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
+}
+
+function loadCameraBlocks() {
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "get_marker_id",
+            "tooltip": "Returns the pointed marker ID from the payload, otherwhise will return -1",
+            "helpUrl": "",
+            "message0": "Extract Marker ID from %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "PAYLOAD"
+                }
+            ],
+            "colour": "#ff5050",
+            "inputsInline": true,
+            "output": "Number"
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
+function loadBianconiglioBlocks(bianconiglio, file_manager) {
+    let directory = [];
+    let optionMapping = {};
+
+    file_manager.forEach(el => {
+        directory.push([el['directory']['name'], el['directory']['base_path']]);
+        optionMapping[el['directory']['base_path']] = [['---', '']];
+
+        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
+            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+            return [f_path, f_path];
+        }));
+    });
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "bianconiglio_ml_train",
+            "tooltip": "Sends training data to an ML model through API call, returns training results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Data for training %1 Features %2 Targets %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Array"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_ml_predict",
+            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Data for prediction %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_get_model_state",
+            "tooltip": "Returns the ML model state through API call as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get ML model state",
+            "output": "BianconiglioState",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_ml_state_list",
+            "tooltip": "Attribute state from Bianconiglio ML model",
+            "helpUrl": "",
+            "message0": "State: %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": bianconiglio.states
+                }
+            ],
+            "output": "BianconiglioState",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_load_dataframe",
+            "message0": "Create dataframe from %1 %2",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "directory",
+                    "options": directory
+                },
+                {
+                    "type": "field_dependent_dropdown",
+                    "name": "filepath",
+                    "parentName": "directory",
+                    "optionMapping": optionMapping,
+                    "defaultOptions": [['---', '']],
+                }
+            ],
+            "output": "DataFrame",
+            "colour": "#ec8dc6",
+            "tooltip": "Load dataframe locally",
+            "helpUrl": ""
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
 
 }
 
@@ -1390,8 +1546,14 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
+from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
+import rclpy
+from rclpy.node import Node
+import pandas as pd
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -1633,6 +1795,60 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
+def ros2_get_topics(ros2: Ros2Interface | None):
+    """
+    Returns a list of lists containing the name and the type of the active ROS2 topics.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_topics()
+    return result if result is not None else []
+
+def ros2_get_nodes(ros2: Ros2Interface | None):
+    """
+    Returns a list of strings containing the name of the active ROS2 nodes.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_nodes()
+    return result if result is not None else []
+
+def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
+    if not ros2:
+        return True # Avoid blocking if ros2 is not configured
+    return ros2.is_ros2_node_ready()
+        
+def get_marker_id(payload) -> int:
+    try:
+        _parsed_id = int(payload.get('id', -1))
+        marker_id = _parsed_id if 0 <= _parsed_id <= 999 else -1
+    except (ValueError, TypeError, AttributeError):
+        marker_id = -1
+    return marker_id
+
+
+def bianconiglio_ml_train(bianconiglio: BianconiglioInterface | None, data, features, targets):
+    if not bianconiglio:
+        return "ERROR"
+    return bianconiglio.train(data, features, targets)
+
+def bianconiglio_ml_predict(bianconiglio: BianconiglioInterface | None, data):
+    if not bianconiglio:
+        return {}
+    return bianconiglio.predict(data)
+
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None):
+    if not bianconiglio:
+        return "ERROR"
+    return bianconiglio.status()
+
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not bianconiglio:
+        return None
+
+    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
 
 # ---------- Generated code ---------------
 
@@ -1666,6 +1882,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1696,6 +1913,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1726,6 +1944,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
@@ -1748,6 +1967,8 @@ function defineCustomGenerators() {
     defineIronBoyGenerators();
     defineGinosAIGenerators();
     defineMQTTGenerators();
+    defineCameraGenerators();
+    defineBianconiglioGenerators();
 }
 
 function defineShapesGenerators() {
@@ -2088,6 +2309,21 @@ function defineRos2Generators() {
         const command = `ros2_models.Float64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
+
+    python.pythonGenerator.forBlock['ros2_topic_list'] = function (block, generator) {
+        const code = `ros2_get_topics(ros2)`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_node_list'] = function (block, generator) {
+        const code = `ros2_get_nodes(ros2)`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['ros2_node_ready'] = function (block, generator) {
+        const code = `ros2_is_ready(ros2)`;
+        return [code, python.Order.ATOMIC];
+    };
 }
 
 function defineIronBoyGenerators() {
@@ -2179,6 +2415,52 @@ function defineMQTTGenerators() {
         const code = `mqtt_unregister(mqtt)\n`
         return code;
     }
+}
+
+function defineBianconiglioGenerators() {
+    python.pythonGenerator.forBlock["bianconiglio_ml_train"] = function (block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
+
+        const code = `bianconiglio_ml_train(bianconiglio, ${data}, ${features}, ${targets})`;
+
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_ml_predict"] = function (block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+
+        const code = `bianconiglio_ml_predict(bianconiglio, ${data})`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_get_model_state"] = function (block, generator) {
+        const code = `bianconiglio_get_model_state(bianconiglio)`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_ml_state_list"] = function (block, generator) {
+        const state = block.getFieldValue('state');
+        const code = `BianconiglioState("${state}").value`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
+        const dir = block.getFieldValue('directory');
+        const fpath = block.getFieldValue('filepath');
+        return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${fpath}")`, python.Order.ATOMIC];
+    };
+    
+}
+
+function defineCameraGenerators() {
+    python.pythonGenerator.forBlock['get_marker_id'] = function(block, generator) {
+        const value_payload = generator.valueToCode(block, 'PAYLOAD', generator.ORDER_MEMBER) || '{}';
+        const code = `get_marker_id(${value_payload})`;
+
+        return [code, generator.ORDER_FUNCTION_CALL];
+    };
 }
 
 

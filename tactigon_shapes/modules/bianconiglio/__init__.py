@@ -16,11 +16,3 @@
 # - Massimiliano Bellino
 # - Stefano Barbareschi
 #********************************************************************************/
-
-
-from tactigon_shapes.modules.ginos.models import LLMMessageRole
-
-def get_ginos_blocks():
-    return dict(
-        roles=[(role.name, role.value) for role in LLMMessageRole]
-    )

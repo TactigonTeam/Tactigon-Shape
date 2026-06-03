@@ -78,6 +78,9 @@
             <block type="logic_ternary"></block>
         </category>
         <category name="Loops" colour="#5ba55b">
+            <block type="controls_whileUntil">
+                <field name="MODE">WHILE</field>
+            </block>
             <block type="controls_repeat_ext">
                 <value name="TIMES">
                     <shadow type="math_number">
@@ -528,6 +531,9 @@
                     </shadow>
                 </value>
             </block>
+            <block type="ros2_node_ready"></block>
+            <block type="ros2_topic_list"></block>
+            <block type="ros2_node_list"></block>
             <block type="ros2_message_String">
                 <value name="data">
                     <shadow type="text">
@@ -746,7 +752,7 @@
                         <shadow type="text">
                         </shadow>
                     </value>
-
+                </block>
                 <!--commentati i blocchi in sviluppo-->
                 {#
                 </block>
@@ -768,6 +774,27 @@
             <block type="keyboard_mod_plus_funckey"></block>
             <block type="keyboard_mod_plus_mod_plus_funckey"></block>
         </category> #}
+        <category name="Camera" colour="#ff5050">
+            <block type="get_marker_id">
+                <value name="PAYLOAD_IN">
+                    <block type="variables_get">
+                        <field name="VAR">payload</field>
+                    </block>
+                </value>
+            </block>
+        </category>
+        <category name="Bianconiglio" colour="#ec8dc6">
+            <block type="bianconiglio_ml_train"></block>
+            <block type="bianconiglio_ml_predict"></block>
+            <block type="bianconiglio_get_model_state"></block>
+            <block type="bianconiglio_ml_state_list"></block>
+            <block type="bianconiglio_load_dataframe">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+            </block>
+        </category>
     </xml>
 </div>
 {% endblock %}

@@ -73,6 +73,7 @@ services:
       - tactigon-config:/app/config
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
+      - ./config/bianconiglio:/app/config/bianconiglio
 
   speech:
     build:
