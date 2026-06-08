@@ -1,4 +1,5 @@
 {
-    "url": "http://192.168.1.34:8000",
+    "url": "http://localhost:8000",
+    "url_localhost": "http://localhost:8000",
     "url_jetson": "http://192.168.1.46:8000"
 }
