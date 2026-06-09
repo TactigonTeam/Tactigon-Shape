@@ -16,6 +16,7 @@ class BianconiglioInterface:
         self._dataframe = pd.DataFrame()
         self.config_file_path = config_file_path
         self.load_config()
+        self.models: list = []
 
         if app:
             self.init_app(app)
@@ -26,7 +27,8 @@ class BianconiglioInterface:
     def get_shape_blocks(self):
 
         return {
-            "states": [(state.name, state.value) for state in BianconiglioState]
+            "states": [(state.name, state.value) for state in BianconiglioState],
+            "models": [model for model in self.models]
         }
     
     @property
@@ -47,10 +49,13 @@ class BianconiglioInterface:
                 config_data = json.load(f)
                 self.config = BianconiglioConfig.FromJSON(config_data)
                 self._logger.info("Bianconiglio configuration loaded. %s", self.config)
+                self.models = self.get_models()
+
         else:
             self.config = None
             self._logger.warning("Bianconiglio configuration file not found at %s, will use defaults", self.config_file)
             self.config = BianconiglioConfig.Default()
+            self.models = []
             self.save_config()
 
     def save_config(self):
@@ -106,7 +111,7 @@ class BianconiglioInterface:
             return None
 
         try:
-            res = requests.get(url, timeout=5)
+            res = requests.get(url, timeout)
 
 
             self._logger.debug("GET %s response: %s", url, res.status_code)
@@ -116,26 +121,71 @@ class BianconiglioInterface:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
 
-    def status(self) -> str:
-        url = f"{self.config.url}{self.config.status_endpoint}"
+    def get_models(self) -> list:
+        """Populate the models list with a get request"""
+        models_list = []
+        models_dict = {}
+        try: 
+            res = self.do_get(self.config.base_endpoint)
+      
+            if isinstance(res, dict) and res:
+                """l'endpoint restituisce: dict {models: {model_id: model_state_string}}
+                    oppure: dict {"models": "no models available"}"""
+                models_dict = res.get("models")
+
+
+            if isinstance(models_dict, dict) and res:
+                models_list = list(models_dict.keys())
+
+    
+        except TimeoutError:
+            logging.error(f" timeout api get models")
+
+        except Exception as e:
+            logging.error(f" errore get models: {e}")
+
+        
+
+        return models_list
+    
+    def get_status(self, model_id: str) -> str:
+        """Function to get"""
+        url = f"{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
         
         try:
             response = self.do_get(url, timeout=5)
             if response and response.status_code == 200:
                 data = response.json()
                 return data.get("state", "ERROR")            
-            return "ERROR"
+            return
         except Exception as e:
             self._logger.error(f"Error getting status: {e}")
             return "ERROR"
+        
+    def get_log(self, model_id: str):
+        """Function to get the logs about a specific model"""
+        url = f"{self.config.base_endpoint}/{model_id}{self.config.log_endpoint}"
 
-    def train(self, data: pd.DataFrame, features: list[str], targets: list[str]) -> dict:
-        url = f"{self.config.url}{self.config.train_endpoint}"
+        try:
+            response = self.do_get(url, timeout=5)
+            if response and response.status_code == 200:
+                return response.json()          
+            
+            return response
+        
+        except Exception as e:
+            self._logger.error(f"Error getting logs: {e}")
+            return "ERROR"
+
+    def train(self, description: str, data: pd.DataFrame, features: list[str], targets: list[str], url: str | None) -> dict:
+        if not url:
+            url = f"{self.config.url}{self.config.train_endpoint}"
 
         self._logger.info(f"Training data type: {type(data)}")
         self._logger.info(f"Training datas:\ndata: {data}\nfeatures: {features}\ntargets: {targets}")
         
         payload = {
+            "description": description,
             "data": data.to_dict(orient="records"),
             "features": features,
             "targets": targets
@@ -144,29 +194,43 @@ class BianconiglioInterface:
         self._logger.info(f"Payload:\n{payload}")
 
         try:
-            # 300 seconds timeout for training, which can be long
-            response = self.do_post(url, payload, timeout=300)
+            # 5 seconds timeout because the response will arrive immediatley while the training process will keep going in background
+            response = self.do_post(url, payload, timeout=5)
             if response.status_code == 200:
+                self._logger.info("Train successful")
                 return response.json()
             else:
-                print(f"Error from server during training. Code: {response.status_code}")
-                return {}
+                self._logger.error(f"Error from server during training. Code: {response.status_code}")
+                return response.json()
         except requests.exceptions.Timeout:
-            print("TIMEOUT: The training is taking too long.")
+            self._logger.error("TIMEOUT: The training is taking too long.")
             return {}
         except requests.exceptions.RequestException as e:
-            print(f"Error connecting during training: {e}")
+            self._logger.error(f"Error connecting during training: {e}")
             return {}
-    
-    def predict(self, data: pd.DataFrame) -> dict:
+        
+    def retrain(self, model_id: str, description: str, data: pd.DataFrame, features: list[str], targets: list[str]):
+        url = f"{self.config.url}/{model_id}{self.config.retrain_endpoint}"
 
-        url = f"{self.config.url}{self.config.predict_endpoint}"
+        response = self.train(description, data, features, targets, url)
+        return response
+        
+    def predict(self, model_id: str, data: pd.DataFrame) -> dict:
+
+        url = f"{self.config.url}/{model_id}{self.config.predict_endpoint}"
 
         self._logger.info(f"Prediction datas:\ndata: {data}")
         self._logger.info(f"Data type: {type(data)}")
 
+        payload = {
+            "model_id": model_id,
+            "data": data.to_dict(orient="records"),
+        }
+
+        self._logger.info(f"Payload:\n{payload}")
+
         try:
-            response = self.do_post(url, data.to_dict(orient="records"), timeout=10)
+            response = self.do_post(url, payload, timeout=10)
 
             if response and response.status_code == 200:
                 self._logger.info("Predict successful")
@@ -179,7 +243,8 @@ class BianconiglioInterface:
 
         except Exception as e:
             self._logger.error(f"Predict error: {e}")
-            return {}
+            return {}     
+
 
     def file_to_dataframe(self,file_path: str) -> pd.DataFrame | None:
 

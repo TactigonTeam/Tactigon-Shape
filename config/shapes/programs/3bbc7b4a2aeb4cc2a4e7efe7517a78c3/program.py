@@ -14,7 +14,7 @@ from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSe
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
-from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules..extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient

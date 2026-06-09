@@ -1421,8 +1421,8 @@ function loadCameraBlocks() {
 }
 
 function loadBianconiglioBlocks(bianconiglio, file_manager) {
-    let directory = [];
-    let optionMapping = {};
+    let directory = [];            
+let optionMapping = {};
 
     file_manager.forEach(el => {
         directory.push([el['directory']['name'], el['directory']['base_path']]);
@@ -1469,6 +1469,21 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                     "type": "input_value",
                     "name": "data",
                     "check": "DataFrame"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "get_model_state",
+            "tooltip": "Returns the ML model state through API call as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get model state",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": bianconiglio.models
                 }
             ],
             "output": "Dictionary",
@@ -1839,10 +1854,10 @@ def bianconiglio_ml_predict(bianconiglio: BianconiglioInterface | None, data):
         return {}
     return bianconiglio.predict(data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None):
+def bianconiglio_get_model_state(bianconiglio: BianconiglioConfig | None):
     if not bianconiglio:
         return "ERROR"
-    return bianconiglio.status()
+    return bianconiglio.models()
 
 def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
     if not bianconiglio:
@@ -2436,6 +2451,11 @@ function defineBianconiglioGenerators() {
     };
 
     python.pythonGenerator.forBlock["bianconiglio_get_model_state"] = function (block, generator) {
+        const code = `bianconiglio_get_model_state(bianconiglio)`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["get_model_state"] = function (block, generator) {
         const code = `bianconiglio_get_model_state(bianconiglio)`;
         return [code, python.Order.ATOMIC];
     };

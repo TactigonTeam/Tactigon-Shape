@@ -21,8 +21,6 @@ from enum import Enum
 from dataclasses import dataclass
 
 class BianconiglioState(Enum):
-    BOOT = "BOOT"
-    CHECK_MODEL = "CHECK_MODEL"
     NOT_TRAINED = "NOT_TRAINED"
     TRAINING = "TRAINING"
     READY_TO_PREDICT = "READY_TO_PREDICT"
@@ -33,21 +31,39 @@ class BianconiglioState(Enum):
 class DataFrameFileExtension(str, Enum):
     CSV = "csv"
     JSON = "json"
+                  
 @dataclass
 class BianconiglioConfig:
-    url: str = "http://192.168.1.34:8000"
-    train_endpoint: str = "/train_dataset"
-    predict_endpoint: str = "/predict"
-    status_endpoint: str = "/status"
+    base_endpoint: str 
+    train_endpoint: str 
+    retrain_endpoint: str 
+    predict_endpoint: str 
+    status_endpoint: str 
+    log_endpoint: str 
+    url: str
+    
 
     @classmethod
     def Default(cls):
-        return cls()
+        return cls(
+            base_endpoint = "/models",
+            train_endpoint = "/train",
+            retrain_endpoint = "/retrain",
+            predict_endpoint = "/predict",
+            status_endpoint = "/status",
+            log_endpoint = "/logs"
+        )
 
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            url=data.get("url", "http://192.168.1.34:8000")
+            url=data.get("url", "http://localhost:8000"),
+            base_endpoint=data.get("base_endpoint", "/models"),
+            train_endpoint = data.get("/train"),
+            retrain_endpoint = data.get("train_endpoint","/retrain"),
+            predict_endpoint = data.get("predict_endpoint", "/predict"),
+            status_endpoint = data.get("status_endpoint","/status"),
+            log_endpoint = data.get("log_endpoint","/logs")
         )
 
     def toJSON(self) -> dict:
