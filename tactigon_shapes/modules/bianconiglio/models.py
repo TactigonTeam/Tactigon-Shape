@@ -51,7 +51,8 @@ class BianconiglioConfig:
             retrain_endpoint = "/retrain",
             predict_endpoint = "/predict",
             status_endpoint = "/status",
-            log_endpoint = "/logs"
+            log_endpoint = "/logs",
+            url= "http://localhost:8000"
         )
 
     @classmethod
@@ -59,8 +60,8 @@ class BianconiglioConfig:
         return cls(
             url=data.get("url", "http://localhost:8000"),
             base_endpoint=data.get("base_endpoint", "/models"),
-            train_endpoint = data.get("/train"),
-            retrain_endpoint = data.get("train_endpoint","/retrain"),
+            train_endpoint = data.get("train_endpoint", "/train"),
+            retrain_endpoint = data.get("retrain_endpoint","/retrain"),
             predict_endpoint = data.get("predict_endpoint", "/predict"),
             status_endpoint = data.get("status_endpoint","/status"),
             log_endpoint = data.get("log_endpoint","/logs")
@@ -68,7 +69,13 @@ class BianconiglioConfig:
 
     def toJSON(self) -> dict:
         return {
-            "url": self.url
+            "url": self.url,
+            "base_endpoint": self.base_endpoint,
+            "train_endpoint": self.train_endpoint,
+            "retrain_endpoint": self.retrain_endpoint,
+            "predict_endpoint": self.predict_endpoint,
+            "status_endpoint": self.status_endpoint,
+            "log_endpoint": self.log_endpoint
         }
 
     def is_valid(self) -> bool:

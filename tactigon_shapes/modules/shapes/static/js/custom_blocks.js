@@ -1421,8 +1421,9 @@ function loadCameraBlocks() {
 }
 
 function loadBianconiglioBlocks(bianconiglio, file_manager) {
+    console.log(bianconiglio)
     let directory = [];            
-let optionMapping = {};
+    let optionMapping = {};
 
     file_manager.forEach(el => {
         directory.push([el['directory']['name'], el['directory']['base_path']]);
@@ -1435,7 +1436,7 @@ let optionMapping = {};
     });
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
-            "type": "bianconiglio_ml_train",
+            "type": "bianconiglio_train",
             "tooltip": "Sends training data to an ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
             "message0": "Data for training %1 Features %2 Targets %3",
@@ -1460,7 +1461,7 @@ let optionMapping = {};
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_ml_predict",
+            "type": "bianconiglio_predict",
             "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
             "helpUrl": "",
             "message0": "Data for prediction %1",
@@ -1475,28 +1476,28 @@ let optionMapping = {};
             "colour": "#ec8dc6"
         },
         {
-            "type": "get_model_state",
+            "type": "bianconiglio_get_model_state",
             "tooltip": "Returns the ML model state through API call as a dictionary.",
             "helpUrl": "",
-            "message0": "Get model state",
+            "message0": "Get model state %1",
             "args0": [
                 {
                     "type": "field_dropdown",
-                    "name": "state",
+                    "name": "model",
                     "options": bianconiglio.models
                 }
             ],
             "output": "Dictionary",
             "colour": "#ec8dc6"
         },
-        {
-            "type": "bianconiglio_get_model_state",
-            "tooltip": "Returns the ML model state through API call as a dictionary.",
-            "helpUrl": "",
-            "message0": "Get ML model state",
-            "output": "BianconiglioState",
-            "colour": "#ec8dc6"
-        },
+        // {
+        //     "type": "get_model_state",
+        //     "tooltip": "Returns the ML model state through API call as a dictionary.",
+        //     "helpUrl": "",
+        //     "message0": "Get ML model state",
+        //     "output": "BianconiglioState",
+        //     "colour": "#ec8dc6"
+        // },
         {
             "type": "bianconiglio_ml_state_list",
             "tooltip": "Attribute state from Bianconiglio ML model",
@@ -1843,21 +1844,41 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-
-def bianconiglio_ml_train(bianconiglio: BianconiglioInterface | None, data, features, targets):
-    if not bianconiglio:
-        return "ERROR"
-    return bianconiglio.train(data, features, targets)
-
-def bianconiglio_ml_predict(bianconiglio: BianconiglioInterface | None, data):
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.Dataframe, features: list, targets: list):
     if not bianconiglio:
         return {}
+
+    return bianconiglio.train(data, features, targets)
+
+def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.Dataframe, features: list, targets: list):
+    if not bianconiglio:
+        return {}
+
+    return bianconiglio.train(model_id, data, features, targets)
+
+def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: str, data: pd.DataFrame):
+    if not bianconiglio:
+        return {}
+
     return bianconiglio.predict(data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioConfig | None):
+def bianconiglio_get_model_state(bianconiglio: BianconiglioConfig | None, model_id: str):
     if not bianconiglio:
-        return "ERROR"
-    return bianconiglio.models()
+        return None
+
+    return bianconiglio.get_status(model_id)
+
+def bianconiglio_get_models(bianconiglio: BianconiglioConfig | None):
+    if not bianconiglio:
+        return []
+
+    return bianconiglio.get_models()
+
+def bianconiglio_get_log(bianconiglio: BianconiglioConfig | None, model_id: str):
+    if not bianconiglio:
+        return None
+
+    return bianconiglio.get_log(model_id)
 
 def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
     if not bianconiglio:
@@ -2433,36 +2454,60 @@ function defineMQTTGenerators() {
 }
 
 function defineBianconiglioGenerators() {
-    python.pythonGenerator.forBlock["bianconiglio_ml_train"] = function (block, generator) {
+
+    python.pythonGenerator.forBlock["bianconiglio_train"] = function (block, generator) {
+        const description = TODO
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
         const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
 
-        const code = `bianconiglio_ml_train(bianconiglio, ${data}, ${features}, ${targets})`;
+        const code = `bianconiglio_train(bianconiglio, ${description}, ${data}, ${features}, ${targets})`;
 
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_ml_predict"] = function (block, generator) {
+    python.pythonGenerator.forBlock["bianconiglio_retrain"] = function (block, generator) {
+        const model_id = TODO
+        const description = TODO
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
 
-        const code = `bianconiglio_ml_predict(bianconiglio, ${data})`;
+        const code = `bianconiglio_retrain(bianconiglio, ${model_id}, ${description}, ${data}, ${features}, ${targets})`;
+
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_predict"] = function (block, generator) {
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const model_id = TODO
+
+        const code = `bianconiglio_predict(bianconiglio, ${data}, ${model_id})`;
         return [code, python.Order.ATOMIC];
     };
 
     python.pythonGenerator.forBlock["bianconiglio_get_model_state"] = function (block, generator) {
-        const code = `bianconiglio_get_model_state(bianconiglio)`;
+        const model_id = block.getFieldValue('model');
+        
+        const code = `bianconiglio_get_model_state(bianconiglio, ${model_id})`;
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["get_model_state"] = function (block, generator) {
-        const code = `bianconiglio_get_model_state(bianconiglio)`;
+    python.pythonGenerator.forBlock["bianconiglio_get_models"] = function (block, generator) {
+        const code = `bianconiglio_get_models(bianconiglio)`;
         return [code, python.Order.ATOMIC];
     };
 
     python.pythonGenerator.forBlock["bianconiglio_ml_state_list"] = function (block, generator) {
         const state = block.getFieldValue('state');
         const code = `BianconiglioState("${state}").value`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_get_log"] = function (block, generator) {
+        const model_id = TODO
+
+        const code = `bianconiglio_get_log(${model_id}).value`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 

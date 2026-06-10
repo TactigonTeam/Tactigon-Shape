@@ -10,13 +10,18 @@ from tactigon_shapes.modules.file_manager.extension import FileManager
 class BianconiglioInterface:
     config_file_path: str
     _dataframe: pd.DataFrame
+    config: BianconiglioConfig | None
 
     def __init__(self, config_file_path: str, app: Flask | None = None):
         self._logger = logging.getLogger(BianconiglioInterface.__name__)
+
         self._dataframe = pd.DataFrame()
+        self.config = None
+
         self.config_file_path = config_file_path
         self.load_config()
-        self.models: list = []
+
+        #self.models: list = [("modello1","model1"),("modello2","model2")]
 
         if app:
             self.init_app(app)
@@ -25,10 +30,9 @@ class BianconiglioInterface:
         app.extensions[BianconiglioInterface.__name__] = self
     
     def get_shape_blocks(self):
-
         return {
             "states": [(state.name, state.value) for state in BianconiglioState],
-            "models": [model for model in self.models]
+            "models": [(m, m) for m in self.models]
         }
     
     @property
@@ -48,18 +52,23 @@ class BianconiglioInterface:
             with open(self.config_file, "r") as f:
                 config_data = json.load(f)
                 self.config = BianconiglioConfig.FromJSON(config_data)
-                self._logger.info("Bianconiglio configuration loaded. %s", self.config)
+
+                self._logger.info("Bianconiglio configuration loaded. URL: %s, Base: %s", self.config.url, self.config.base_endpoint)
+
                 self.models = self.get_models()
+                self._logger.info(f"modelli: {self.models}")
 
         else:
             self.config = None
             self._logger.warning("Bianconiglio configuration file not found at %s, will use defaults", self.config_file)
-            self.config = BianconiglioConfig.Default()
             self.models = []
-            self.save_config()
 
     def save_config(self):
         """Saves config onto a file"""
+        if not self.config:
+            self._logger.warning("Config is not loaded, cannot save.")
+            return
+            
         if not os.path.exists(self.config_file_path):
             os.makedirs(self.config_file_path)
 
@@ -98,7 +107,7 @@ class BianconiglioInterface:
                
         return None
 
-    def do_get(self, url: str, timeout: int = 5) -> requests.Response | None:
+    def do_get(self, url: str, timeout: int = 5) -> dict | None:
         """function used to make a GET request,
         error 401 is checked in case credentials fail or timeout
         Args:
@@ -108,36 +117,49 @@ class BianconiglioInterface:
             dict | None: JSON of the response
         """
         if not self.config or not self.config.is_valid():
+            self._logger.info("sto per tornare none")
             return None
 
         try:
-            res = requests.get(url, timeout)
+            res = requests.get(url)
+            res.raise_for_status()
 
-
-            self._logger.debug("GET %s response: %s", url, res.status_code)
-            return res
+            self._logger.info("GET %s response: %s", url, res.status_code)
+            self._logger.info("GET %s response: %s", url, res.json())
+            return res.json()
 
         except Exception as e:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
 
     def get_models(self) -> list:
+        self._logger.info("entro in get models - 0")
         """Populate the models list with a get request"""
-        models_list = []
-        models_dict = {}
-        try: 
-            res = self.do_get(self.config.base_endpoint)
-      
-            if isinstance(res, dict) and res:
-                """l'endpoint restituisce: dict {models: {model_id: model_state_string}}
+        if not self.config:
+            self._logger.info("config non trovata - 1")
+            return []
+        try:
+            url = f"{self.config.url}{self.config.base_endpoint}"
+            self._logger.info("url =" + url)
+            res = self.do_get(url)
+
+            if not res:
+                return []
+            
+            return res.get("models", [])
+        
+            """l'endpoint restituisce: dict {models: models_list}
                     oppure: dict {"models": "no models available"}"""
-                models_dict = res.get("models")
 
+            if isinstance(res, dict) and res and res.get("models") == "no models available":
+                models_list = ["---"]
+                self._logger.info("nessun modello disponibile - ")
+                return models_list
 
-            if isinstance(models_dict, dict) and res:
-                models_list = list(models_dict.keys())
+            elif isinstance(res, dict) and res:
+                self._logger.info("modelli trovati- 3")
+                return models_list
 
-    
         except TimeoutError:
             logging.error(f" timeout api get models")
 
@@ -146,30 +168,34 @@ class BianconiglioInterface:
 
         
 
-        return models_list
+        return []
     
-    def get_status(self, model_id: str) -> str:
+    def get_status(self, model_id: str) -> str | None:
         """Function to get"""
-        url = f"{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return None
+        url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
         
         try:
             response = self.do_get(url, timeout=5)
-            if response and response.status_code == 200:
-                data = response.json()
-                return data.get("state", "ERROR")            
-            return
+            if response:
+                return response.get("state", "ERROR")            
+            return None
+        
         except Exception as e:
             self._logger.error(f"Error getting status: {e}")
-            return "ERROR"
+            return None
         
     def get_log(self, model_id: str):
         """Function to get the logs about a specific model"""
-        url = f"{self.config.base_endpoint}/{model_id}{self.config.log_endpoint}"
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return None
+        url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.log_endpoint}"
 
         try:
-            response = self.do_get(url, timeout=5)
-            if response and response.status_code == 200:
-                return response.json()          
+            response = self.do_get(url, timeout=5)       
             
             return response
         
@@ -178,6 +204,9 @@ class BianconiglioInterface:
             return "ERROR"
 
     def train(self, description: str, data: pd.DataFrame, features: list[str], targets: list[str], url: str | None) -> dict:
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return {}
         if not url:
             url = f"{self.config.url}{self.config.train_endpoint}"
 
@@ -196,12 +225,14 @@ class BianconiglioInterface:
         try:
             # 5 seconds timeout because the response will arrive immediatley while the training process will keep going in background
             response = self.do_post(url, payload, timeout=5)
-            if response.status_code == 200:
+            if response and response.status_code == 200:
                 self._logger.info("Train successful")
                 return response.json()
-            else:
+            elif response:
                 self._logger.error(f"Error from server during training. Code: {response.status_code}")
                 return response.json()
+            else:
+                return {}
         except requests.exceptions.Timeout:
             self._logger.error("TIMEOUT: The training is taking too long.")
             return {}
@@ -210,13 +241,18 @@ class BianconiglioInterface:
             return {}
         
     def retrain(self, model_id: str, description: str, data: pd.DataFrame, features: list[str], targets: list[str]):
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return {}
         url = f"{self.config.url}/{model_id}{self.config.retrain_endpoint}"
 
         response = self.train(description, data, features, targets, url)
         return response
         
     def predict(self, model_id: str, data: pd.DataFrame) -> dict:
-
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return {}
         url = f"{self.config.url}/{model_id}{self.config.predict_endpoint}"
 
         self._logger.info(f"Prediction datas:\ndata: {data}")
