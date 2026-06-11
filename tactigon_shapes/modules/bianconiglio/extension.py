@@ -4,7 +4,7 @@ import json
 import pandas as pd
 import requests
 from flask import Flask
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig, DataFrameFileExtension
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig, DataFrameFileExtension, ModelInfo
 from tactigon_shapes.modules.file_manager.extension import FileManager
 
 class BianconiglioInterface:
@@ -32,7 +32,7 @@ class BianconiglioInterface:
     def get_shape_blocks(self):
         return {
             "states": [(state.name, state.value) for state in BianconiglioState],
-            "models": [(m, m) for m in self.models]
+            "models": [(d["description"], d["model_id"]) for d in self.models]# [(id1, description1), (id2, description2), (id3, description3), ...] o [("---", "---")] 
         }
     
     @property
@@ -55,8 +55,9 @@ class BianconiglioInterface:
 
                 self._logger.info("Bianconiglio configuration loaded. URL: %s, Base: %s", self.config.url, self.config.base_endpoint)
 
-                self.models = self.get_models()
-                self._logger.info(f"modelli: {self.models}")
+                self.models = self.get_models_info()
+
+                self._logger.info(f"models: {self.models}")
 
         else:
             self.config = None
@@ -125,16 +126,19 @@ class BianconiglioInterface:
             res.raise_for_status()
 
             self._logger.info("GET %s response: %s", url, res.status_code)
-            self._logger.info("GET %s response: %s", url, res.json())
+            #self._logger.info("GET %s response: %s", url, res.json())
             return res.json()
 
         except Exception as e:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
 
-    def get_models(self) -> list:
-        self._logger.info("entro in get models - 0")
-        """Populate the models list with a get request"""
+    def get_models_info(self) -> list:
+        """Populate the models list with a get request
+    
+        l'endpoint restituisce: dict {"models": [ModelInfos, ModelInfos, ModelInfos, ...]}
+                        oppure: dict {"models": "no models available"}
+        """
         if not self.config:
             self._logger.info("config non trovata - 1")
             return []
@@ -146,20 +150,11 @@ class BianconiglioInterface:
             if not res:
                 return []
             
-            return res.get("models", [])
+            model_info_list = res.get("models_infos", [])
+
+            self._logger.info(f"found {len(model_info_list)} models")
+            return model_info_list
         
-            """l'endpoint restituisce: dict {models: models_list}
-                    oppure: dict {"models": "no models available"}"""
-
-            if isinstance(res, dict) and res and res.get("models") == "no models available":
-                models_list = ["---"]
-                self._logger.info("nessun modello disponibile - ")
-                return models_list
-
-            elif isinstance(res, dict) and res:
-                self._logger.info("modelli trovati- 3")
-                return models_list
-
         except TimeoutError:
             logging.error(f" timeout api get models")
 
@@ -174,18 +169,25 @@ class BianconiglioInterface:
         """Function to get"""
         if not self.config:
             self._logger.warning("Config is not loaded")
-            return None
-        url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
+            return "Error loading Bianconiglio config"
         
+        url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
+        print("url status: " + url)
         try:
             response = self.do_get(url, timeout=5)
-            if response:
-                return response.get("state", "ERROR")            
-            return None
-        
+            print("response status: " + str(response))
+            if response and response.get("state", "") in BianconiglioState:
+                return response.get("state", "")    
+            
+            return "error getting status"
+
+        except TimeoutError as e:
+            self._logger.error(f"Timeout getting logs: {e}")
+            return "timeout getting status"
+            
         except Exception as e:
             self._logger.error(f"Error getting status: {e}")
-            return None
+            return "error getting status"
         
     def get_log(self, model_id: str):
         """Function to get the logs about a specific model"""
@@ -198,11 +200,15 @@ class BianconiglioInterface:
             response = self.do_get(url, timeout=5)       
             
             return response
+    
+        except TimeoutError as e:
+            self._logger.error(f"Timeout getting logs: {e}")
+            return None
         
         except Exception as e:
             self._logger.error(f"Error getting logs: {e}")
-            return "ERROR"
-
+            return "error getting logs"
+        
     def train(self, description: str, data: pd.DataFrame, features: list[str], targets: list[str], url: str | None) -> dict:
         if not self.config:
             self._logger.warning("Config is not loaded")
