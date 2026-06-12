@@ -1541,6 +1541,29 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "output": "Dictionary",
             "colour": "#ec8dc6"
         },
+        {
+            "type": "bianconiglio_get_models_info",
+            "tooltip": "Returns each model infos as a list of dictionary",
+            "helpUrl": "",
+            "message0": "Get models list",
+            "output": "Array",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_get_log",
+            "tooltip": "Returns the training log of the specific model selected as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get model log %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": bianconiglio.models
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
         // {
         //     "type": "get_model_state",
         //     "tooltip": "Returns the ML model state through API call as a dictionary.",
@@ -1913,19 +1936,24 @@ def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc:
 
     return bianconiglio.predict(model_desc, data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioConfig | None, model_id: str):
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
+    res = bianconiglio.get_status(model_id)
+
+    if res == None:
+        return "errore"
+
     return bianconiglio.get_status(model_id)
 
-def bianconiglio_get_models(bianconiglio: BianconiglioConfig | None):
+def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
-    return bianconiglio.get_models()
+    return bianconiglio.get_models_info()
 
-def bianconiglio_get_log(bianconiglio: BianconiglioConfig | None, model_id: str):
+def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
@@ -1936,6 +1964,7 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, dire
         return None
 
     return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+
 
 # ---------- Generated code ---------------
 
@@ -2540,13 +2569,21 @@ function defineBianconiglioGenerators() {
     python.pythonGenerator.forBlock["bianconiglio_get_model_state"] = function (block, generator) {
         const model_id = block.getFieldValue('model');
         
-        const code = `bianconiglio_get_model_state(bianconiglio, ${model_id})`;
+        const code = `bianconiglio_get_model_state(bianconiglio, "${model_id}")`;
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_models"] = function (block, generator) {
-        const code = `bianconiglio_get_models(bianconiglio)`;
+    python.pythonGenerator.forBlock["bianconiglio_get_models_info"] = function (block, generator) {
+
+        const code = `bianconiglio_get_models_info(bianconiglio)`;
         return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_get_log"] = function (block, generator) {
+        const model_id = block.getFieldValue('model');
+
+        const code = `bianconiglio_get_log(bianconiglio, "${model_id}")`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock["bianconiglio_ml_state_list"] = function (block, generator) {
@@ -2554,14 +2591,7 @@ function defineBianconiglioGenerators() {
         const code = `BianconiglioState("${state}").value`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
-
-    python.pythonGenerator.forBlock["bianconiglio_get_log"] = function (block, generator) {
-        const model_id = TODO
-
-        const code = `bianconiglio_get_log(${model_id}).value`;
-        return [code, Blockly.Python.ORDER_ATOMIC];
-    };
-
+    
     python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
         const dir = block.getFieldValue('directory');
         const fpath = block.getFieldValue('filepath');

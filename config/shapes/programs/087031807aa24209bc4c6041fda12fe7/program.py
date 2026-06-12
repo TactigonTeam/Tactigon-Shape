@@ -300,37 +300,37 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.Dataframe, features: list, targets: list):
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list, url: str):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(data, features, targets)
+    return bianconiglio.train(description, data, features, targets, url)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.Dataframe, features: list, targets: list):
+def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(model_id, data, features, targets)
+    return bianconiglio.retrain(model_id, description, data, features, targets)
 
 def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: str, data: pd.DataFrame):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.predict(data)
+    return bianconiglio.predict(model_id, data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioConfig | None, model_id: str):
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
     return bianconiglio.get_status(model_id)
 
-def bianconiglio_get_models(bianconiglio: BianconiglioConfig | None):
+def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
-    return bianconiglio.get_models()
+    return bianconiglio.get_models_info()
 
-def bianconiglio_get_log(bianconiglio: BianconiglioConfig | None, model_id: str):
+def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 

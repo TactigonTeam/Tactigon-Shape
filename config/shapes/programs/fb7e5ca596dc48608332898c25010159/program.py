@@ -300,37 +300,42 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.Dataframe, features: list, targets: list):
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list, url: str):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(data, features, targets)
+    return bianconiglio.train(description, data, features, targets, url)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.Dataframe, features: list, targets: list):
+def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(model_id, data, features, targets)
+    return bianconiglio.retrain(model_id, description, data, features, targets)
 
 def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: str, data: pd.DataFrame):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.predict(data)
+    return bianconiglio.predict(model_id, data)
 
-#def bianconiglio_get_model_state(bianconiglio: BianconiglioConfig | None, model_id: str):
- #   if not bianconiglio:
- #       return None
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
+    if not bianconiglio:
+        return None
 
- #   return bianconiglio.get_status(model_id)
+    res = bianconiglio.get_status(model_id)
 
-def bianconiglio_get_models(bianconiglio: BianconiglioConfig | None):
+    if res == None:
+        return "errore"
+
+    return bianconiglio.get_status(model_id)
+
+def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
-    return bianconiglio.get_models()
+    return bianconiglio.get_models_info()
 
-def bianconiglio_get_log(bianconiglio: BianconiglioConfig | None, model_id: str):
+def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
@@ -342,7 +347,13 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, dire
 
     return bianconiglio.get_dataframe(os.path.join(directory, file_path))
 
+
 # ---------- Generated code ---------------
+
+model_state = None
+model_training_log = None
+model_list = None
+
 
 def tactigon_shape_setup(
         tskin: TSkin,
@@ -356,7 +367,14 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    pass
+    global model_state, model_list, model_training_log
+    model_state = bianconiglio_get_model_state(bianconiglio, "716600b7-cd13-4f63-a8b2-56af97c4d250")
+    model_training_log = bianconiglio_get_log(bianconiglio, "716600b7-cd13-4f63-a8b2-56af97c4d250")
+    model_list = bianconiglio_get_models_info(bianconiglio)
+    debug(logging_queue, model_state)
+    debug(logging_queue, model_training_log)
+    debug(logging_queue, model_list)
+
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -369,10 +387,10 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
+    global model_state, model_list, model_training_log
     gesture = tskin.gesture
     touch = tskin.touch
-    debug(logging_queue, 'Tactigon')
-
+    pass
     return True
 
 def tactigon_shape_close(
@@ -387,4 +405,5 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
+    global model_state, model_list, model_training_log
     pass

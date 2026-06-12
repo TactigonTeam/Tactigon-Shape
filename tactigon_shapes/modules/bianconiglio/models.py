@@ -28,6 +28,40 @@ class BianconiglioState(Enum):
     FALLBACK = "FALLBACK"
     ERROR = "ERROR"
 
+@dataclass
+class ModelInfo:
+   model_id: str
+   created_on: str
+   update_on: str
+   description: str
+   features: list[str]
+   targets: list[str]
+   state: BianconiglioState
+
+   @classmethod
+   def FromJSON(cls, json: dict):
+       return cls(
+           model_id=json.get("model_id", ""),
+           created_on=json.get("created_on", ""),
+           update_on=json.get("update_on", ""),
+           description=json.get("description", ""),
+           features=json.get("description", []),
+           targets=json.get("description", []),
+           state=json.get("state", BianconiglioState.NOT_TRAINED),
+       )
+   def toJSON(self) -> dict:
+       return {
+           "model_id": self.model_id,
+           "created_on": self.created_on,
+           "update_on": self.update_on,
+           "description": self.description,
+           "features": self.features,
+           "targets": self.targets,
+           "state": self.state,
+       }
+  
+
+
 class DataFrameFileExtension(str, Enum):
     CSV = "csv"
     JSON = "json"

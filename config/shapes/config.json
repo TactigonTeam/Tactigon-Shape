@@ -105,41 +105,15 @@
     "mqtt_config": null
   },
   {
-    "id": "087031807aa24209bc4c6041fda12fe7",
-    "name": "da buttare",
-    "created_on": "2026-06-10T11:30:40.600391",
-    "modified_on": "2026-06-10T14:04:42.430288",
+    "id": "fb7e5ca596dc48608332898c25010159",
+    "name": "adasas",
+    "created_on": "2026-06-11T15:49:10.495014",
+    "modified_on": "2026-06-11T17:16:16.179540",
     "description": "",
     "readonly": false,
     "ginos_config": null,
     "ros2_config": {
-      "node_name": "da buttare",
-      "publishers": [],
-      "subscriptions": []
-    },
-    "mqtt_config": {
-      "broker_url": "broker.emqx.io",
-      "broker_port": 1883,
-      "node_name": "",
-      "node_type": "",
-      "max_reconnect_count": 5,
-      "reconnect_delay": 1,
-      "reconnect_rate": 2,
-      "protocol_version": 5,
-      "callback_api_version": 2,
-      "subscriptions": []
-    }
-  },
-  {
-    "id": "27ac52ad6baf4e86b35457880cf5049e",
-    "name": "jn",
-    "created_on": "2026-06-10T12:35:31.163332",
-    "modified_on": "2026-06-10T14:51:14.234739",
-    "description": "",
-    "readonly": false,
-    "ginos_config": null,
-    "ros2_config": {
-      "node_name": "jn",
+      "node_name": "adasas",
       "publishers": [],
       "subscriptions": []
     },
