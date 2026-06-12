@@ -34,48 +34,28 @@ class DataFrameFileExtension(str, Enum):
                   
 @dataclass
 class BianconiglioConfig:
-    base_endpoint: str 
-    train_endpoint: str 
-    retrain_endpoint: str 
-    predict_endpoint: str 
-    status_endpoint: str 
-    log_endpoint: str 
-    url: str
-    
+    url: str = "http://192.168.1.46:8000"
+    base_endpoint: str = "/models"
+    train_endpoint: str = "/train"       # /models/train
+    retrain_endpoint: str = "/retrain"   # /models/{model_id}/retrain
+    predict_endpoint: str = "/predict"   # /models/{model_id}/predict
+    status_endpoint: str = "/status"     # /models/{model_id}/status
+    log_endpoint: str = "/logs"          # /models/{model_id}/logs
 
     @classmethod
     def Default(cls):
         return cls(
-            base_endpoint = "/models",
-            train_endpoint = "/train",
-            retrain_endpoint = "/retrain",
-            predict_endpoint = "/predict",
-            status_endpoint = "/status",
-            log_endpoint = "/logs",
-            url= "http://localhost:8000"
         )
 
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            url=data.get("url", "http://localhost:8000"),
-            base_endpoint=data.get("base_endpoint", "/models"),
-            train_endpoint = data.get("train_endpoint", "/train"),
-            retrain_endpoint = data.get("retrain_endpoint","/retrain"),
-            predict_endpoint = data.get("predict_endpoint", "/predict"),
-            status_endpoint = data.get("status_endpoint","/status"),
-            log_endpoint = data.get("log_endpoint","/logs")
+            url=data.get("url", "http://localhost:8000")
         )
 
     def toJSON(self) -> dict:
         return {
-            "url": self.url,
-            "base_endpoint": self.base_endpoint,
-            "train_endpoint": self.train_endpoint,
-            "retrain_endpoint": self.retrain_endpoint,
-            "predict_endpoint": self.predict_endpoint,
-            "status_endpoint": self.status_endpoint,
-            "log_endpoint": self.log_endpoint
+            "url": self.url
         }
 
     def is_valid(self) -> bool:

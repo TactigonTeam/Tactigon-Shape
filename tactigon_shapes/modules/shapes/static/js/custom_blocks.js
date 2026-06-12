@@ -1437,9 +1437,9 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "bianconiglio_train",
-            "tooltip": "Sends training data to an ML model through API call, returns training results as a dictionary.",
+            "tooltip": "Sends training data to a new ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Data for training %1 Features %2 Targets %3",
+            "message0": "Data for training %1 Features %2 Targets %3 Model Description %4",
             "args0": [
                 {
                     "type": "input_value",
@@ -1455,6 +1455,49 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                     "type": "input_value",
                     "name": "targets",
                     "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "model_description",
+                    "check": "String"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_retrain",
+            "tooltip": "Sends training data to an existing ML model through API call, returns training results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Model to retrain %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": bianconiglio.models
+                }
+            ],
+            "message1": "Data for training %1 Features %2 Targets %3 New Model Description %4",
+            "args1": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "model_description",
+                    "check": "String"
                 }
             ],
             "output": "Dictionary",
@@ -1464,8 +1507,16 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_predict",
             "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
             "helpUrl": "",
-            "message0": "Data for prediction %1",
+            "message0": "Model for prediction %1",
             "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": bianconiglio.models
+                }
+            ],
+            "message1": "Data for prediction %1",
+            "args1": [
                 {
                     "type": "input_value",
                     "name": "data",
@@ -1563,7 +1614,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -1844,23 +1895,23 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.Dataframe, features: list, targets: list):
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(data, features, targets)
+    return bianconiglio.train(description, data, features, targets)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.Dataframe, features: list, targets: list):
+def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(model_id, data, features, targets)
+    return bianconiglio.retrain(model_desc, new_description, data, features, targets)
 
-def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: str, data: pd.DataFrame):
+def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.predict(data)
+    return bianconiglio.predict(model_desc, data)
 
 def bianconiglio_get_model_state(bianconiglio: BianconiglioConfig | None, model_id: str):
     if not bianconiglio:
@@ -2456,7 +2507,7 @@ function defineMQTTGenerators() {
 function defineBianconiglioGenerators() {
 
     python.pythonGenerator.forBlock["bianconiglio_train"] = function (block, generator) {
-        const description = TODO
+        const description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
         const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
@@ -2467,22 +2518,22 @@ function defineBianconiglioGenerators() {
     };
 
     python.pythonGenerator.forBlock["bianconiglio_retrain"] = function (block, generator) {
-        const model_id = TODO
-        const description = TODO
+        const model_desc = block.getFieldValue('model');
+        const new_description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
         const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
 
-        const code = `bianconiglio_retrain(bianconiglio, ${model_id}, ${description}, ${data}, ${features}, ${targets})`;
+        const code = `bianconiglio_retrain(bianconiglio, '${model_desc}', ${new_description}, ${data}, ${features}, ${targets})`;
 
         return [code, python.Order.ATOMIC];
     };
 
     python.pythonGenerator.forBlock["bianconiglio_predict"] = function (block, generator) {
+        const model_desc = block.getFieldValue('model');
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const model_id = TODO
 
-        const code = `bianconiglio_predict(bianconiglio, ${data}, ${model_id})`;
+        const code = `bianconiglio_predict(bianconiglio, '${model_desc}', ${data})`;
         return [code, python.Order.ATOMIC];
     };
 
