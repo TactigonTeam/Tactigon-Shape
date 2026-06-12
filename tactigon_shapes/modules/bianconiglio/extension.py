@@ -30,7 +30,7 @@ class BianconiglioInterface:
         app.extensions[BianconiglioInterface.__name__] = self
     
     def get_shape_blocks(self):
-        updated_models = self.get_models()
+        updated_models = self.get_models_info()
         if updated_models and len(updated_models) > 0 and updated_models[0].get("model_id") != "---":
              self.models = updated_models
         return {
@@ -213,7 +213,7 @@ class BianconiglioInterface:
             self._logger.error(f"Error getting logs: {e}")
             return "error getting logs"
         
-    def train(self, description: str, data: pd.DataFrame, features: list[str], targets: list[str], url: str | None) -> dict:
+    def train(self, description: str, data: pd.DataFrame, features: list[str], targets: list[str], url: str | None = None) -> dict:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return {}
@@ -236,7 +236,7 @@ class BianconiglioInterface:
             response = self.do_post(url, payload, timeout=5)
             if response and response.status_code == 200:
                 self._logger.info("Train successful")
-                self.models = self.get_models()
+                self.models = self.get_models_info()
                 return response.json()
             elif response:
                 self._logger.error(f"Error from server during training. Code: {response.status_code}")
