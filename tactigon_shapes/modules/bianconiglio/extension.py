@@ -169,7 +169,7 @@ class BianconiglioInterface:
 
         return []
     
-    def get_status(self, model_id: str) -> str | None:
+    def get_status(self, model_id: str) -> str:
         """Function to get"""
         if not self.config:
             self._logger.warning("Config is not loaded")
@@ -180,7 +180,8 @@ class BianconiglioInterface:
         try:
             response = self.do_get(url, timeout=5)
             print("response status: " + str(response))
-            if response and response.get("state", "") in BianconiglioState:
+            if response:
+                print("ecco la response di status: " + str(response))
                 return response.get("state", "")    
             
             return "error getting status"

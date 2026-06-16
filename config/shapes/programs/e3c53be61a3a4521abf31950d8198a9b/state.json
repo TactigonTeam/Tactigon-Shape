@@ -4,25 +4,25 @@
     "blocks": [
       {
         "type": "tactigon_shape_setup",
-        "id": "j[mZUeEhVZYAItRJE0F4",
-        "x": 330,
-        "y": -310,
+        "id": "O:#y/nyRe;Vx/0-YF1EV",
+        "x": 310,
+        "y": 50,
         "deletable": false,
         "inputs": {
           "setup_code": {
             "block": {
               "type": "variables_set",
-              "id": "ueyd$3}XNkm|,v63S%#Q",
+              "id": "6GzEQtpDi$k*u7p@V1D[",
               "fields": {
                 "VAR": {
-                  "id": "8a(Y/BQx+86/I=BF:tM["
+                  "id": "+Ia#[d3_s:IE.d/]DJDD"
                 }
               },
               "inputs": {
                 "VALUE": {
                   "block": {
                     "type": "bianconiglio_load_dataframe",
-                    "id": "Y;Cunv_0d}f4gSpY4A:|",
+                    "id": "u}^KUZR%wi3c_aLKj3V}",
                     "fields": {
                       "directory": "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame",
                       "filepath": "train_data.json"
@@ -33,25 +33,25 @@
               "next": {
                 "block": {
                   "type": "variables_set",
-                  "id": "r[5+-q}SozRb?J#?w0YM",
+                  "id": "R]j=3o~lG+le}PM$z$!V",
                   "fields": {
                     "VAR": {
-                      "id": "1)yIZn~cF_(^BP9I]NdI"
+                      "id": "OMEh!-RfM;J/|4-0gfy$"
                     }
                   },
                   "inputs": {
                     "VALUE": {
                       "block": {
                         "type": "lists_create_with",
-                        "id": "fdgYmfu=Zb8[G[Ur^;)v",
+                        "id": "zAM8H3^T*ISD{-GxH~?0",
                         "extraState": {
-                          "itemCount": 9
+                          "itemCount": 8
                         },
                         "inputs": {
                           "ADD0": {
                             "block": {
                               "type": "text",
-                              "id": "CsX:k~qew]$:D={}2Uf3",
+                              "id": "Kbg,c=:@@%+N8tJE_Qhf",
                               "fields": {
                                 "TEXT": "gesture"
                               }
@@ -60,7 +60,7 @@
                           "ADD1": {
                             "block": {
                               "type": "text",
-                              "id": "t2pj%k).w}]n2sm}}oZu",
+                              "id": "=tNDqv!JLkwkC-r+h5*^",
                               "fields": {
                                 "TEXT": "zone"
                               }
@@ -69,7 +69,7 @@
                           "ADD2": {
                             "block": {
                               "type": "text",
-                              "id": "09TXd:lC[ZFc9b):YKp`",
+                              "id": "IJ2yN{@sdb~xf:^*i%GI",
                               "fields": {
                                 "TEXT": "object_detected"
                               }
@@ -78,7 +78,7 @@
                           "ADD3": {
                             "block": {
                               "type": "text",
-                              "id": "E*W[f[jj18KWa$~-Vg_e",
+                              "id": "}sz1oIXkgCKDsN*B3=eE",
                               "fields": {
                                 "TEXT": "object"
                               }
@@ -87,7 +87,7 @@
                           "ADD4": {
                             "block": {
                               "type": "text",
-                              "id": "F-(2|v|)*Bnh{:gbpK^.",
+                              "id": "wZns18}1L43cvIMiw+]#",
                               "fields": {
                                 "TEXT": "object_class"
                               }
@@ -96,34 +96,25 @@
                           "ADD5": {
                             "block": {
                               "type": "text",
-                              "id": "czJrsqPSA*ZG_8mpT]QF",
+                              "id": "n5OsEqoNxO!#1LIDuqlo",
                               "fields": {
-                                "TEXT": "gesture_confidence"
+                                "TEXT": "robot_state"
                               }
                             }
                           },
                           "ADD6": {
                             "block": {
                               "type": "text",
-                              "id": "aXY)*dZGxw!)EUGuFfo?",
+                              "id": "~=N}y50DsVks|egF)I|x",
                               "fields": {
-                                "TEXT": "robot_state"
+                                "TEXT": "gripper_state"
                               }
                             }
                           },
                           "ADD7": {
                             "block": {
                               "type": "text",
-                              "id": "SM`yHBhGq{a~y-=wg)*;",
-                              "fields": {
-                                "TEXT": "gripper_state"
-                              }
-                            }
-                          },
-                          "ADD8": {
-                            "block": {
-                              "type": "text",
-                              "id": "Z58ZF?gxL@tY($+ZxY=Z",
+                              "id": "MpXmubxMriFQ94~%f;x[",
                               "fields": {
                                 "TEXT": "target_zone"
                               }
@@ -136,17 +127,17 @@
                   "next": {
                     "block": {
                       "type": "variables_set",
-                      "id": ")sB=HYeJtNx4Y^H_tvkC",
+                      "id": "K(L%CC`5`#}f[dnq)fF+",
                       "fields": {
                         "VAR": {
-                          "id": "]n3jY^wsMMke~+V^]f=^"
+                          "id": "w^WuDYAMq6xCp]L,d6vt"
                         }
                       },
                       "inputs": {
                         "VALUE": {
                           "block": {
                             "type": "lists_create_with",
-                            "id": "WC)gY!wuA[j2AiP7ok=5",
+                            "id": "LuL?TAUcdRH-4}cf^IkY",
                             "extraState": {
                               "itemCount": 3
                             },
@@ -154,16 +145,16 @@
                               "ADD0": {
                                 "block": {
                                   "type": "text",
-                                  "id": "5kcQ[3@KJH7R2]?7%#]=",
+                                  "id": "iVgGCA9op?i?D1G^G0]V",
                                   "fields": {
-                                    "TEXT": "action"
+                                    "TEXT": "    \"action\": \"release\","
                                   }
                                 }
                               },
                               "ADD1": {
                                 "block": {
                                   "type": "text",
-                                  "id": "ub#^3;:?e8-r:u[bbz#g",
+                                  "id": "wv@5PT+J|%gLKY]f2DYq",
                                   "fields": {
                                     "TEXT": "priority"
                                   }
@@ -172,7 +163,7 @@
                               "ADD2": {
                                 "block": {
                                   "type": "text",
-                                  "id": "23]~-HZnd!*Vu;wA/78@",
+                                  "id": "~Hjz,B`i1a)g[UxnIs8}",
                                   "fields": {
                                     "TEXT": "risk_level"
                                   }
@@ -185,19 +176,19 @@
                       "next": {
                         "block": {
                           "type": "variables_set",
-                          "id": "efc$4+L.am9!z]$xW;KT",
+                          "id": "2=MgW77IA_mBIt)1dtVD",
                           "fields": {
                             "VAR": {
-                              "id": "#n+q;LM+@i7TdbXA4-E*"
+                              "id": "]iqlPekfq8L|(4F6=6H7"
                             }
                           },
                           "inputs": {
                             "VALUE": {
                               "block": {
                                 "type": "text",
-                                "id": "k),!,}n@=Upm/be?a-=+",
+                                "id": "41B4)(SkH2i:T27eb+a@",
                                 "fields": {
-                                  "TEXT": "fuuck"
+                                  "TEXT": "fuck retrain"
                                 }
                               }
                             }
@@ -205,25 +196,28 @@
                           "next": {
                             "block": {
                               "type": "variables_set",
-                              "id": "qw_b%E]O2~=g=foaizH]",
+                              "id": "@D(xOK+V^M0X#KWOe@hw",
                               "fields": {
                                 "VAR": {
-                                  "id": "{alWaUfLRZ?Y{^rF`lA-"
+                                  "id": "Z_+JT7R@0si%O3*;K:$d"
                                 }
                               },
                               "inputs": {
                                 "VALUE": {
                                   "block": {
-                                    "type": "bianconiglio_train",
-                                    "id": "|febROm]@ga170Oi=g24",
+                                    "type": "bianconiglio_retrain",
+                                    "id": "Ll,eqqs{dmzri@mMbQ.3",
+                                    "fields": {
+                                      "model": "dcfb9e35-2b55-4e30-a733-12e6e9dcb45e"
+                                    },
                                     "inputs": {
                                       "data": {
                                         "block": {
                                           "type": "variables_get",
-                                          "id": "HsZ8TH$|Zjac([}KNbN?",
+                                          "id": "?2IgbhUBv1^?PFpR}18W",
                                           "fields": {
                                             "VAR": {
-                                              "id": "8a(Y/BQx+86/I=BF:tM["
+                                              "id": "+Ia#[d3_s:IE.d/]DJDD"
                                             }
                                           }
                                         }
@@ -231,10 +225,10 @@
                                       "features": {
                                         "block": {
                                           "type": "variables_get",
-                                          "id": "W5{6[sN+4KOMa_M)P9LP",
+                                          "id": "Yxh@gX:4yEcS|{)zt((}",
                                           "fields": {
                                             "VAR": {
-                                              "id": "1)yIZn~cF_(^BP9I]NdI"
+                                              "id": "OMEh!-RfM;J/|4-0gfy$"
                                             }
                                           }
                                         }
@@ -242,10 +236,10 @@
                                       "targets": {
                                         "block": {
                                           "type": "variables_get",
-                                          "id": "(],VV]o$)4zd)){%909[",
+                                          "id": "K]wt1OIXNu7#.,BT_BxB",
                                           "fields": {
                                             "VAR": {
-                                              "id": "]n3jY^wsMMke~+V^]f=^"
+                                              "id": "w^WuDYAMq6xCp]L,d6vt"
                                             }
                                           }
                                         }
@@ -253,10 +247,10 @@
                                       "model_description": {
                                         "block": {
                                           "type": "variables_get",
-                                          "id": "7Rl4Yes//@xuod[agu%-",
+                                          "id": "/,!+vFJpcdqdLw1X%0mx",
                                           "fields": {
                                             "VAR": {
-                                              "id": "#n+q;LM+@i7TdbXA4-E*"
+                                              "id": "]iqlPekfq8L|(4F6=6H7"
                                             }
                                           }
                                         }
@@ -279,30 +273,30 @@
       },
       {
         "type": "tactigon_shape_function",
-        "id": "d)C5D,B{piHl^lrB_7Em",
-        "x": 50,
-        "y": 390,
+        "id": "H2!YB*~[r1rWk?F]/ZZK",
+        "x": 950,
+        "y": 50,
         "deletable": false,
         "inputs": {
           "BODY": {
             "block": {
               "type": "tactigon_shape_debug",
-              "id": "HvkQkFSzo:l;MX*tV,S9",
+              "id": "-KkBS3p@*U=Sq%,$b^a[",
               "inputs": {
                 "TEXT": {
                   "shadow": {
                     "type": "text",
-                    "id": "#9ga$hp!0K)g.0_/8D`}",
+                    "id": "V=z;`y^^HXV{-_I1t3[s",
                     "fields": {
-                      "TEXT": "Message"
+                      "TEXT": "Tactigon"
                     }
                   },
                   "block": {
                     "type": "variables_get",
-                    "id": "$cFX*x(N^yQB*B)QZY]j",
+                    "id": "_vO,h=r8e$R`WQf}5GL.",
                     "fields": {
                       "VAR": {
-                        "id": "{alWaUfLRZ?Y{^rF`lA-"
+                        "id": "Z_+JT7R@0si%O3*;K:$d"
                       }
                     }
                   }
@@ -314,65 +308,37 @@
       },
       {
         "type": "tactigon_shape_close",
-        "id": "d=`A]Q538qZGSz;-@y]|",
-        "x": 50,
-        "y": 470,
+        "id": "#gHaT]V!d:re#ZuY1`)T",
+        "x": 1210,
+        "y": 50,
         "deletable": false
       }
     ]
   },
   "variables": [
     {
-      "name": "model_state",
-      "id": "r:xRqm#8CS:K:OnQ4XA2"
+      "name": "retrain_data",
+      "id": "+Ia#[d3_s:IE.d/]DJDD"
     },
     {
-      "name": "model_list",
-      "id": ";dt_IQJm%AyaQ#FG:(S."
-    },
-    {
-      "name": "logs",
-      "id": "*t~HTs$;v;G,hJLwvK0m"
+      "name": "target",
+      "id": "w^WuDYAMq6xCp]L,d6vt"
     },
     {
       "name": "features",
-      "id": "1)yIZn~cF_(^BP9I]NdI"
+      "id": "OMEh!-RfM;J/|4-0gfy$"
     },
     {
-      "name": "targets",
-      "id": "]n3jY^wsMMke~+V^]f=^"
+      "name": "description",
+      "id": "]iqlPekfq8L|(4F6=6H7"
     },
     {
-      "name": "train_description",
-      "id": "#n+q;LM+@i7TdbXA4-E*"
-    },
-    {
-      "name": "tain_data",
-      "id": "8a(Y/BQx+86/I=BF:tM["
-    },
-    {
-      "name": "train_response",
-      "id": "{alWaUfLRZ?Y{^rF`lA-"
-    },
-    {
-      "name": "retrain_data",
-      "id": "ZCG=A8tA@p@YV2v5CrV7"
+      "name": "logs",
+      "id": "$**0~:JW)O%Ue5s!uUuR"
     },
     {
       "name": "retrain_response",
-      "id": "9gEJP?+CHY8$p6_~PJQA"
-    },
-    {
-      "name": "retrain_description",
-      "id": "20Q@kp,EX@gr+(gcm-Z}"
-    },
-    {
-      "name": "prediction_data",
-      "id": "w-T4V-0~An1+{I!2c+h^"
-    },
-    {
-      "name": "prediction_response",
-      "id": "x@yBj7o{id%[=wRP+CPl"
+      "id": "Z_+JT7R@0si%O3*;K:$d"
     }
   ]
 }

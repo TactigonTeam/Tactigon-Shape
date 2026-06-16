@@ -350,11 +350,7 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, dire
 
 # ---------- Generated code ---------------
 
-tain_data = None
-features = None
-train_response = None
-targets = None
-train_description = None
+status = None
 
 
 def tactigon_shape_setup(
@@ -369,12 +365,8 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global model_state, model_list, logs, features, targets, train_description, tain_data, train_response, retrain_data, retrain_response, retrain_description, prediction_data, prediction_response
-    tain_data = bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "train_data.json")
-    features = ['gesture', 'zone', 'object_detected', 'object', 'object_class', 'gesture_confidence', 'robot_state', 'gripper_state', 'target_zone']
-    targets = ['action', 'priority', 'risk_level']
-    train_description = 'fuuck'
-    train_response = bianconiglio_train(bianconiglio, train_description, tain_data, features, targets)
+    global status
+    status = bianconiglio_get_model_state(bianconiglio, "0d281576-33b9-47cf-95fa-d0631584d6d1")
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -388,10 +380,10 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global model_state, model_list, logs, features, targets, train_description, tain_data, train_response, retrain_data, retrain_response, retrain_description, prediction_data, prediction_response
+    global status
     gesture = tskin.gesture
     touch = tskin.touch
-    debug(logging_queue, train_response)
+    debug(logging_queue, status)
 
     return True
 
@@ -407,5 +399,5 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global model_state, model_list, logs, features, targets, train_description, tain_data, train_response, retrain_data, retrain_response, retrain_description, prediction_data, prediction_response
+    global status
     pass

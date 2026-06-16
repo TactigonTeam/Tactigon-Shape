@@ -1,0 +1,35 @@
+[
+    {
+    "gesture": "confirm", 
+    "zone": "front_left", 
+    "object_detected": "yes", 
+    "object": "bottle", 
+    "object_class": "fragile", 
+    "gesture_confidence": 0.84, 
+    "robot_state": "idle", 
+    "gripper_state": "closed",  
+    "target_zone": "front_left"
+    },
+    {
+    "gesture": "open_hand", 
+    "zone": "back_right", 
+    "object_detected": "no", 
+    "object": "none", 
+    "object_class": "none", 
+    "gesture_confidence": 0.51, 
+    "robot_state": "idle", 
+    "gripper_state": "open", 
+    "target_zone": "none"
+    },
+    {
+    "gesture": "cancel", 
+    "zone": "back_left", 
+    "object_detected": "yes", 
+    "object": "tool", 
+    "object_class": "solid", 
+    "gesture_confidence": 0.91, 
+    "robot_state": "holding", 
+    "gripper_state": "closed", 
+    "target_zone": "none"
+    }
+]

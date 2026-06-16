@@ -300,7 +300,7 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list url:str | None):
     if not bianconiglio:
         return {}
 
@@ -350,13 +350,6 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, dire
 
 # ---------- Generated code ---------------
 
-tain_data = None
-features = None
-train_response = None
-targets = None
-train_description = None
-
-
 def tactigon_shape_setup(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -369,13 +362,7 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global model_state, model_list, logs, features, targets, train_description, tain_data, train_response, retrain_data, retrain_response, retrain_description, prediction_data, prediction_response
-    tain_data = bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "train_data.json")
-    features = ['gesture', 'zone', 'object_detected', 'object', 'object_class', 'gesture_confidence', 'robot_state', 'gripper_state', 'target_zone']
-    targets = ['action', 'priority', 'risk_level']
-    train_description = 'fuuck'
-    train_response = bianconiglio_train(bianconiglio, train_description, tain_data, features, targets)
-
+    pass
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -388,10 +375,9 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global model_state, model_list, logs, features, targets, train_description, tain_data, train_response, retrain_data, retrain_response, retrain_description, prediction_data, prediction_response
     gesture = tskin.gesture
     touch = tskin.touch
-    debug(logging_queue, train_response)
+    debug(logging_queue, 'Tactigon')
 
     return True
 
@@ -407,5 +393,4 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global model_state, model_list, logs, features, targets, train_description, tain_data, train_response, retrain_data, retrain_response, retrain_description, prediction_data, prediction_response
     pass
