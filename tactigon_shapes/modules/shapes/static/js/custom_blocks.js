@@ -2623,7 +2623,7 @@ function defineBianconiglioGenerators() {
     python.pythonGenerator.forBlock['bianconiglio_RAG_Agent'] = function(block, generator) {
         const userInput = block.getFieldValue('user_input');
         
-        const safeText = userInputText ? JSON.stringify(userInputText) : "''";
+        const safeText = userInput ? JSON.stringify(userInput) : "''";
 
         const code = `stream_chat_with_rag(${safeText})`;
         
