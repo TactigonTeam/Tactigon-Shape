@@ -65,16 +65,20 @@ class ModelInfo:
 class DataFrameFileExtension(str, Enum):
     CSV = "csv"
     JSON = "json"
+
+class RAGFileExtension(str, Enum):
+    PDF = "pdf"
+    JSON = "json"
+    MD = "md"
+    CSV = "csv"
+    XLS = "xls"
                   
 @dataclass
 class BianconiglioConfig:
     url: str = "http://192.168.1.46:8000"
-    base_endpoint: str = "/models"
-    train_endpoint: str = "/train"       # /models/train
-    retrain_endpoint: str = "/retrain"   # /models/{model_id}/retrain
-    predict_endpoint: str = "/predict"   # /models/{model_id}/predict
-    status_endpoint: str = "/status"     # /models/{model_id}/status
-    log_endpoint: str = "/logs"          # /models/{model_id}/logs
+    chord_url: str = "http://llm.chords.cloud:11434" # TODO: Change this to the correct URL for the Chord service
+    user: str = "default_user"
+    context: str = "default_context"
 
     @classmethod
     def Default(cls):
@@ -84,7 +88,10 @@ class BianconiglioConfig:
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            url=data.get("url", "http://localhost:8000")
+            url=data.get("url", "http://localhost:8000"),
+            chord_url=data.get("chord_url", "http://llm.chords.cloud:11434"),
+            user=data.get("user", "default_user"),
+            context=data.get("context", "default_context")
         )
 
     def toJSON(self) -> dict:

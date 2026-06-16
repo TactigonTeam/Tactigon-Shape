@@ -1608,7 +1608,23 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6",
             "tooltip": "Load dataframe locally",
             "helpUrl": ""
+        },
+        {
+            "type": "bianconiglio_RAG_Agent",
+            "message0": "Send a message to Chord_b-RAG-Agent %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "user_input",
+                    "check": "String"
+                }
+            ],
+            "output": "String",
+            "colour": "#ec8dc6",
+            "tooltip": "Invia il testo digitato al chord_b-RAG_Agent e restituisce la risposta.",
+            "helpUrl": ""
         }
+        
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1964,6 +1980,12 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, dire
         return None
 
     return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+
+def bianconiglio_RAG_Agent(bianconiglio: BianconiglioInterface | None, user_input: str):
+    if not bianconiglio:
+            return None
+
+    return bianconiglio.stream_chat_with_rag(user_input)
 
 
 # ---------- Generated code ---------------
@@ -2598,6 +2620,15 @@ function defineBianconiglioGenerators() {
         return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${fpath}")`, python.Order.ATOMIC];
     };
     
+    python.pythonGenerator.forBlock['bianconiglio_RAG_Agent'] = function(block, generator) {
+        const userInput = block.getFieldValue('user_input');
+        
+        const safeText = userInputText ? JSON.stringify(userInputText) : "''";
+
+        const code = `stream_chat_with_rag(${safeText})`;
+        
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
 }
 
 function defineCameraGenerators() {
@@ -2608,6 +2639,7 @@ function defineCameraGenerators() {
         return [code, generator.ORDER_FUNCTION_CALL];
     };
 }
+
 
 
 function clean_topic_names(topic) {

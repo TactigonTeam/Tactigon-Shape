@@ -19,7 +19,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -300,23 +300,23 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list, url: str):
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(description, data, features, targets, url)
+    return bianconiglio.train(description, data, features, targets)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.DataFrame, features: list, targets: list):
+def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.retrain(model_id, description, data, features, targets)
+    return bianconiglio.retrain(model_desc, new_description, data, features, targets)
 
-def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: str, data: pd.DataFrame):
+def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.predict(model_id, data)
+    return bianconiglio.predict(model_desc, data)
 
 def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
@@ -347,6 +347,12 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, dire
 
     return bianconiglio.get_dataframe(os.path.join(directory, file_path))
 
+def bianconiglio_RAG_Agent(bianconiglio: BianconiglioInterface | None, user_input: str):
+    if not bianconiglio:
+            return None
+
+    return bianconiglio.stream_chat_with_rag(user_input)
+
 
 # ---------- Generated code ---------------
 
@@ -368,8 +374,8 @@ def tactigon_shape_setup(
         logging_queue: LoggingQueue):
 
     global model_state, model_list, model_training_log
-    model_state = bianconiglio_get_model_state(bianconiglio, "716600b7-cd13-4f63-a8b2-56af97c4d250")
-    model_training_log = bianconiglio_get_log(bianconiglio, "716600b7-cd13-4f63-a8b2-56af97c4d250")
+    model_state = bianconiglio_get_model_state(bianconiglio, "---")
+    model_training_log = bianconiglio_get_log(bianconiglio, "---")
     model_list = bianconiglio_get_models_info(bianconiglio)
     debug(logging_queue, model_state)
     debug(logging_queue, model_training_log)

@@ -3,8 +3,10 @@ import os
 import json
 import pandas as pd
 import requests
+import httpx
 from flask import Flask
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig, DataFrameFileExtension, ModelInfo
+
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig, DataFrameFileExtension, RAGFileExtension
 from tactigon_shapes.modules.file_manager.extension import FileManager
 
 class BianconiglioInterface:
@@ -46,6 +48,10 @@ class BianconiglioInterface:
     def dataframe_extensions(self) -> list[str]:
         return [f".{e.value}" for e in DataFrameFileExtension]
     
+    @property
+    def rag_extensions(self) -> list[str]:
+        return [f".{e.value}" for e in RAGFileExtension]
+    
     def load_config(self):
         """loads configuration from Bianconiglioconfig JSON
         """
@@ -56,7 +62,7 @@ class BianconiglioInterface:
                 config_data = json.load(f)
                 self.config = BianconiglioConfig.FromJSON(config_data)
 
-                self._logger.info("Bianconiglio configuration loaded. URL: %s, Base: %s", self.config.url, self.config.base_endpoint)
+                self._logger.info("Bianconiglio configuration loaded. URL: %s", self.config.url)
 
                 self.models = self.get_models_info()
 
@@ -137,6 +143,7 @@ class BianconiglioInterface:
         except Exception as e:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
+        
 
     def get_models_info(self) -> list:
         """Populate the models list with a get request
@@ -148,7 +155,8 @@ class BianconiglioInterface:
             self._logger.info("config non trovata - 1")
             return []
         try:
-            url = f"{self.config.url}{self.config.base_endpoint}"
+            #url = f"{self.config.url}{self.config.base_endpoint}"
+            url = f"{self.config.url}/models"
             self._logger.info("url =" + url)
             res = self.do_get(url)
 
@@ -175,7 +183,8 @@ class BianconiglioInterface:
             self._logger.warning("Config is not loaded")
             return "Error loading Bianconiglio config"
         
-        url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
+        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
+        url = f"{self.config.url}/models/{model_id}/status"
         print("url status: " + url)
         try:
             response = self.do_get(url, timeout=5)
@@ -198,7 +207,8 @@ class BianconiglioInterface:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return None
-        url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.log_endpoint}"
+        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.log_endpoint}"
+        url = f"{self.config.url}/models/{model_id}/logs"
 
         try:
             response = self.do_get(url, timeout=5)       
@@ -217,7 +227,8 @@ class BianconiglioInterface:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return {}
-        url = url or f"{self.config.url}{self.config.base_endpoint}{self.config.train_endpoint}"
+        #url = url or f"{self.config.url}{self.config.base_endpoint}{self.config.train_endpoint}"
+        url = url or f"{self.config.url}/models/train"
 
         self._logger.info(f"Training data type: {type(data)}")
         self._logger.info(f"Training datas:\ndata: {data}\nfeatures: {features}\ntargets: {targets}")
@@ -250,11 +261,12 @@ class BianconiglioInterface:
             self._logger.error(f"Error connecting during training: {e}")
             return {}
         
-    def retrain(self, model_desc: str, new_description: str, data: pd.DataFrame, features: list[str], targets: list[str]):
+    def retrain(self, model_id: str, new_description: str, data: pd.DataFrame, features: list[str], targets: list[str]):
         if not self.config:
             self._logger.warning("Config is not loaded")
             return {}
-        url = f"{self.config.url}{self.config.base_endpoint}/{model_desc}{self.config.retrain_endpoint}"
+        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.retrain_endpoint}"
+        url = f"{self.config.url}/models{model_id}/retrain"
 
         response = self.train(new_description, data, features, targets, url)
         return response
@@ -263,7 +275,8 @@ class BianconiglioInterface:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return {}
-        url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.predict_endpoint}"
+        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.predict_endpoint}"
+        url = f"{self.config.url}/models/{model_id}/predict"
 
         self._logger.info(f"Prediction datas:\ndata: {data}")
         self._logger.info(f"Data type: {type(data)}")
@@ -286,7 +299,11 @@ class BianconiglioInterface:
                 if response:
                     self._logger.error(f"Error details: {response.text}")
                 return {}
-
+            
+        except requests.exceptions.Timeout:
+            self._logger.error("TIMEOUT: The prediction is taking too long.")
+            return {}
+        
         except Exception as e:
             self._logger.error(f"Predict error: {e}")
             return {}     
@@ -337,3 +354,123 @@ class BianconiglioInterface:
        
         self._logger.info(f"Added {file_path} to context")
         return self._dataframe
+    
+    def upload_document(self, file_path: str):
+        """Load a document from the file manager, reads it and sends it to chord_b via POST.
+        Args:
+            file_path (str): path of the file to upload, should be in the file manager
+        Returns:
+            dict: response of POST"""
+        
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return None
+
+        if FileManager.get_file_extension(file_path) not in self.rag_extensions:
+            self._logger.error("File type not supported.")
+            return None
+
+        url = f"{self.config.chord_url}/populate_watched_files" # TODO: endpoint inventato da implementare in chord_b
+
+        with open(file_path, 'rb') as f:
+            payload = {
+                'file': f
+            }
+            
+            return self.do_post(url, payload, 20)
+
+    # # chat normale    
+    # def chat_with_rag(self, query: str): # TODO: implementare una classe chat rsponse come per ginos
+    #     """Create the payload with the user quesry and sends i to the agent via POST.
+    #     Args:            
+    #         query (str): user query
+    #     Returns:            
+    #         dict: response of POST"""
+    #     if not self.config:
+    #         self._logger.warning("Config is not loaded")
+    #         return None
+        
+    #     url = f"{self.config.chord_url}/api/chat"  # TODO: endpoint inventato da implementare in chord_b
+        
+    #     history = [] # TODO: implementare la gestione della history
+
+    #     if not history:
+    #         self._logger.warning("starting new conversation.")
+            
+    #         payload = {
+    #             "query": query,
+    #             "user": self.config.user,
+    #             "context": self.config.context
+    #         }
+    #         history.append({"query": query, "response": ""})
+        
+    #     payload = {
+    #             "query": query,
+    #             "history": history,
+    #             "user": self.config.user,
+    #             "context": self.config.context
+    #         }
+        
+    #     response = self.do_post(url, payload, timeout=10)
+
+    #     if response:
+    #         response_json = response.json()
+    #         history.append({"query": query, "response": response if response else {}})
+
+    #     return response_json if response else None
+
+    def _stream(self,url: str, payload: dict):
+        return httpx.stream("POST", url=url, json=payload, timeout=60)
+    
+    # alternativa streaming
+    def stream_chat_with_rag(self, query: str): # TODO: implementare una classe chat rsponse come per ginos
+        """Create the payload with the user quesry and sends i to the agent via POST.
+        Args:            
+            query (str): user query
+        Returns:            
+            dict: response of POST"""
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return None
+        
+        url = f"{self.config.chord_url}/api/chat/stream"  # TODO: endpoint inventato da implementare in chord_b
+        
+        history = [] # TODO: implementare la gestione della history
+
+        if not history:
+            self._logger.warning("starting new conversation.")
+            
+            payload = {
+                "query": query,
+                "user": self.config.user,
+                "context": self.config.context
+            }
+            history.append({"query": query, "response": ""})
+        
+        payload = {
+                "query": query,
+                "history": history,
+                "user": self.config.user,
+                "context": self.config.context
+            }
+
+        try:
+            with self._stream(url, payload) as response:
+                for line in response.iter_lines():
+                    if line:
+                        llm_chat_response = json.loads(line)
+                        yield llm_chat_response
+
+        except requests.exceptions.Timeout:
+            self._logger.error("TIMEOUT: The agent is taking too long to answer.")
+            return None
+        
+        except requests.exceptions.RequestException as e:
+            self._logger.error(f"Error during streaming chat: {e}")
+            return None
+        
+        except Exception as e:
+            self._logger.error(f"Unexpected error during streaming chat: {e}")
+            return None
+        
+    

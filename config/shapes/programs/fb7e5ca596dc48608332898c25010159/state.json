@@ -24,7 +24,7 @@
                     "type": "bianconiglio_get_model_state",
                     "id": "Ry)PN7MXp3V-#q[Hc]9I",
                     "fields": {
-                      "model": "716600b7-cd13-4f63-a8b2-56af97c4d250"
+                      "model": "---"
                     }
                   }
                 }
@@ -44,7 +44,7 @@
                         "type": "bianconiglio_get_log",
                         "id": "Br!LBzy3M%G*$;VZJ|WF",
                         "fields": {
-                          "model": "716600b7-cd13-4f63-a8b2-56af97c4d250"
+                          "model": "---"
                         }
                       }
                     }
