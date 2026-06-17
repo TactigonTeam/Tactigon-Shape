@@ -784,6 +784,12 @@
             </block>
         </category>
         <category name="Bianconiglio" colour="#ec8dc6">
+            <block type="bianconiglio_load_dataframe">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+            </block>
             <block type="bianconiglio_train"></block>
             <block type="bianconiglio_retrain"></block>
             <block type="bianconiglio_predict"></block>
@@ -798,7 +804,7 @@
                     </shadow>
                 </value>
             </block>
-            <block type="bianconiglio_load_dataframe">
+            <block type="bianconiglio_RAG_upload_file">
                     <value name="input_path">
                         <shadow type="text">
                         </shadow>

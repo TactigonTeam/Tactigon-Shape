@@ -5,6 +5,31 @@
       "item_type": "directory",
       "name": "DataFrame",
       "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame"
+    },
+    {
+      "item_type": "directory",
+      "name": "PDF",
+      "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/PDF"
+    },
+    {
+      "item_type": "directory",
+      "name": "JSON",
+      "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/JSON"
+    },
+    {
+      "item_type": "directory",
+      "name": "MD",
+      "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/MD"
+    },
+    {
+      "item_type": "directory",
+      "name": "CSV",
+      "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/CSV"
+    },
+    {
+      "item_type": "directory",
+      "name": "XLS",
+      "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/XLS"
     }
   ]
 }

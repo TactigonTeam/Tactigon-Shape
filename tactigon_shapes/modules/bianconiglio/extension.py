@@ -6,7 +6,12 @@ import requests
 import httpx
 from flask import Flask
 
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig, DataFrameFileExtension, RAGFileExtension
+from tactigon_shapes.modules.bianconiglio.models import (
+    BianconiglioState, 
+    BianconiglioConfig, 
+    DataFrameFileExtension, 
+    RAGFileExtension
+)
 from tactigon_shapes.modules.file_manager.extension import FileManager
 
 class BianconiglioInterface:
@@ -423,10 +428,10 @@ class BianconiglioInterface:
         return httpx.stream("POST", url=url, json=payload, timeout=60)
     
     # alternativa streaming
-    def stream_chat_with_rag(self, query: str): # TODO: implementare una classe chat rsponse come per ginos
+    def stream_chat_with_rag(self, msg: str): # TODO: implementare una classe chat rsponse come per ginos
         """Create the payload with the user quesry and sends i to the agent via POST.
         Args:            
-            query (str): user query
+            msg (str): user message
         Returns:            
             dict: response of POST"""
         if not self.config:
@@ -441,14 +446,14 @@ class BianconiglioInterface:
             self._logger.warning("starting new conversation.")
             
             payload = {
-                "query": query,
+                "msg": msg,
                 "user": self.config.user,
                 "context": self.config.context
             }
-            history.append({"query": query, "response": ""})
+            history.append({"query": msg, "response": ""})
         
         payload = {
-                "query": query,
+                "msg": msg,
                 "history": history,
                 "user": self.config.user,
                 "context": self.config.context

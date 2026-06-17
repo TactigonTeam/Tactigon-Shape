@@ -108,7 +108,7 @@
     "id": "fb7e5ca596dc48608332898c25010159",
     "name": "adasas",
     "created_on": "2026-06-11T15:49:10.495014",
-    "modified_on": "2026-06-16T16:52:35.356885",
+    "modified_on": "2026-06-17T17:16:31.757932",
     "description": "",
     "readonly": false,
     "ginos_config": null,
@@ -117,6 +117,28 @@
       "publishers": [],
       "subscriptions": []
     },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "fc970280aae6469290d9b669201c1a72",
+    "name": "prova",
+    "created_on": "2026-06-17T17:16:41.234383",
+    "modified_on": "2026-06-17T17:16:41.234389",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": null,
     "mqtt_config": {
       "broker_url": "broker.emqx.io",
       "broker_port": 1883,

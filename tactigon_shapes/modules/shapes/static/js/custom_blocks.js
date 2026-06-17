@@ -1421,19 +1421,82 @@ function loadCameraBlocks() {
 }
 
 function loadBianconiglioBlocks(bianconiglio, file_manager) {
-    console.log(bianconiglio)
-    let directory = [];            
-    let optionMapping = {};
+// FUNZIONE ORIGINALE DI SIMO ISPIRATA A GINOS
+        // console.log(`questo è il print di bianconiglio: ${bianconiglio}`)
+        // console.log(`questo è il print di filemanager: ${file_manager}`)
+        // let directory = [];            
+        // let optionMapping = {};
+
+        // file_manager.forEach(el => {
+        //     directory.push([el['directory']['name'], el['directory']['base_path']]);
+            
+        //     optionMapping[el['directory']['base_path']] = [['---', '']];
+
+        //     optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
+        //         const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+        //         return [f_path, f_path];
+        //     }));
+        // });
+
+    console.log(`questo è il print di filemanager: ${file_manager}`)
+    console.log(`questo è il print di bianconiglio: ${bianconiglio}`)
+    
+    let DF_directory = [['---', '']]; 
+    let RAG_directory = [['---', '']];            
+    
+    let DF_optionMapping = {};
+    let RAG_optionMapping = {};
+
+    const dataFrameExtensions = ['csv', 'json'];
+    const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
+
+    const df_dir_names = ["CSV", "json"]
+    const rag_dir_names = ["PDF", "JSON", "MD", "CSV", "XLS"]
 
     file_manager.forEach(el => {
-        directory.push([el['directory']['name'], el['directory']['base_path']]);
-        optionMapping[el['directory']['base_path']] = [['---', '']];
+        const dirName = el['directory']['name'];
+        const basePath = el['directory']['base_path'];
+        console.log(`questo è il print di dirName: ${dirName}`)
 
-        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
-            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
-            return [f_path, f_path];
-        }));
+        // elenchi delle cartelle per i 2 dropdown
+        if (df_dir_names.includes(dirName)){ 
+            DF_directory.push([dirName, basePath])
+        }
+        else if (rag_dir_names.includes(dirName)){
+            RAG_directory.push([dirName, basePath])
+        }
+
+        // Valori di default
+        DF_optionMapping[basePath] = [['---', '']];
+        RAG_optionMapping[basePath] = [['---', '']];
+
+        // ciclo i file della cartella mapparli
+        el['content'].forEach(f => {
+            const f_path = f['path'].replace(basePath + "/", '');
+            const extension = f_path.split('.').pop().toLowerCase();
+
+            // estensione da DataFrame
+            if (dataFrameExtensions.includes(extension)){
+                DF_optionMapping[basePath].push([f_path, f_path]);
+            }
+            
+            // estensione da RAG
+            if (ragExtensions.includes(extension)){
+                RAG_optionMapping[basePath].push([f_path, f_path]);
+            }
+        });
     });
+
+    console.log(`questo è il print di DF_directory: ${DF_directory}`)
+    console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
+
+    // TODO: Filtare il caricamento dei file nelle directory permettendo di caricare nelle rispettive
+    // solo file con estensione corretta. oppure fare un caricamento unico che colloca i file nella cartella giusta.
+    // da vedere in file manager ma non ho capito bene come funziona, per ora ho solo aggiunto le cartelle nel config.
+    //
+    // sistemare il blocco upload perche non deve avere una left connection
+    
+
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "bianconiglio_train",
@@ -1564,14 +1627,6 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "output": "Dictionary",
             "colour": "#ec8dc6"
         },
-        // {
-        //     "type": "get_model_state",
-        //     "tooltip": "Returns the ML model state through API call as a dictionary.",
-        //     "helpUrl": "",
-        //     "message0": "Get ML model state",
-        //     "output": "BianconiglioState",
-        //     "colour": "#ec8dc6"
-        // },
         {
             "type": "bianconiglio_ml_state_list",
             "tooltip": "Attribute state from Bianconiglio ML model",
@@ -1594,13 +1649,13 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                 {
                     "type": "field_dropdown",
                     "name": "directory",
-                    "options": directory
+                    "options": DF_directory
                 },
                 {
                     "type": "field_dependent_dropdown",
                     "name": "filepath",
                     "parentName": "directory",
-                    "optionMapping": optionMapping,
+                    "optionMapping": DF_optionMapping,
                     "defaultOptions": [['---', '']],
                 }
             ],
@@ -1623,12 +1678,33 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6",
             "tooltip": "Invia il testo digitato al chord_b-RAG_Agent e restituisce la risposta.",
             "helpUrl": ""
-        }
+        },
+        {
+            "type": "bianconiglio_RAG_upload_file",
+            "message0": "Upload file from %1 %2",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "directory",
+                    "options": RAG_directory
+                },
+                {
+                    "type": "field_dependent_dropdown",
+                    "name": "filepath",
+                    "parentName": "directory",
+                    "optionMapping": RAG_optionMapping,
+                    "defaultOptions": [['---', '']],
+                }
+            ],
+            "output": "DataFrame",
+            "colour": "#ec8dc6",
+            "tooltip": "Load dataframe locally",
+            "helpUrl": ""
+        },
         
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
-
 }
 
 function defineImportsAndLibraries() {
@@ -1987,6 +2063,11 @@ def bianconiglio_RAG_Agent(bianconiglio: BianconiglioInterface | None, user_inpu
 
     return bianconiglio.stream_chat_with_rag(user_input)
 
+def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
+    if not bianconiglio:
+            return None
+
+        return bianconiglio.upload_document(os.path.join(directory, file_path)))
 
 # ---------- Generated code ---------------
 
@@ -2616,18 +2697,24 @@ function defineBianconiglioGenerators() {
     
     python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
         const dir = block.getFieldValue('directory');
-        const fpath = block.getFieldValue('filepath');
-        return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${fpath}")`, python.Order.ATOMIC];
+        const path = block.getFieldValue('filepath');
+        return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${path}")`, python.Order.ATOMIC];
     };
     
     python.pythonGenerator.forBlock['bianconiglio_RAG_Agent'] = function(block, generator) {
         const userInput = block.getFieldValue('user_input');
-        
         const safeText = userInput ? JSON.stringify(userInput) : "''";
 
         const code = `stream_chat_with_rag(${safeText})`;
         
         return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['bianconiglio_RAG_Agent'] = function(block, generator) {
+        const dir = block.getFieldValue('directory');
+        const path = block.getFieldValue('filepath');
+
+        return [`bianconiglio_RAG_upload_file(bianconiglio, "${dir}", "${path}")`, python.Order.ATOMIC];
     };
 }
 

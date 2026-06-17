@@ -137,6 +137,29 @@
                                         }
                                       }
                                     }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "variables_set",
+                                      "id": "38FoB?/_TPR.FegvCIS9",
+                                      "fields": {
+                                        "VAR": {
+                                          "id": "*t~HTs$;v;G,hJLwvK0m"
+                                        }
+                                      },
+                                      "inputs": {
+                                        "VALUE": {
+                                          "block": {
+                                            "type": "bianconiglio_load_dataframe",
+                                            "id": "i0Ifv@bn]H.5iMD79mN~",
+                                            "fields": {
+                                              "directory": "",
+                                              "filepath": ""
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
                                   }
                                 }
                               }
@@ -155,15 +178,15 @@
       {
         "type": "tactigon_shape_function",
         "id": "d)C5D,B{piHl^lrB_7Em",
-        "x": 50,
-        "y": 230,
+        "x": 70,
+        "y": 290,
         "deletable": false
       },
       {
         "type": "tactigon_shape_close",
         "id": "d=`A]Q538qZGSz;-@y]|",
-        "x": 30,
-        "y": 300,
+        "x": 70,
+        "y": 370,
         "deletable": false
       }
     ]

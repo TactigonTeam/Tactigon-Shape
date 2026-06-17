@@ -101,3 +101,25 @@ class BianconiglioConfig:
 
     def is_valid(self) -> bool:
         return True
+
+# TODO: implementarle in futuro con metodi di salvataggio per cachearle?
+
+# @dataclass
+# class BianconiglioChatmessage:
+#     msg: str
+
+# @dataclass
+# class BianconiglioChatRequest:
+#     msg: BianconiglioChatmessage
+#     user_id: str
+#     context: str
+#     history: list
+
+#     @classmethod
+#     def FromJSON(cls, data: dict):
+#         return cls(
+#             msg=data.get("msg", ""),
+#             user_id=data.get("user_id", "default_user"),
+#             context=data.get("context", "default_context"),
+#             history=[data.get("history")]
+#         )

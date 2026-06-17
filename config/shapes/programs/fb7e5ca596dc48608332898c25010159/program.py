@@ -353,6 +353,11 @@ def bianconiglio_RAG_Agent(bianconiglio: BianconiglioInterface | None, user_inpu
 
     return bianconiglio.stream_chat_with_rag(user_input)
 
+def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
+    if not bianconiglio:
+            return None
+
+        return bianconiglio.upload_document(os.path.join(directory, file_path)))
 
 # ---------- Generated code ---------------
 
@@ -380,6 +385,7 @@ def tactigon_shape_setup(
     debug(logging_queue, model_state)
     debug(logging_queue, model_training_log)
     debug(logging_queue, model_list)
+    model_training_log = bianconiglio_load_dataframe(bianconiglio, "", "")
 
 def tactigon_shape_function(
         tskin: TSkin,
