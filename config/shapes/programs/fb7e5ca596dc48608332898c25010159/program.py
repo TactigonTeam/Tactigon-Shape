@@ -19,7 +19,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig
+from tactigon_shapes.modules.bianconiglio.models import XgbModelState, BianconiglioConfig
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -318,22 +318,22 @@ def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc:
 
     return bianconiglio.predict(model_desc, data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
+def bianconiglio_get_xgb_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
-    res = bianconiglio.get_status(model_id)
+    res = bianconiglio.get_xgb_model_state(model_id)
 
     if res == None:
         return "errore"
 
-    return bianconiglio.get_status(model_id)
+    return bianconiglio.get_xgb_model_state(model_id)
 
-def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
+def bianconiglio_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
-    return bianconiglio.get_models_info()
+    return bianconiglio.get_xgb_models_info()
 
 def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
@@ -379,9 +379,9 @@ def tactigon_shape_setup(
         logging_queue: LoggingQueue):
 
     global model_state, model_list, model_training_log
-    model_state = bianconiglio_get_model_state(bianconiglio, "---")
+    model_state = bianconiglio_get_xgb_model_state(bianconiglio, "---")
     model_training_log = bianconiglio_get_log(bianconiglio, "---")
-    model_list = bianconiglio_get_models_info(bianconiglio)
+    model_list = bianconiglio_get_xgb_models_info(bianconiglio)
     debug(logging_queue, model_state)
     debug(logging_queue, model_training_log)
     debug(logging_queue, model_list)

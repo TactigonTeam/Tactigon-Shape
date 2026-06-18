@@ -7,10 +7,11 @@ import httpx
 from flask import Flask
 
 from tactigon_shapes.modules.bianconiglio.models import (
-    BianconiglioState, 
+    XgbModelState, 
     BianconiglioConfig, 
     DataFrameFileExtension, 
-    RAGFileExtension
+    RAGFileExtension,
+    RAGAgentState
 )
 from tactigon_shapes.modules.file_manager.extension import FileManager
 
@@ -37,12 +38,14 @@ class BianconiglioInterface:
         app.extensions[BianconiglioInterface.__name__] = self
     
     def get_shape_blocks(self):
-        updated_models = self.get_models_info()
+        updated_models = self.get_xgb_models_info()
         if updated_models and len(updated_models) > 0 and updated_models[0].get("model_id") != "---":
              self.models = updated_models
         return {
-            "states": [(state.name, state.value) for state in BianconiglioState],
-            "models": [(m["description"], m["model_id"]) for m in self.models]
+            "xgb_model_states": [(state.name, state.value) for state in XgbModelState],
+            "xgb_model_ids": [(m["description"], m["model_id"]) for m in self.models],
+            "RAG_agent_states": [(state.name, state.value) for state in RAGAgentState],
+            "RAG_agent_ids": [(m["description"], m["agent_id"]) for m in self.RAG_agents],
         }
     
     @property
@@ -69,7 +72,8 @@ class BianconiglioInterface:
 
                 self._logger.info("Bianconiglio configuration loaded. URL: %s", self.config.url)
 
-                self.models = self.get_models_info()
+                self.models = self.get_xgb_models_info()
+                self.RAG_agents = self.get_RAG_agents_info()
 
                 self._logger.info(f"models: {self.models}")
 
@@ -150,18 +154,19 @@ class BianconiglioInterface:
             return None
         
 
-    def get_models_info(self) -> list:
+    def get_xgb_models_info(self) -> list:
         """Populate the models list with a get request
     
-        l'endpoint restituisce: dict {"models": [ModelInfos, ModelInfos, ModelInfos, ...]}
-                        oppure: dict {"models": "no models available"}
+        l'endpoint restituisce: dict {"models_infos": [ModelInfos, ModelInfos, ModelInfos, ...]}
+                        oppure: dict {"models_infos": "no models available"}
         """
         if not self.config:
             self._logger.info("config non trovata - 1")
             return []
+        
+        url = f"{self.config.url}/models"
+
         try:
-            #url = f"{self.config.url}{self.config.base_endpoint}"
-            url = f"{self.config.url}/models"
             self._logger.info("url =" + url)
             res = self.do_get(url)
 
@@ -182,7 +187,7 @@ class BianconiglioInterface:
 
         return []
     
-    def get_status(self, model_id: str) -> str | None:
+    def get_xgb_model_state(self, model_id: str) -> str | None:
         """Function to get"""
         if not self.config:
             self._logger.warning("Config is not loaded")
@@ -194,7 +199,7 @@ class BianconiglioInterface:
         try:
             response = self.do_get(url, timeout=5)
             print("response status: " + str(response))
-            if response and response.get("state", "") in BianconiglioState:
+            if response and response.get("state", "") in XgbModelState:
                 return response.get("state", "")    
             
             return "error getting status"
@@ -252,7 +257,7 @@ class BianconiglioInterface:
             response = self.do_post(url, payload, timeout=5)
             if response and response.status_code == 200:
                 self._logger.info("Train successful")
-                self.models = self.get_models_info()
+                self.models = self.get_xgb_models_info()
                 return response.json()
             elif response:
                 self._logger.error(f"Error from server during training. Code: {response.status_code}")
@@ -384,46 +389,6 @@ class BianconiglioInterface:
             
             return self.do_post(url, payload, 20)
 
-    # # chat normale    
-    # def chat_with_rag(self, query: str): # TODO: implementare una classe chat rsponse come per ginos
-    #     """Create the payload with the user quesry and sends i to the agent via POST.
-    #     Args:            
-    #         query (str): user query
-    #     Returns:            
-    #         dict: response of POST"""
-    #     if not self.config:
-    #         self._logger.warning("Config is not loaded")
-    #         return None
-        
-    #     url = f"{self.config.chord_url}/api/chat"  # TODO: endpoint inventato da implementare in chord_b
-        
-    #     history = [] # TODO: implementare la gestione della history
-
-    #     if not history:
-    #         self._logger.warning("starting new conversation.")
-            
-    #         payload = {
-    #             "query": query,
-    #             "user": self.config.user,
-    #             "context": self.config.context
-    #         }
-    #         history.append({"query": query, "response": ""})
-        
-    #     payload = {
-    #             "query": query,
-    #             "history": history,
-    #             "user": self.config.user,
-    #             "context": self.config.context
-    #         }
-        
-    #     response = self.do_post(url, payload, timeout=10)
-
-    #     if response:
-    #         response_json = response.json()
-    #         history.append({"query": query, "response": response if response else {}})
-
-    #     return response_json if response else None
-
     def _stream(self,url: str, payload: dict):
         return httpx.stream("POST", url=url, json=payload, timeout=60)
     
@@ -438,34 +403,31 @@ class BianconiglioInterface:
             self._logger.warning("Config is not loaded")
             return None
         
-        url = f"{self.config.chord_url}/api/chat/stream"  # TODO: endpoint inventato da implementare in chord_b
+        url = f"{self.config.chord_url}/api/chat/stream"
         
-        history = [] # TODO: implementare la gestione della history
-
-        if not history:
-            self._logger.warning("starting new conversation.")
-            
-            payload = {
-                "msg": msg,
-                "user": self.config.user,
-                "context": self.config.context
-            }
-            history.append({"query": msg, "response": ""})
+        
+        self._logger.warning("starting new conversation.")
         
         payload = {
-                "msg": msg,
-                "history": history,
-                "user": self.config.user,
-                "context": self.config.context
-            }
+            "message": msg,
+            "userId": self.config.user,
+            "chatId": self.config.context
+        }
+            
+        
+    
 
         try:
-            with self._stream(url, payload) as response:
-                for line in response.iter_lines():
-                    if line:
-                        llm_chat_response = json.loads(line)
-                        yield llm_chat_response
+            # with self._stream(url, payload) as response:
+            #     for line in response.iter_lines():
+            #         if line:
+            #             llm_chat_response = json.loads(line)
+            #             yield llm_chat_response
 
+             with self._stream(url, payload) as response:
+                for line in response.iter_lines():
+                        yield line
+                        
         except requests.exceptions.Timeout:
             self._logger.error("TIMEOUT: The agent is taking too long to answer.")
             return None
@@ -478,4 +440,88 @@ class BianconiglioInterface:
             self._logger.error(f"Unexpected error during streaming chat: {e}")
             return None
         
+    def RAG_execute(self) -> bool:
+        """function to execute the RAG pipeline with the uploaded documents, should be implemented in chord_b"""
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return False
+        
+        url = f"{self.config.chord_url}/execute_rag" # TODO: endpoint inventato da implementare in chord_b
+
+        try:
+            response = self.do_post(url, {}, timeout=120)
+
+            if response and response.status_code == 200:
+                self._logger.info("RAG execution successful")
+                return True
+            else:
+                self._logger.error(f"RAG execution failed: {response.status_code if response else 'No Response'}")
+                if response:
+                    self._logger.error(f"Error details: {response.text}")
+                return False
+        
+        except requests.exceptions.Timeout:
+            self._logger.error("TIMEOUT: The execution is taking too long.")
+            return False
+        
+        except Exception as e:
+            self._logger.error(f"RAG execution error: {e}")
+            return False 
+
+    def get_RAG_agents_info(self):
+        """Populate the RAG agenst list with a get request
     
+        l'endpoint restituisce: dict {"agents": [AgentInfo, AgentInfo, AgentInfo, ...]}
+                        oppure: dict {"agents": "no agents available"}
+        """
+        if not self.config:
+            self._logger.info("config non trovata - 1")
+            return []
+        
+        url = f"{self.config.chord_url}api/agents" # TODO: endpoint inventato da implementare in chord_b
+
+        try:
+            res = self.do_get(url)
+
+            if not res:
+                self._logger.info("No agents found")
+                return [{
+                    "agent_id": "---",
+                    "description": "no agents available"
+                    }]
+            
+            return res["agents"]
+
+        except TimeoutError:
+            logging.error(f" timeout api get agents")
+
+        except Exception as e:
+            logging.error(f" error while getting agents: {e}")
+
+        return []
+    
+
+    def get_RAG_agent_state(self, agent_id: str) -> str | None:
+        """Function to get"""
+        if not self.config:
+            self._logger.warning("Config is not loaded")
+            return "Error loading Bianconiglio config"
+        
+        url = f"{self.config.chord_url}/models/{agent_id}/status" # TODO: endpoint inventato da implementare in chord_b
+        print("url status: " + url)
+        try:
+            response = self.do_get(url, timeout=5)
+            print("response status: " + str(response))
+            if response and response.get("state", "") in XgbModelState:
+                return response.get("state", "")    
+            
+            return "error getting status"
+
+        except TimeoutError as e:
+            self._logger.error(f"Timeout getting logs: {e}")
+            return "timeout getting status"
+            
+        except Exception as e:
+            self._logger.error(f"Error getting status: {e}")
+            return "error getting status"
+        

@@ -1450,7 +1450,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
     const dataFrameExtensions = ['csv', 'json'];
     const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
 
-    const df_dir_names = ["CSV", "json"]
+    const df_dir_names = ["CSV", "JSON"]
     const rag_dir_names = ["PDF", "JSON", "MD", "CSV", "XLS"]
 
     file_manager.forEach(el => {
@@ -1462,7 +1462,8 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         if (df_dir_names.includes(dirName)){ 
             DF_directory.push([dirName, basePath])
         }
-        else if (rag_dir_names.includes(dirName)){
+
+        if (rag_dir_names.includes(dirName)){
             RAG_directory.push([dirName, basePath])
         }
 
@@ -1487,14 +1488,14 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         });
     });
 
-    console.log(`questo è il print di DF_directory: ${DF_directory}`)
-    console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
+    // console.log(`questo è il print di DF_directory: ${DF_directory}`)
+    // console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
 
-    // TODO: Filtare il caricamento dei file nelle directory permettendo di caricare nelle rispettive
+
+
+    // TODO: Filtare il caricamento dei file nelle directory permettendo di caricare nelle rispettive cartelle
     // solo file con estensione corretta. oppure fare un caricamento unico che colloca i file nella cartella giusta.
     // da vedere in file manager ma non ho capito bene come funziona, per ora ho solo aggiunto le cartelle nel config.
-    //
-    // sistemare il blocco upload perche non deve avere una left connection
     
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
@@ -1502,7 +1503,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_train",
             "tooltip": "Sends training data to a new ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Data for training %1 Features %2 Targets %3 Model Description %4",
+            "message0": "Train a model with this dataset %1 Features %2 Targets %3 Model Description %4",
             "args0": [
                 {
                     "type": "input_value",
@@ -1532,15 +1533,15 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_retrain",
             "tooltip": "Sends training data to an existing ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Model to retrain %1",
+            "message0": "Retrain %1 XGB Model ",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
+                    "options": bianconiglio.xgb_model_ids
                 }
             ],
-            "message1": "Data for training %1 Features %2 Targets %3 New Model Description %4",
+            "message1": "with this dataset %1 Features %2 Targets %3 New Model Description %4",
             "args1": [
                 {
                     "type": "input_value",
@@ -1570,15 +1571,15 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_predict",
             "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
             "helpUrl": "",
-            "message0": "Model for prediction %1",
+            "message0": "Use %1 XGB Model to predict ",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
+                    "options": bianconiglio.xgb_model_ids
                 }
             ],
-            "message1": "Data for prediction %1",
+            "message1": "from these data %1",
             "args1": [
                 {
                     "type": "input_value",
@@ -1590,25 +1591,25 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_model_state",
-            "tooltip": "Returns the ML model state through API call as a dictionary.",
+            "type": "bianconiglio_get_xgb_model_state",
+            "tooltip": "Returns the model state through API call as a dictionary.",
             "helpUrl": "",
-            "message0": "Get model state %1",
+            "message0": "Get state of %1 XGB Model",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
+                    "options": bianconiglio.xgb_model_ids
                 }
             ],
             "output": "Dictionary",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_models_info",
+            "type": "bianconiglio_get_xgb_models_info",
             "tooltip": "Returns each model infos as a list of dictionary",
             "helpUrl": "",
-            "message0": "Get models list",
+            "message0": "Get the list of available xgb models ",
             "output": "Array",
             "colour": "#ec8dc6"
         },
@@ -1616,35 +1617,35 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_get_log",
             "tooltip": "Returns the training log of the specific model selected as a dictionary.",
             "helpUrl": "",
-            "message0": "Get model log %1",
+            "message0": "Get %1 XGB model logs ",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
+                    "options": bianconiglio.xgb_model_ids
                 }
             ],
             "output": "Dictionary",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_ml_state_list",
+            "type": "bianconiglio_xgb_state_list",
             "tooltip": "Attribute state from Bianconiglio ML model",
             "helpUrl": "",
-            "message0": "State: %1",
+            "message0": "Xgb Models states: %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "state",
-                    "options": bianconiglio.states
+                    "options": bianconiglio.xgb_model_states
                 }
             ],
-            "output": "BianconiglioState",
+            "output": "XgbModelState",
             "colour": "#ec8dc6"
         },
         {
             "type": "bianconiglio_load_dataframe",
-            "message0": "Create dataframe from %1 %2",
+            "message0": "From dir: %1 create a dataframe with file: %2",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1665,8 +1666,8 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "helpUrl": ""
         },
         {
-            "type": "bianconiglio_RAG_Agent",
-            "message0": "Send a message to Chord_b-RAG-Agent %1",
+            "type": "bianconiglio_stream_chat_with_rag",
+            "message0": "Send message: %1 to Chord_b-RAG-Agent",
             "args0": [
                 {
                     "type": "input_value",
@@ -1681,7 +1682,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         },
         {
             "type": "bianconiglio_RAG_upload_file",
-            "message0": "Upload file from %1 %2",
+            "message0": " From dir: %1 upload file: %2",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1696,12 +1697,59 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                     "defaultOptions": [['---', '']],
                 }
             ],
-            "output": "DataFrame",
+            "previousStatement": null,
+            "nextStatement": null,
             "colour": "#ec8dc6",
-            "tooltip": "Load dataframe locally",
+            "tooltip": "Upload files into chord",
             "helpUrl": ""
         },
-        
+        {
+            "type": "bianconiglio_RAG_execute",
+            "message0": "Execute chord rag",
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": "#ec8dc6",
+            "tooltip": "Execute the rag in chords",
+            "helpUrl": ""
+        },
+        {
+            "type": "bianconiglio_RAG_agent_state_list",
+            "tooltip": "Attribute state from Bianconiglio ML model",
+            "helpUrl": "",
+            "message0": "RAG Agents states: %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": bianconiglio.RAG_agent_states
+                }
+            ],
+            "output": "RAGAgentState",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_get_RAG_agent_state",
+            "tooltip": "Returns the ML model state through API call as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get %1 RAG agent state",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": bianconiglio.RAG_agent_ids
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "bianconiglio_get_RAG_agents_info",
+            "tooltip": "Returns each RAG agent infos as a list of dictionary",
+            "helpUrl": "",
+            "message0": "Get RAG agents list",
+            "output": "Array",
+            "colour": "#ec8dc6"
+        }
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1729,7 +1777,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig
+from tactigon_shapes.modules.bianconiglio.models import XgbModelState, BianconiglioConfig
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -2028,22 +2076,22 @@ def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc:
 
     return bianconiglio.predict(model_desc, data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
+def bianconiglio_get_xgb_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
-    res = bianconiglio.get_status(model_id)
+    res = bianconiglio.get_xgb_model_state(model_id)
 
     if res == None:
         return "errore"
 
-    return bianconiglio.get_status(model_id)
+    return res
 
-def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
+def bianconiglio_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
-    return bianconiglio.get_models_info()
+    return bianconiglio.get_xgb_models_info()
 
 def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
@@ -2057,17 +2105,37 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, dire
 
     return bianconiglio.get_dataframe(os.path.join(directory, file_path))
 
-def bianconiglio_RAG_Agent(bianconiglio: BianconiglioInterface | None, user_input: str):
+def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
     if not bianconiglio:
-            return None
+        return None
 
     return bianconiglio.stream_chat_with_rag(user_input)
 
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
+def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str):
     if not bianconiglio:
-            return None
+        return None
 
-        return bianconiglio.upload_document(os.path.join(directory, file_path)))
+    return bianconiglio.upload_document(os.path.join(directory, file_path))
+
+def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
+    if not bianconiglio:
+        return None
+    
+    return bianconiglio.RAG_execute()
+
+def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
+    if not bianconiglio:
+        return None
+
+    res = bianconiglio.get_RAG_agent_state(agent_id)
+
+def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
+    if not bianconiglio:
+        return []
+
+    return bianconiglio.get_RAG_agents_info()
+
+        
 
 # ---------- Generated code ---------------
 
@@ -2669,29 +2737,29 @@ function defineBianconiglioGenerators() {
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_model_state"] = function (block, generator) {
+    python.pythonGenerator.forBlock["bianconiglio_get_xgb_model_state"] = function (block, generator) {
         const model_id = block.getFieldValue('model');
         
-        const code = `bianconiglio_get_model_state(bianconiglio, "${model_id}")`;
+        const code = `bianconiglio_get_xgb_model_state(bianconiglio, "${model_id}")`;
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_models_info"] = function (block, generator) {
+    python.pythonGenerator.forBlock["bianconiglio_get_xgb_models_info"] = function (block, generator) {
 
-        const code = `bianconiglio_get_models_info(bianconiglio)`;
+        const code = `bianconiglio_get_xgb_models_info(bianconiglio)`;
         return [code, python.Order.ATOMIC];
     };
 
     python.pythonGenerator.forBlock["bianconiglio_get_log"] = function (block, generator) {
-        const model_id = block.getFieldValue('model');
+        const model_id = block.getFieldValue('xgb_models_id');
 
         const code = `bianconiglio_get_log(bianconiglio, "${model_id}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_ml_state_list"] = function (block, generator) {
+    python.pythonGenerator.forBlock["bianconiglio_xgb_state_list"] = function (block, generator) {
         const state = block.getFieldValue('state');
-        const code = `BianconiglioState("${state}").value`;
+        const code = `XgbModelState(bianconiglio, "${state}").value`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
     
@@ -2701,21 +2769,43 @@ function defineBianconiglioGenerators() {
         return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${path}")`, python.Order.ATOMIC];
     };
     
-    python.pythonGenerator.forBlock['bianconiglio_RAG_Agent'] = function(block, generator) {
+    python.pythonGenerator.forBlock['bianconiglio_stream_chat_with_rag'] = function(block, generator) {
         const userInput = block.getFieldValue('user_input');
-        const safeText = userInput ? JSON.stringify(userInput) : "''";
+        if (userInput === "") { //TODO
+            return "errore funzione strem "
+        }
 
-        const code = `stream_chat_with_rag(${safeText})`;
-        
+        const code = `bianconiglio_stream_chat_with_rag(bianconiglio, "${userInput}")`;
+        console.log(`"user input: ${userInput}`)
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['bianconiglio_RAG_Agent'] = function(block, generator) {
+    python.pythonGenerator.forBlock['bianconiglio_RAG_upload_file'] = function(block, generator) {
         const dir = block.getFieldValue('directory');
         const path = block.getFieldValue('filepath');
 
         return [`bianconiglio_RAG_upload_file(bianconiglio, "${dir}", "${path}")`, python.Order.ATOMIC];
     };
+
+    python.pythonGenerator.forBlock["bianconiglio_RAG_execute"] = function (block, generator) {
+
+        const code = `bianconiglio_RAG_execute(bianconiglio)`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_get_RAG_agent_state"] = function (block, generator) {
+        const model_id = block.getFieldValue('RAG_agents_id');
+        
+        const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${RAG_agenst_id}")`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_get_RAG_agents_info"] = function (block, generator) {
+
+        const code = `bianconiglio_get_RAG_agents_info(bianconiglio)`;
+        return [code, python.Order.ATOMIC];
+    };
+
 }
 
 function defineCameraGenerators() {

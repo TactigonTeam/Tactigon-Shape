@@ -20,12 +20,19 @@
 from enum import Enum
 from dataclasses import dataclass
 
-class BianconiglioState(Enum):
+class XgbModelState(Enum):
     NOT_TRAINED = "NOT_TRAINED"
     TRAINING = "TRAINING"
     READY_TO_PREDICT = "READY_TO_PREDICT"
     PREDICTING = "PREDICTING"
     FALLBACK = "FALLBACK"
+    ERROR = "ERROR"
+
+class RAGAgentState(Enum):
+    IDLE = "IDLE"
+    SEARCHING = "SEARCHING"
+    ANSWERING = "ANSWERING"
+    INDEXING = "INDEXING"
     ERROR = "ERROR"
 
 @dataclass
@@ -36,7 +43,7 @@ class ModelInfo:
    description: str
    features: list[str]
    targets: list[str]
-   state: BianconiglioState
+   state: XgbModelState
 
    @classmethod
    def FromJSON(cls, json: dict):
@@ -47,7 +54,7 @@ class ModelInfo:
            description=json.get("description", ""),
            features=json.get("description", []),
            targets=json.get("description", []),
-           state=json.get("state", BianconiglioState.NOT_TRAINED),
+           state=json.get("state", XgbModelState.NOT_TRAINED),
        )
    def toJSON(self) -> dict:
        return {
@@ -104,22 +111,12 @@ class BianconiglioConfig:
 
 # TODO: implementarle in futuro con metodi di salvataggio per cachearle?
 
-# @dataclass
-# class BianconiglioChatmessage:
-#     msg: str
+@dataclass
+class BianconiglioChatmessage:
+    message: str
+    chatId: str
+    userId: str
 
-# @dataclass
-# class BianconiglioChatRequest:
-#     msg: BianconiglioChatmessage
-#     user_id: str
-#     context: str
-#     history: list
-
-#     @classmethod
-#     def FromJSON(cls, data: dict):
-#         return cls(
-#             msg=data.get("msg", ""),
-#             user_id=data.get("user_id", "default_user"),
-#             context=data.get("context", "default_context"),
-#             history=[data.get("history")]
-#         )
+@dataclass
+class BianconiglioChatResponse:
+    response: str

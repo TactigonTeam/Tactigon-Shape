@@ -131,14 +131,18 @@
     }
   },
   {
-    "id": "fc970280aae6469290d9b669201c1a72",
-    "name": "prova",
-    "created_on": "2026-06-17T17:16:41.234383",
-    "modified_on": "2026-06-17T17:16:41.234389",
+    "id": "fbb787b62de34eb4ab78327ad1f797c8",
+    "name": "provaa",
+    "created_on": "2026-06-18T16:54:20.573324",
+    "modified_on": "2026-06-18T17:27:23.860540",
     "description": "",
     "readonly": false,
     "ginos_config": null,
-    "ros2_config": null,
+    "ros2_config": {
+      "node_name": "provaa",
+      "publishers": [],
+      "subscriptions": []
+    },
     "mqtt_config": {
       "broker_url": "broker.emqx.io",
       "broker_port": 1883,

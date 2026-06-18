@@ -21,7 +21,7 @@
               "inputs": {
                 "VALUE": {
                   "block": {
-                    "type": "bianconiglio_get_model_state",
+                    "type": "bianconiglio_get_xgb_model_state",
                     "id": "Ry)PN7MXp3V-#q[Hc]9I",
                     "fields": {
                       "model": "---"
@@ -61,7 +61,7 @@
                       "inputs": {
                         "VALUE": {
                           "block": {
-                            "type": "bianconiglio_get_models_info",
+                            "type": "bianconiglio_get_xgb_models_info",
                             "id": "@MN_-Xv#F8{dO7q*Jduy"
                           }
                         }

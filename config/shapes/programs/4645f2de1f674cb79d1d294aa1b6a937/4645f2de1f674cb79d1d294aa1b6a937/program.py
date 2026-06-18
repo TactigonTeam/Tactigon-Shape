@@ -19,7 +19,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
+from tactigon_shapes.modules.bianconiglio.models import XgbModelState
 #from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -311,7 +311,7 @@ def bianconiglio_ml_predict(bianconiglio: BianconiglioInterface | None, data):
         return {}
     return bianconiglio.predict(data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None):
+def bianconiglio_get_xgb_model_state(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return "ERROR"
     return bianconiglio.status()
@@ -385,18 +385,18 @@ def tactigon_shape_function(
     global train_dataset, predict_dataset, features, targets, train_flag, predict_flag, error_flag, model_state, old_model_state
     gesture = tskin.gesture
     touch = tskin.touch
-    model_state = bianconiglio_get_model_state(bianconiglio)
+    model_state = bianconiglio_get_xgb_model_state(bianconiglio)
     if model_state != old_model_state:
         debug(logging_queue, ('CURRENT MODEL STATE: ' + str(model_state)))
         old_model_state = model_state
-    if old_model_state == BianconiglioState("NOT_TRAINED").value:
+    if old_model_state == XgbModelState("NOT_TRAINED").value:
         if train_flag == False:
             debug(logging_queue, bianconiglio_ml_train(bianconiglio, train_dataset, features, targets))
             train_flag = True
-    elif old_model_state == BianconiglioState("TRAINING").value:
+    elif old_model_state == XgbModelState("TRAINING").value:
         if train_flag == False:
             debug(logging_queue, 'trainingggggggggg...')
-    elif old_model_state == BianconiglioState("READY_TO_PREDICT").value:
+    elif old_model_state == XgbModelState("READY_TO_PREDICT").value:
         if predict_flag == False:
             debug(logging_queue, bianconiglio_ml_predict(bianconiglio, predict_dataset))
             predict_flag = True

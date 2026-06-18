@@ -226,7 +226,7 @@
               "inputs": {
                 "VALUE": {
                   "block": {
-                    "type": "bianconiglio_get_model_state",
+                    "type": "bianconiglio_get_xgb_model_state",
                     "id": "7B!uC2ynMr`?D,_2r,8]"
                   }
                 }
@@ -369,7 +369,7 @@
                               },
                               "B": {
                                 "block": {
-                                  "type": "bianconiglio_ml_state_list",
+                                  "type": "bianconiglio_xgb_state_list",
                                   "id": "%KhC7%HMw[Jg]=,Wjt6d",
                                   "fields": {
                                     "state": "NOT_TRAINED"
@@ -517,7 +517,7 @@
                               },
                               "B": {
                                 "block": {
-                                  "type": "bianconiglio_ml_state_list",
+                                  "type": "bianconiglio_xgb_state_list",
                                   "id": "4ov6hIqB%jiK@qZmGiYL",
                                   "fields": {
                                     "state": "TRAINING"
@@ -604,7 +604,7 @@
                               },
                               "B": {
                                 "block": {
-                                  "type": "bianconiglio_ml_state_list",
+                                  "type": "bianconiglio_xgb_state_list",
                                   "id": "+pK.vhVA.Nsq#J_ph[w!",
                                   "fields": {
                                     "state": "READY_TO_PREDICT"

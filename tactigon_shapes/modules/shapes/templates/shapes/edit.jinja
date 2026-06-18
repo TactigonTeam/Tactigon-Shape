@@ -793,11 +793,11 @@
             <block type="bianconiglio_train"></block>
             <block type="bianconiglio_retrain"></block>
             <block type="bianconiglio_predict"></block>
-            <block type="bianconiglio_get_model_state"></block>
-            <block type="bianconiglio_ml_state_list"></block>
-            <block type="bianconiglio_get_models_info"></block>
+            <block type="bianconiglio_xgb_state_list"></block>
+            <block type="bianconiglio_get_xgb_model_state"></block>
+            <block type="bianconiglio_get_xgb_models_info"></block>
             <block type="bianconiglio_get_log"></block>
-            <block type="bianconiglio_RAG_Agent">
+            <block type="bianconiglio_stream_chat_with_rag">
                 <value name="user_input">
                     <shadow type="text">
                         <field name="TEXT"></field>
@@ -810,6 +810,10 @@
                         </shadow>
                     </value>
             </block>
+            <block type="bianconiglio_RAG_execute"></block>
+            <block type="bianconiglio_RAG_agent_state_list"></block>
+            <block type="bianconiglio_get_RAG_agent_state"></block>
+            <block type="bianconiglio_get_RAG_agents_info"></block>
         </category>
     </xml>
 </div>
