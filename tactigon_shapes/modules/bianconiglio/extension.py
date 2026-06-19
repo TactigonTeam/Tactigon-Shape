@@ -5,13 +5,16 @@ import pandas as pd
 import requests
 import httpx
 from flask import Flask
+from contextlib import contextmanager
+import os
 
 from tactigon_shapes.modules.bianconiglio.models import (
     XgbModelState, 
     BianconiglioConfig, 
     DataFrameFileExtension, 
     RAGFileExtension,
-    RAGAgentState
+    RAGAgentState,
+    BianconiglioChatResponse
 )
 from tactigon_shapes.modules.file_manager.extension import FileManager
 
@@ -365,6 +368,7 @@ class BianconiglioInterface:
         self._logger.info(f"Added {file_path} to context")
         return self._dataframe
     
+        
     def upload_document(self, file_path: str):
         """Load a document from the file manager, reads it and sends it to chord_b via POST.
         Args:
@@ -380,16 +384,45 @@ class BianconiglioInterface:
             self._logger.error("File type not supported.")
             return None
 
-        url = f"{self.config.chord_url}/populate_watched_files" # TODO: endpoint inventato da implementare in chord_b
+        url = f"{self.config.chord_url}/chordB/api/upload" 
+        timeout= 60
+        try:
+            with open(file_path, 'rb') as f:
+                data = {
+                    "userId": self.config.user,
+                    "chatId": self.config.context,
+                }
 
-        with open(file_path, 'rb') as f:
-            payload = {
-                'file': f
-            }
-            
-            return self.do_post(url, payload, 20)
+                files = {
+                    "file": ( os.path.basename(file_path), f, "application/octet-stream" )
+                }
 
-    def _stream(self,url: str, payload: dict):
+                res = requests.post(
+                    url,
+                    data=data,
+                    files=files,
+                    timeout=timeout
+                )
+                
+                if res:
+                    self._logger.info(f"Uploading document {file_path} to {url}")
+
+                return
+
+        except requests.exceptions.Timeout:
+            self._logger.error("TIMEOUT: The prediction is taking too long.")
+            return None
+        
+        except requests.exceptions.RequestException as e:
+            self._logger.error(f"Error during streaming chat: {e}")
+            return None  
+        
+        except Exception as e:
+            self._logger.error(f"Error uploading document: {e}")
+            return None
+
+    
+    def _stream(self, url: str, payload: dict):
         return httpx.stream("POST", url=url, json=payload, timeout=60)
     
     # alternativa streaming
@@ -399,13 +432,14 @@ class BianconiglioInterface:
             msg (str): user message
         Returns:            
             dict: response of POST"""
+        
         if not self.config:
             self._logger.warning("Config is not loaded")
             return None
         
         url = f"{self.config.chord_url}/api/chat/stream"
         
-        
+
         self._logger.warning("starting new conversation.")
         
         payload = {
@@ -413,20 +447,22 @@ class BianconiglioInterface:
             "userId": self.config.user,
             "chatId": self.config.context
         }
-            
-        
-    
-
+        print(f"msg: {msg}, msg_type: {type(msg)}")
         try:
             # with self._stream(url, payload) as response:
             #     for line in response.iter_lines():
             #         if line:
             #             llm_chat_response = json.loads(line)
             #             yield llm_chat_response
-
-             with self._stream(url, payload) as response:
+            with self._stream(url, payload) as response:
+                response.raise_for_status()
                 for line in response.iter_lines():
-                        yield line
+                    if line:
+                        decoded_line = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+                        print(f"line response: {decoded_line}")
+                        yield BianconiglioChatResponse(decoded_line)
+
+                         
                         
         except requests.exceptions.Timeout:
             self._logger.error("TIMEOUT: The agent is taking too long to answer.")
@@ -440,6 +476,8 @@ class BianconiglioInterface:
             self._logger.error(f"Unexpected error during streaming chat: {e}")
             return None
         
+        return
+    
     def RAG_execute(self) -> bool:
         """function to execute the RAG pipeline with the uploaded documents, should be implemented in chord_b"""
         if not self.config:

@@ -1456,7 +1456,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
     file_manager.forEach(el => {
         const dirName = el['directory']['name'];
         const basePath = el['directory']['base_path'];
-        console.log(`questo è il print di dirName: ${dirName}`)
+        //console.log(`questo è il print di dirName: ${dirName}`)
 
         // elenchi delle cartelle per i 2 dropdown
         if (df_dir_names.includes(dirName)){ 
@@ -1478,18 +1478,46 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
 
             // estensione da DataFrame
             if (dataFrameExtensions.includes(extension)){
-                DF_optionMapping[basePath].push([f_path, f_path]);
+                // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
+                DF_optionMapping[basePath].push([f_path, f['path']]);
             }
+            //console.log(`df_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
             
             // estensione da RAG
             if (ragExtensions.includes(extension)){
-                RAG_optionMapping[basePath].push([f_path, f_path]);
+                RAG_optionMapping[basePath].push([f_path, f['path']]);
             }
+            //console.log(`rag_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
         });
     });
 
-    // console.log(`questo è il print di DF_directory: ${DF_directory}`)
-    // console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
+    // Ciclare i mapping per il DataFrame
+    // Object.keys(DF_optionMapping).forEach(basePath => {
+    // const fileList = RAG_optionMapping[basePath];
+    //     console.log(`--- Cartella: ${basePath} ---`);
+        
+    //     // Cicliamo le coppie di file dentro la cartella
+    //     fileList.forEach(coppia => {
+    //         const visualName = coppia[0]; // Il nome mostrato
+    //         const actualPath = coppia[1]; // Il valore reale del percorso
+    //         console.log(`  > File: ${visualName} | actualPath: ${actualPath} (tipo: ${typeof actualPath})`);
+    //     });
+    // });
+
+    // Object.keys(RAG_optionMapping).forEach(basePath => {
+    // const fileList = RAG_optionMapping[basePath];
+    //     console.log(`--- Cartella: ${basePath} ---`);
+        
+    //     // Cicliamo le coppie di file dentro la cartella
+    //     fileList.forEach(coppia => {
+    //         const visualName = coppia[0]; // Il nome mostrato
+    //         const actualPath = coppia[1]; // Il valore reale del percorso
+    //         console.log(`  > File: ${visualName} | actualPath: ${actualPath} (tipo: ${typeof actualPath})`);
+    //     });
+    // });
+
+    console.log(`questo è il print di DF_directory: ${DF_directory}`)
+    console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
 
 
 
@@ -2099,23 +2127,23 @@ def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: s
 
     return bianconiglio.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
     if not bianconiglio:
         return None
 
-    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+    return bianconiglio.get_dataframe(file_path)
 
 def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
     if not bianconiglio:
         return None
 
-    return bianconiglio.stream_chat_with_rag(user_input)
+    yield bianconiglio.stream_chat_with_rag(user_input)
 
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str):
+def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
     if not bianconiglio:
         return None
 
-    return bianconiglio.upload_document(os.path.join(directory, file_path))
+    return bianconiglio.upload_document(file_path)
 
 def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
@@ -2764,27 +2792,32 @@ function defineBianconiglioGenerators() {
     };
     
     python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
-        const dir = block.getFieldValue('directory');
+        //const dir = block.getFieldValue('directory');
         const path = block.getFieldValue('filepath');
-        return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${path}")`, python.Order.ATOMIC];
+
+        //const code =`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${path}")`
+        const code =`bianconiglio_load_dataframe(bianconiglio, "${path}")`
+
+        return [code,Blockly.Python.ORDER_ATOMIC];
     };
     
     python.pythonGenerator.forBlock['bianconiglio_stream_chat_with_rag'] = function(block, generator) {
-        const userInput = block.getFieldValue('user_input');
-        if (userInput === "") { //TODO
-            return "errore funzione strem "
-        }
+        const userInput = generator.valueToCode(block, 'user_input', python.Order.ATOMIC);
 
         const code = `bianconiglio_stream_chat_with_rag(bianconiglio, "${userInput}")`;
-        console.log(`"user input: ${userInput}`)
+
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['bianconiglio_RAG_upload_file'] = function(block, generator) {
-        const dir = block.getFieldValue('directory');
+        //const dir = block.getFieldValue('directory');
         const path = block.getFieldValue('filepath');
 
-        return [`bianconiglio_RAG_upload_file(bianconiglio, "${dir}", "${path}")`, python.Order.ATOMIC];
+        //console.log(`tipo dir prima di function: ${typeof dir})`);
+        console.log(`path:${path} tipo path: ${typeof path})`);
+        
+        const code = `bianconiglio_RAG_upload_file(bianconiglio, "${path}")`
+        return code 
     };
 
     python.pythonGenerator.forBlock["bianconiglio_RAG_execute"] = function (block, generator) {
@@ -2794,9 +2827,9 @@ function defineBianconiglioGenerators() {
     };
 
     python.pythonGenerator.forBlock["bianconiglio_get_RAG_agent_state"] = function (block, generator) {
-        const model_id = block.getFieldValue('RAG_agents_id');
+        const RAG_agent_id = block.getFieldValue('RAG_agents_id');
         
-        const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${RAG_agenst_id}")`;
+        const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${RAG_agent_id}")`;
         return [code, python.Order.ATOMIC];
     };
 

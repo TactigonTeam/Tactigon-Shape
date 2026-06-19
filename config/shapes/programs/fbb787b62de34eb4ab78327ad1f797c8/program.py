@@ -341,23 +341,23 @@ def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: s
 
     return bianconiglio.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
     if not bianconiglio:
         return None
 
-    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+    return bianconiglio.get_dataframe(file_path)
 
 def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
     if not bianconiglio:
         return None
 
-    return bianconiglio.stream_chat_with_rag(user_input)
+    yield bianconiglio.stream_chat_with_rag(user_input)
 
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str):
+def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
     if not bianconiglio:
         return None
 
-    return bianconiglio.upload_document(os.path.join(directory, file_path))
+    return bianconiglio.upload_document(file_path)
 
 def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
@@ -393,8 +393,7 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "null"))
-
+    bianconiglio_RAG_upload_file(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/JSON/piani_dbtool.json")
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,

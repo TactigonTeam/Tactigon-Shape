@@ -119,4 +119,14 @@ class BianconiglioChatmessage:
 
 @dataclass
 class BianconiglioChatResponse:
-    response: str
+    message: str
+
+    @classmethod
+    def FromJSON(cls, data: dict):
+        return cls(
+            message=data.get("message", "")
+        )
+    def toJSON(self) -> dict:
+        return {
+            "message": self.message
+        }

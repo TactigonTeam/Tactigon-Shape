@@ -11,40 +11,11 @@
         "inputs": {
           "setup_code": {
             "block": {
-              "type": "tactigon_shape_debug",
-              "id": "|W-j[uqcV=vp*PiD*@M{",
-              "inputs": {
-                "TEXT": {
-                  "shadow": {
-                    "type": "text",
-                    "id": "+^Gp$]QeW_-n[HH6,wDa",
-                    "fields": {
-                      "TEXT": "Tactigon"
-                    }
-                  },
-                  "block": {
-                    "type": "bianconiglio_stream_chat_with_rag",
-                    "id": "zR@xNSQd7vt)=Nk$@t2q",
-                    "inputs": {
-                      "user_input": {
-                        "shadow": {
-                          "type": "text",
-                          "id": "x/|?+pe8#Sq0.jWXAs0!",
-                          "fields": {
-                            "TEXT": ""
-                          }
-                        },
-                        "block": {
-                          "type": "text",
-                          "id": "UL?ksSt,$Nnc.tKpBVk(",
-                          "fields": {
-                            "TEXT": "ciao rag"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
+              "type": "bianconiglio_RAG_upload_file",
+              "id": "0hrvj#Y}tmm:~x6Smrr0",
+              "fields": {
+                "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/JSON",
+                "filepath": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/JSON/piani_dbtool.json"
               }
             }
           }
