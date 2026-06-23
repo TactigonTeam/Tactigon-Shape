@@ -48,7 +48,7 @@ class BianconiglioInterface:
             "xgb_model_states": [(state.name, state.value) for state in XgbModelState],
             "xgb_model_ids": [(m["description"], m["model_id"]) for m in self.models],
             "RAG_agent_states": [(state.name, state.value) for state in RAGAgentState],
-            "RAG_agent_ids": [(m["description"], m["agent_id"]) for m in self.RAG_agents],
+            "RAG_agent_ids": [(m["agent_id"], m["agent_id"]) for m in self.RAG_agents], #TODO per ora estraggo solo agent_id ma se in futuro ci sara una descrizione come per xgb andra modificato il primo campo
         }
     
     @property
@@ -75,10 +75,23 @@ class BianconiglioInterface:
 
                 self._logger.info("Bianconiglio configuration loaded. URL: %s", self.config.url)
 
-                self.models = self.get_xgb_models_info()
-                self.RAG_agents = self.get_RAG_agents_info()
+                # self.models = self.get_xgb_models_info()
+                models_dict = self.get_xgb_models_info()
+                self.models= models_dict.get("models_infos", [{
+                    "model_id": "---",
+                    "description": "no models available"
+                    }])
+                
+                #self.RAG_agents = self.get_RAG_agents_info()
+                RAG_agents_dict = self.get_RAG_agents_info()
+                self.RAG_agents = RAG_agents_dict.get("agents", [{
+                     "agent_id": "---",
+                     "description": "no agents available"  
+                    }])
 
                 self._logger.info(f"models: {self.models}")
+                self._logger.info(f"agents: {self.RAG_agents}")
+
 
         else:
             self.config = None
@@ -147,17 +160,16 @@ class BianconiglioInterface:
             res.raise_for_status()
 
             data =res.json()
-            clean_res = [f"ID: {m.get('model_id')} - Desc: {m.get('description')}" for m in data['models_infos']]
             self._logger.info(f"GET %s response: %s", url, res.status_code)
-            self._logger.info("\n".join(clean_res))
-            return res.json()
+            self._logger.info(f"response json: {data}")
+            return data
 
         except Exception as e:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
         
 
-    def get_xgb_models_info(self) -> list:
+    def get_xgb_models_info(self) -> dict:
         """Populate the models list with a get request
     
         l'endpoint restituisce: dict {"models_infos": [ModelInfos, ModelInfos, ModelInfos, ...]}
@@ -165,22 +177,22 @@ class BianconiglioInterface:
         """
         if not self.config:
             self._logger.info("config non trovata - 1")
-            return []
+            return {}
         
         url = f"{self.config.url}/models"
 
         try:
-            self._logger.info("url =" + url)
+            
             res = self.do_get(url)
 
             if not res:
                 self._logger.info("nessun modello trovato")
-                return [{
-                    "model_id": "---",
-                    "description": "no models available"
-                    }]
-            
-            return res["models_infos"]
+                # return [{
+                #     "model_id": "---",
+                #     "description": "no models available"
+                #     }]
+            else: 
+                return res
 
         except TimeoutError:
             logging.error(f" timeout api get models")
@@ -188,24 +200,23 @@ class BianconiglioInterface:
         except Exception as e:
             logging.error(f" errore get models: {e}")
 
-        return []
+        # return []
+        return {}
     
     def get_xgb_model_state(self, model_id: str) -> str | None:
         """Function to get"""
         if not self.config:
             self._logger.warning("Config is not loaded")
             return "Error loading Bianconiglio config"
-        
-        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.status_endpoint}"
+    
         url = f"{self.config.url}/models/{model_id}/status"
         print("url status: " + url)
         try:
             response = self.do_get(url, timeout=5)
-            print("response status: " + str(response))
-            if response and response.get("state", "") in XgbModelState:
-                return response.get("state", "")    
-            
-            return "error getting status"
+           
+            if response:
+                if response.get("state", "") in [e.value for e in XgbModelState]:
+                    return response.get("state", "")
 
         except TimeoutError as e:
             self._logger.error(f"Timeout getting logs: {e}")
@@ -220,7 +231,7 @@ class BianconiglioInterface:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return None
-        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.log_endpoint}"
+        
         url = f"{self.config.url}/models/{model_id}/logs"
 
         try:
@@ -240,7 +251,7 @@ class BianconiglioInterface:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return {}
-        #url = url or f"{self.config.url}{self.config.base_endpoint}{self.config.train_endpoint}"
+        
         url = url or f"{self.config.url}/models/train"
 
         self._logger.info(f"Training data type: {type(data)}")
@@ -256,7 +267,7 @@ class BianconiglioInterface:
         self._logger.info(f"Payload:\n{payload}")
 
         try:
-            # 5 seconds timeout because the response will arrive immediatley while the training process will keep going in background
+            
             response = self.do_post(url, payload, timeout=5)
             if response and response.status_code == 200:
                 self._logger.info("Train successful")
@@ -278,7 +289,7 @@ class BianconiglioInterface:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return {}
-        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.retrain_endpoint}"
+        
         url = f"{self.config.url}/models{model_id}/retrain"
 
         response = self.train(new_description, data, features, targets, url)
@@ -288,7 +299,7 @@ class BianconiglioInterface:
         if not self.config:
             self._logger.warning("Config is not loaded")
             return {}
-        #url = f"{self.config.url}{self.config.base_endpoint}/{model_id}{self.config.predict_endpoint}"
+        
         url = f"{self.config.url}/models/{model_id}/predict"
 
         self._logger.info(f"Prediction datas:\ndata: {data}")
@@ -320,7 +331,6 @@ class BianconiglioInterface:
         except Exception as e:
             self._logger.error(f"Predict error: {e}")
             return {}     
-
 
     def file_to_dataframe(self,file_path: str) -> pd.DataFrame | None:
 
@@ -366,8 +376,7 @@ class BianconiglioInterface:
             # self._dataframe = pd.concat([self._dataframe, new_df], ignore_index=True)
        
         self._logger.info(f"Added {file_path} to context")
-        return self._dataframe
-    
+        return self._dataframe    
         
     def upload_document(self, file_path: str):
         """Load a document from the file manager, reads it and sends it to chord_b via POST.
@@ -420,26 +429,23 @@ class BianconiglioInterface:
         except Exception as e:
             self._logger.error(f"Error uploading document: {e}")
             return None
-
-    
+  
     def _stream(self, url: str, payload: dict):
         return httpx.stream("POST", url=url, json=payload, timeout=60)
-    
-    # alternativa streaming
-    def stream_chat_with_rag(self, msg: str): # TODO: implementare una classe chat rsponse come per ginos
+
+    def stream_chat_with_rag(self, msg: str): 
         """Create the payload with the user quesry and sends i to the agent via POST.
         Args:            
             msg (str): user message
         Returns:            
             dict: response of POST"""
-        
+        print("entro nella funzione chat")
         if not self.config:
             self._logger.warning("Config is not loaded")
             return None
         
         url = f"{self.config.chord_url}/api/chat/stream"
         
-
         self._logger.warning("starting new conversation.")
         
         payload = {
@@ -449,21 +455,15 @@ class BianconiglioInterface:
         }
         print(f"msg: {msg}, msg_type: {type(msg)}")
         try:
-            # with self._stream(url, payload) as response:
-            #     for line in response.iter_lines():
-            #         if line:
-            #             llm_chat_response = json.loads(line)
-            #             yield llm_chat_response
             with self._stream(url, payload) as response:
                 response.raise_for_status()
+                self._logger.info("streamin risposta")
                 for line in response.iter_lines():
                     if line:
                         decoded_line = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
                         print(f"line response: {decoded_line}")
                         yield BianconiglioChatResponse(decoded_line)
-
-                         
-                        
+                                                 
         except requests.exceptions.Timeout:
             self._logger.error("TIMEOUT: The agent is taking too long to answer.")
             return None
@@ -506,7 +506,7 @@ class BianconiglioInterface:
             self._logger.error(f"RAG execution error: {e}")
             return False 
 
-    def get_RAG_agents_info(self):
+    def get_RAG_agents_info(self) -> dict:
         """Populate the RAG agenst list with a get request
     
         l'endpoint restituisce: dict {"agents": [AgentInfo, AgentInfo, AgentInfo, ...]}
@@ -514,21 +514,22 @@ class BianconiglioInterface:
         """
         if not self.config:
             self._logger.info("config non trovata - 1")
-            return []
+            return {}
         
-        url = f"{self.config.chord_url}api/agents" # TODO: endpoint inventato da implementare in chord_b
+        url = f"{self.config.chord_url}/agent/all-info"
 
         try:
             res = self.do_get(url)
 
             if not res:
                 self._logger.info("No agents found")
-                return [{
-                    "agent_id": "---",
-                    "description": "no agents available"
-                    }]
-            
-            return res["agents"]
+            #     return [{
+            #         "agent_id": "---",
+            #         "description": "no agents available"  
+            #          }]
+
+            else:
+                return res
 
         except TimeoutError:
             logging.error(f" timeout api get agents")
@@ -536,30 +537,26 @@ class BianconiglioInterface:
         except Exception as e:
             logging.error(f" error while getting agents: {e}")
 
-        return []
-    
+        return {}   
 
     def get_RAG_agent_state(self, agent_id: str) -> str | None:
-        """Function to get"""
+        """Function to get the state of a specific agent"""
         if not self.config:
             self._logger.warning("Config is not loaded")
             return "Error loading Bianconiglio config"
         
-        url = f"{self.config.chord_url}/models/{agent_id}/status" # TODO: endpoint inventato da implementare in chord_b
-        print("url status: " + url)
+        url = f"{self.config.chord_url}/{agent_id}/status"
         try:
             response = self.do_get(url, timeout=5)
-            print("response status: " + str(response))
-            if response and response.get("state", "") in XgbModelState:
-                return response.get("state", "")    
             
-            return "error getting status"
+            if response:
+                if response.get("state", "") in [e.value for e in RAGAgentState]:
+                    return response.get("state", "")    
 
         except TimeoutError as e:
-            self._logger.error(f"Timeout getting logs: {e}")
-            return "timeout getting status"
+            self._logger.error(f"Timeout getting status: {e}")
             
         except Exception as e:
             self._logger.error(f"Error getting status: {e}")
-            return "error getting status"
+        return "error getting status"
         

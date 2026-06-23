@@ -5,17 +5,100 @@
       {
         "type": "tactigon_shape_setup",
         "id": "-*Wh`N_.,zaWl%JeDwWm",
-        "x": 30,
+        "x": 50,
         "y": 30,
         "deletable": false,
         "inputs": {
           "setup_code": {
             "block": {
-              "type": "bianconiglio_RAG_upload_file",
-              "id": "0hrvj#Y}tmm:~x6Smrr0",
+              "type": "variables_set",
+              "id": "--j|@:TLWb;3T;[y90tX",
               "fields": {
-                "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/JSON",
-                "filepath": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/JSON/piani_dbtool.json"
+                "VAR": {
+                  "id": "=@sJ!itgI?yhn_?lAi=O"
+                }
+              },
+              "inputs": {
+                "VALUE": {
+                  "block": {
+                    "type": "bianconiglio_get_RAG_agents_info",
+                    "id": "hJ6w`ds[_tU:]%ckW@us"
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "tactigon_shape_debug",
+                  "id": "6rWpcp?^}eoK372~EHmh",
+                  "inputs": {
+                    "TEXT": {
+                      "shadow": {
+                        "type": "text",
+                        "id": "#XP:qMn8WkON$cg4bL83",
+                        "fields": {
+                          "TEXT": "Message"
+                        }
+                      },
+                      "block": {
+                        "type": "variables_get",
+                        "id": "z/3t5`.Dz[x-LIkrkQJc",
+                        "fields": {
+                          "VAR": {
+                            "id": "=@sJ!itgI?yhn_?lAi=O"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "variables_set",
+                      "id": "We|)jU?]V101PYFp$i2+",
+                      "fields": {
+                        "VAR": {
+                          "id": "OEK2q[K*-i`vex-|P8~m"
+                        }
+                      },
+                      "inputs": {
+                        "VALUE": {
+                          "block": {
+                            "type": "bianconiglio_get_RAG_agent_state",
+                            "id": "1[Z%8}aI!*x%ni@p)hk*",
+                            "fields": {
+                              "agent_id": "f61e0313-0cac-430b-9eb7-baffcd906a66"
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "tactigon_shape_debug",
+                          "id": "q2!^lB%(K#kC2V^CFe94",
+                          "inputs": {
+                            "TEXT": {
+                              "shadow": {
+                                "type": "text",
+                                "id": "#XP:qMn8WkON$cg4bL83",
+                                "fields": {
+                                  "TEXT": "Message"
+                                }
+                              },
+                              "block": {
+                                "type": "variables_get",
+                                "id": "4QlISl$g=`p7BytjqO2h",
+                                "fields": {
+                                  "VAR": {
+                                    "id": "OEK2q[K*-i`vex-|P8~m"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -24,8 +107,8 @@
       {
         "type": "tactigon_shape_function",
         "id": "SpWg8*8qaS46GW1.?mCP",
-        "x": 30,
-        "y": 150,
+        "x": 50,
+        "y": 190,
         "deletable": false
       },
       {
@@ -36,5 +119,15 @@
         "deletable": false
       }
     ]
-  }
+  },
+  "variables": [
+    {
+      "name": "agents",
+      "id": "=@sJ!itgI?yhn_?lAi=O"
+    },
+    {
+      "name": "first_status",
+      "id": "OEK2q[K*-i`vex-|P8~m"
+    }
+  ]
 }

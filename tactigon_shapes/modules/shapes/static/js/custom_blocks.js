@@ -1516,8 +1516,8 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
     //     });
     // });
 
-    console.log(`questo è il print di DF_directory: ${DF_directory}`)
-    console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
+    // console.log(`questo è il print di DF_directory: ${DF_directory}`)
+    // console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
 
 
 
@@ -1763,7 +1763,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "args0": [
                 {
                     "type": "field_dropdown",
-                    "name": "model",
+                    "name": "agent_id",
                     "options": bianconiglio.RAG_agent_ids
                 }
             ],
@@ -1774,7 +1774,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_get_RAG_agents_info",
             "tooltip": "Returns each RAG agent infos as a list of dictionary",
             "helpUrl": "",
-            "message0": "Get RAG agents list",
+            "message0": "Get the list of RAG agents available",
             "output": "Array",
             "colour": "#ec8dc6"
         }
@@ -1792,6 +1792,7 @@ import random
 import types
 import json
 import os
+import logging
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -1805,7 +1806,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import XgbModelState, BianconiglioConfig
+from tactigon_shapes.modules.bianconiglio.models import XgbModelState, BianconiglioConfig, RAGAgentState
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -1813,6 +1814,7 @@ import rclpy
 from rclpy.node import Node
 import pandas as pd
 
+logger = logging.getLogger(__name__)
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
     if not gesture:
@@ -1987,7 +1989,7 @@ def zion_send_device_alarm(zion: ZionInterface | None, device_id: str, name: str
     return zion.upsert_device_alarm(device_id, name, name) 
 
 def debug(logging_queue: LoggingQueue, msg: Any):
-
+    logger.info(f"messaggio da debuggare : {msg}")
     if isinstance(msg,(float)):
         rounded=round(msg,4)
         logging_queue.debug(str(rounded))
@@ -2108,12 +2110,7 @@ def bianconiglio_get_xgb_model_state(bianconiglio: BianconiglioInterface | None,
     if not bianconiglio:
         return None
 
-    res = bianconiglio.get_xgb_model_state(model_id)
-
-    if res == None:
-        return "errore"
-
-    return res
+    return bianconiglio.get_xgb_model_state(model_id)
 
 def bianconiglio_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
@@ -2135,6 +2132,7 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file
 
 def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
     if not bianconiglio:
+        logger.error("mannaggia non c'è bianconiglio")
         return None
 
     yield bianconiglio.stream_chat_with_rag(user_input)
@@ -2155,7 +2153,7 @@ def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None,
     if not bianconiglio:
         return None
 
-    res = bianconiglio.get_RAG_agent_state(agent_id)
+    return bianconiglio.get_RAG_agent_state(agent_id)
 
 def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
@@ -2792,10 +2790,8 @@ function defineBianconiglioGenerators() {
     };
     
     python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
-        //const dir = block.getFieldValue('directory');
         const path = block.getFieldValue('filepath');
 
-        //const code =`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${path}")`
         const code =`bianconiglio_load_dataframe(bianconiglio, "${path}")`
 
         return [code,Blockly.Python.ORDER_ATOMIC];
@@ -2805,15 +2801,15 @@ function defineBianconiglioGenerators() {
         const userInput = generator.valueToCode(block, 'user_input', python.Order.ATOMIC);
 
         const code = `bianconiglio_stream_chat_with_rag(bianconiglio, "${userInput}")`;
+        console.log(`"user input: ${userInput}`)
+        console.log(`entro nella funzione`)
 
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['bianconiglio_RAG_upload_file'] = function(block, generator) {
-        //const dir = block.getFieldValue('directory');
         const path = block.getFieldValue('filepath');
 
-        //console.log(`tipo dir prima di function: ${typeof dir})`);
         console.log(`path:${path} tipo path: ${typeof path})`);
         
         const code = `bianconiglio_RAG_upload_file(bianconiglio, "${path}")`
@@ -2827,9 +2823,9 @@ function defineBianconiglioGenerators() {
     };
 
     python.pythonGenerator.forBlock["bianconiglio_get_RAG_agent_state"] = function (block, generator) {
-        const RAG_agent_id = block.getFieldValue('RAG_agents_id');
+        const agent_id = block.getFieldValue('agent_id');
         
-        const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${RAG_agent_id}")`;
+        const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${agent_id}")`;
         return [code, python.Order.ATOMIC];
     };
 
@@ -2837,6 +2833,12 @@ function defineBianconiglioGenerators() {
 
         const code = `bianconiglio_get_RAG_agents_info(bianconiglio)`;
         return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["bianconiglio_RAG_agent_state_list"] = function (block, generator) {
+        const state = block.getFieldValue('state');
+        const code = `RAGAgentState("${state}").value`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
 }

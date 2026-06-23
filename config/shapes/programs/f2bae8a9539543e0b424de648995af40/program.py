@@ -6,6 +6,7 @@ import random
 import types
 import json
 import os
+import logging
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -27,6 +28,7 @@ import rclpy
 from rclpy.node import Node
 import pandas as pd
 
+logger = logging.getLogger(__name__)
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
     if not gesture:
@@ -201,7 +203,7 @@ def zion_send_device_alarm(zion: ZionInterface | None, device_id: str, name: str
     return zion.upsert_device_alarm(device_id, name, name) 
 
 def debug(logging_queue: LoggingQueue, msg: Any):
-
+    logger.info(f"messaggio da debuggare : {msg}")
     if isinstance(msg,(float)):
         rounded=round(msg,4)
         logging_queue.debug(str(rounded))
@@ -344,6 +346,7 @@ def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file
 
 def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
     if not bianconiglio:
+        logger.error("mannaggia non c'è bianconiglio")
         return None
 
     yield bianconiglio.stream_chat_with_rag(user_input)
@@ -376,10 +379,6 @@ def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None)
 
 # ---------- Generated code ---------------
 
-agents = None
-first_status = None
-
-
 def tactigon_shape_setup(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -392,11 +391,9 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global agents, first_status
-    agents = bianconiglio_get_RAG_agents_info(bianconiglio)
-    debug(logging_queue, agents)
-    first_status = bianconiglio_get_RAG_agent_state(bianconiglio, "f61e0313-0cac-430b-9eb7-baffcd906a66")
-    debug(logging_queue, first_status)
+    global chat_response, state, stato_ipotetico
+    debug(logging_queue, 'fanculo')
+    debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "'ciao rag'"))
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -410,7 +407,7 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global agents, first_status
+    global chat_response, state, stato_ipotetico
     gesture = tskin.gesture
     touch = tskin.touch
     pass
@@ -428,5 +425,5 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global agents, first_status
+    global chat_response, state, stato_ipotetico
     pass
