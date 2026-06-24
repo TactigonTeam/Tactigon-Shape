@@ -349,7 +349,7 @@ def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None
         logger.error("mannaggia non c'è bianconiglio")
         return None
 
-    yield bianconiglio.stream_chat_with_rag(user_input)
+    return bianconiglio.stream_chat_with_rag(user_input)
 
 def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
     if not bianconiglio:
@@ -363,11 +363,11 @@ def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
     
     return bianconiglio.RAG_execute()
 
-def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
-    if not bianconiglio:
-        return None
+# def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
+#     if not bianconiglio:
+#         return None
 
-    return bianconiglio.get_RAG_agent_state(agent_id)
+#     return bianconiglio.get_RAG_agent_state(agent_id)
 
 def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
@@ -378,6 +378,11 @@ def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None)
         
 
 # ---------- Generated code ---------------
+
+from numbers import Number
+
+i = None
+
 
 def tactigon_shape_setup(
         tskin: TSkin,
@@ -391,9 +396,9 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global chat_response, state, stato_ipotetico
+    global chat_response, state, stato_ipotetico, i
     debug(logging_queue, 'fanculo')
-    debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "'ciao rag'"))
+    i = 0
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -407,10 +412,13 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global chat_response, state, stato_ipotetico
+    global chat_response, state, stato_ipotetico, i
     gesture = tskin.gesture
     touch = tskin.touch
-    pass
+    if i == 0:
+        debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "'Ciao, ripeti lorem ipsum per 10 volte'"))
+        i = (i if isinstance(i, Number) else 0) + 1
+
     return True
 
 def tactigon_shape_close(
@@ -425,5 +433,5 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global chat_response, state, stato_ipotetico
+    global chat_response, state, stato_ipotetico, i
     pass

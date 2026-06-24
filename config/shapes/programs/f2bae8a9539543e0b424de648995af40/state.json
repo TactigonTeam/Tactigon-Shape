@@ -26,27 +26,119 @@
               },
               "next": {
                 "block": {
-                  "type": "tactigon_shape_debug",
-                  "id": "IPTo6F.}Y/w7`8~Zn|G_",
+                  "type": "variables_set",
+                  "id": "h.OA;]~GJiA9LVdKT_7A",
+                  "fields": {
+                    "VAR": {
+                      "id": "~lu|y+7T,*Q)%frw.)[F"
+                    }
+                  },
                   "inputs": {
-                    "TEXT": {
-                      "shadow": {
-                        "type": "text",
-                        "id": "(Xzz2LOGruF.87g]2=yX",
+                    "VALUE": {
+                      "block": {
+                        "type": "math_number",
+                        "id": "5lp9F_3y~=1:jT284fb(",
                         "fields": {
-                          "TEXT": "Message"
+                          "NUM": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "({?.r57^,qp_@MKup)*-",
+        "x": 110,
+        "y": 390,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "S!E~s^Jf|3o27kvjUoMb",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "logic_compare",
+                    "id": "B#C61Ha?z[+e}6?cenfV",
+                    "fields": {
+                      "OP": "EQ"
+                    },
+                    "inputs": {
+                      "A": {
+                        "block": {
+                          "type": "variables_get",
+                          "id": "{O$LZqY3i9Ut-nG=m61e",
+                          "fields": {
+                            "VAR": {
+                              "id": "~lu|y+7T,*Q)%frw.)[F"
+                            }
+                          }
                         }
                       },
+                      "B": {
+                        "block": {
+                          "type": "math_number",
+                          "id": ".^z5M_Fg9e7Q7D!0ews3",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "tactigon_shape_debug",
+                    "id": "IPTo6F.}Y/w7`8~Zn|G_",
+                    "inputs": {
+                      "TEXT": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "(Xzz2LOGruF.87g]2=yX",
+                          "fields": {
+                            "TEXT": "Message"
+                          }
+                        },
+                        "block": {
+                          "type": "bianconiglio_stream_chat_with_rag",
+                          "id": "hFYuMn6!VtTHO+i7@GCi",
+                          "inputs": {
+                            "user_input": {
+                              "block": {
+                                "type": "text",
+                                "id": ":Z5CZnPBG[KIBiTr-#gR",
+                                "fields": {
+                                  "TEXT": "Ciao, ripeti lorem ipsum per 10 volte"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "next": {
                       "block": {
-                        "type": "bianconiglio_stream_chat_with_rag",
-                        "id": "hFYuMn6!VtTHO+i7@GCi",
+                        "type": "math_change",
+                        "id": "Qy;dT-q0Z.G:=F-qov]O",
+                        "fields": {
+                          "VAR": {
+                            "id": "~lu|y+7T,*Q)%frw.)[F"
+                          }
+                        },
                         "inputs": {
-                          "user_input": {
-                            "block": {
-                              "type": "text",
-                              "id": ":Z5CZnPBG[KIBiTr-#gR",
+                          "DELTA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "c%0OBP|qdC[$~MxN-UzV",
                               "fields": {
-                                "TEXT": "ciao rag"
+                                "NUM": 1
                               }
                             }
                           }
@@ -61,17 +153,10 @@
         }
       },
       {
-        "type": "tactigon_shape_function",
-        "id": "({?.r57^,qp_@MKup)*-",
-        "x": 50,
-        "y": 390,
-        "deletable": false
-      },
-      {
         "type": "tactigon_shape_close",
         "id": "{vl8642DJu%Ur6Ua,=;%",
-        "x": 50,
-        "y": 470,
+        "x": 110,
+        "y": 590,
         "deletable": false
       }
     ]
@@ -88,6 +173,10 @@
     {
       "name": "stato_ipotetico",
       "id": "w*];vdv+8#VCehVI}2;y"
+    },
+    {
+      "name": "i",
+      "id": "~lu|y+7T,*Q)%frw.)[F"
     }
   ]
 }

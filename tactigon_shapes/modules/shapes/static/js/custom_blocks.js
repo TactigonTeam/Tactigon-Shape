@@ -1421,110 +1421,84 @@ function loadCameraBlocks() {
 }
 
 function loadBianconiglioBlocks(bianconiglio, file_manager) {
-// FUNZIONE ORIGINALE DI SIMO ISPIRATA A GINOS
-        // console.log(`questo è il print di bianconiglio: ${bianconiglio}`)
-        // console.log(`questo è il print di filemanager: ${file_manager}`)
-        // let directory = [];            
-        // let optionMapping = {};
+// FUNZIONE ORIGINALE DI SIMO ISPIRATA A GINOS CHE RICHIEDE IN OGNI CASO ALMENO UNA DIRECTORY
+        console.log(`questo è il print di bianconiglio: ${bianconiglio}`)
+        console.log(`questo è il print di filemanager: ${file_manager}`)
+        let directory = [];            
+        let optionMapping = {};
 
-        // file_manager.forEach(el => {
-        //     directory.push([el['directory']['name'], el['directory']['base_path']]);
+        file_manager.forEach(el => {
+            directory.push([el['directory']['name'], el['directory']['base_path']]);
             
-        //     optionMapping[el['directory']['base_path']] = [['---', '']];
+            optionMapping[el['directory']['base_path']] = [['---', '']];
 
-        //     optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
-        //         const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
-        //         return [f_path, f_path];
-        //     }));
-        // });
-
-    console.log(`questo è il print di filemanager: ${file_manager}`)
-    console.log(`questo è il print di bianconiglio: ${bianconiglio}`)
-    
-    let DF_directory = [['---', '']]; 
-    let RAG_directory = [['---', '']];            
-    
-    let DF_optionMapping = {};
-    let RAG_optionMapping = {};
-
-    const dataFrameExtensions = ['csv', 'json'];
-    const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
-
-    const df_dir_names = ["CSV", "JSON"]
-    const rag_dir_names = ["PDF", "JSON", "MD", "CSV", "XLS"]
-
-    file_manager.forEach(el => {
-        const dirName = el['directory']['name'];
-        const basePath = el['directory']['base_path'];
-        //console.log(`questo è il print di dirName: ${dirName}`)
-
-        // elenchi delle cartelle per i 2 dropdown
-        if (df_dir_names.includes(dirName)){ 
-            DF_directory.push([dirName, basePath])
-        }
-
-        if (rag_dir_names.includes(dirName)){
-            RAG_directory.push([dirName, basePath])
-        }
-
-        // Valori di default
-        DF_optionMapping[basePath] = [['---', '']];
-        RAG_optionMapping[basePath] = [['---', '']];
-
-        // ciclo i file della cartella mapparli
-        el['content'].forEach(f => {
-            const f_path = f['path'].replace(basePath + "/", '');
-            const extension = f_path.split('.').pop().toLowerCase();
-
-            // estensione da DataFrame
-            if (dataFrameExtensions.includes(extension)){
-                // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
-                DF_optionMapping[basePath].push([f_path, f['path']]);
-            }
-            //console.log(`df_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
-            
-            // estensione da RAG
-            if (ragExtensions.includes(extension)){
-                RAG_optionMapping[basePath].push([f_path, f['path']]);
-            }
-            //console.log(`rag_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
+            optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
+                const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+                return [f_path, f_path];
+            }));
         });
-    });
 
-    // Ciclare i mapping per il DataFrame
-    // Object.keys(DF_optionMapping).forEach(basePath => {
-    // const fileList = RAG_optionMapping[basePath];
-    //     console.log(`--- Cartella: ${basePath} ---`);
-        
-    //     // Cicliamo le coppie di file dentro la cartella
-    //     fileList.forEach(coppia => {
-    //         const visualName = coppia[0]; // Il nome mostrato
-    //         const actualPath = coppia[1]; // Il valore reale del percorso
-    //         console.log(`  > File: ${visualName} | actualPath: ${actualPath} (tipo: ${typeof actualPath})`);
+//===========================================================================================================
+
+// MIA FUNZIONE CHE FUNZIONAVA CON PIU DIRECTORY NEL CONFIG DI FILE_MANAGER FILTRANDO PER TIPO DI DOCUMENTO
+    
+    // let DF_directory = [['---', '']]; 
+    // let RAG_directory = [['---', '']];            
+    
+    // let DF_optionMapping = {};
+    // let RAG_optionMapping = {};
+
+    // const dataFrameExtensions = ['csv', 'json'];
+    // const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
+
+    // const df_dir_names = ["CSV", "JSON"]
+    // const rag_dir_names = ["PDF", "JSON", "MD", "CSV", "XLS"]
+
+    // file_manager.forEach(el => {
+    //     const dirName = el['directory']['name'];
+    //     const basePath = el['directory']['base_path'];
+    //     //console.log(`questo è il print di dirName: ${dirName}`)
+
+    //     // elenchi delle cartelle per i 2 dropdown
+    //     if (df_dir_names.includes(dirName)){ 
+    //         DF_directory.push([dirName, basePath])
+    //     }
+
+    //     if (rag_dir_names.includes(dirName)){
+    //         RAG_directory.push([dirName, basePath])
+    //     }
+
+    //     // Valori di default
+    //     DF_optionMapping[basePath] = [['---', '']];
+    //     RAG_optionMapping[basePath] = [['---', '']];
+
+    //     // ciclo i file della cartella mapparli
+    //     el['content'].forEach(f => {
+    //         const f_path = f['path'].replace(basePath + "/", '');
+    //         const extension = f_path.split('.').pop().toLowerCase();
+
+    //         // estensione da DataFrame
+    //         if (dataFrameExtensions.includes(extension)){
+    //             // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
+    //             DF_optionMapping[basePath].push([f_path, f['path']]);
+    //         }
+    //         //console.log(`df_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
+            
+    //         // estensione da RAG
+    //         if (ragExtensions.includes(extension)){
+    //             RAG_optionMapping[basePath].push([f_path, f['path']]);
+    //         }
+    //         //console.log(`rag_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
     //     });
     // });
 
-    // Object.keys(RAG_optionMapping).forEach(basePath => {
-    // const fileList = RAG_optionMapping[basePath];
-    //     console.log(`--- Cartella: ${basePath} ---`);
-        
-    //     // Cicliamo le coppie di file dentro la cartella
-    //     fileList.forEach(coppia => {
-    //         const visualName = coppia[0]; // Il nome mostrato
-    //         const actualPath = coppia[1]; // Il valore reale del percorso
-    //         console.log(`  > File: ${visualName} | actualPath: ${actualPath} (tipo: ${typeof actualPath})`);
-    //     });
-    // });
-
-    // console.log(`questo è il print di DF_directory: ${DF_directory}`)
-    // console.log(`questo è il print di RAG_directory: ${RAG_directory}`)
-
-
+//===========================================================================================================
 
     // TODO: Filtare il caricamento dei file nelle directory permettendo di caricare nelle rispettive cartelle
     // solo file con estensione corretta. oppure fare un caricamento unico che colloca i file nella cartella giusta.
     // da vedere in file manager ma non ho capito bene come funziona, per ora ho solo aggiunto le cartelle nel config.
     
+//===========================================================================================================
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1678,13 +1652,13 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                 {
                     "type": "field_dropdown",
                     "name": "directory",
-                    "options": DF_directory
+                    "options": directory
                 },
                 {
                     "type": "field_dependent_dropdown",
                     "name": "filepath",
                     "parentName": "directory",
-                    "optionMapping": DF_optionMapping,
+                    "optionMapping": optionMapping,
                     "defaultOptions": [['---', '']],
                 }
             ],
@@ -1715,13 +1689,13 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                 {
                     "type": "field_dropdown",
                     "name": "directory",
-                    "options": RAG_directory
+                    "options": directory
                 },
                 {
                     "type": "field_dependent_dropdown",
                     "name": "filepath",
                     "parentName": "directory",
-                    "optionMapping": RAG_optionMapping,
+                    "optionMapping": optionMapping,
                     "defaultOptions": [['---', '']],
                 }
             ],
@@ -1755,29 +1729,29 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "output": "RAGAgentState",
             "colour": "#ec8dc6"
         },
-        {
-            "type": "bianconiglio_get_RAG_agent_state",
-            "tooltip": "Returns the ML model state through API call as a dictionary.",
-            "helpUrl": "",
-            "message0": "Get %1 RAG agent state",
-            "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "agent_id",
-                    "options": bianconiglio.RAG_agent_ids
-                }
-            ],
-            "output": "Dictionary",
-            "colour": "#ec8dc6"
-        },
-        {
-            "type": "bianconiglio_get_RAG_agents_info",
-            "tooltip": "Returns each RAG agent infos as a list of dictionary",
-            "helpUrl": "",
-            "message0": "Get the list of RAG agents available",
-            "output": "Array",
-            "colour": "#ec8dc6"
-        }
+        // {
+        //     "type": "bianconiglio_get_RAG_agent_state",
+        //     "tooltip": "Returns the ML model state through API call as a dictionary.",
+        //     "helpUrl": "",
+        //     "message0": "Get %1 RAG agent state",
+        //     "args0": [
+        //         {
+        //             "type": "field_dropdown",
+        //             "name": "agent_id",
+        //             "options": bianconiglio.RAG_agent_ids
+        //         }
+        //     ],
+        //     "output": "Dictionary",
+        //     "colour": "#ec8dc6"
+        // },
+        // {
+        //     "type": "bianconiglio_get_RAG_agents_info",
+        //     "tooltip": "Returns each RAG agent infos as a list of dictionary",
+        //     "helpUrl": "",
+        //     "message0": "Get the list of RAG agents available",
+        //     "output": "Array",
+        //     "colour": "#ec8dc6"
+        // }
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -2135,7 +2109,7 @@ def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None
         logger.error("mannaggia non c'è bianconiglio")
         return None
 
-    yield bianconiglio.stream_chat_with_rag(user_input)
+    return bianconiglio.stream_chat_with_rag(user_input)
 
 def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
     if not bianconiglio:
@@ -2149,17 +2123,17 @@ def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
     
     return bianconiglio.RAG_execute()
 
-def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
-    if not bianconiglio:
-        return None
+# def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
+#     if not bianconiglio:
+#         return None
 
-    return bianconiglio.get_RAG_agent_state(agent_id)
+#     return bianconiglio.get_RAG_agent_state(agent_id)
 
-def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
-        return []
+# def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
+#     if not bianconiglio:
+#        return []
 
-    return bianconiglio.get_RAG_agents_info()
+#     return bianconiglio.get_RAG_agents_info()
 
         
 
@@ -2822,18 +2796,18 @@ function defineBianconiglioGenerators() {
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_RAG_agent_state"] = function (block, generator) {
-        const agent_id = block.getFieldValue('agent_id');
+    // python.pythonGenerator.forBlock["bianconiglio_get_RAG_agent_state"] = function (block, generator) {
+    //     const agent_id = block.getFieldValue('agent_id');
         
-        const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${agent_id}")`;
-        return [code, python.Order.ATOMIC];
-    };
+    //     const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${agent_id}")`;
+    //     return [code, python.Order.ATOMIC];
+    // };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_RAG_agents_info"] = function (block, generator) {
+    // python.pythonGenerator.forBlock["bianconiglio_get_RAG_agents_info"] = function (block, generator) {
 
-        const code = `bianconiglio_get_RAG_agents_info(bianconiglio)`;
-        return [code, python.Order.ATOMIC];
-    };
+    //     const code = `bianconiglio_get_RAG_agents_info(bianconiglio)`;
+    //     return [code, python.Order.ATOMIC];
+    // };
 
     python.pythonGenerator.forBlock["bianconiglio_RAG_agent_state_list"] = function (block, generator) {
         const state = block.getFieldValue('state');

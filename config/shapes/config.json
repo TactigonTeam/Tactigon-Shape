@@ -105,62 +105,10 @@
     "mqtt_config": null
   },
   {
-    "id": "fb7e5ca596dc48608332898c25010159",
-    "name": "adasas",
-    "created_on": "2026-06-11T15:49:10.495014",
-    "modified_on": "2026-06-17T17:16:31.757932",
-    "description": "",
-    "readonly": false,
-    "ginos_config": null,
-    "ros2_config": {
-      "node_name": "adasas",
-      "publishers": [],
-      "subscriptions": []
-    },
-    "mqtt_config": {
-      "broker_url": "broker.emqx.io",
-      "broker_port": 1883,
-      "node_name": "",
-      "node_type": "",
-      "max_reconnect_count": 5,
-      "reconnect_delay": 1,
-      "reconnect_rate": 2,
-      "protocol_version": 5,
-      "callback_api_version": 2,
-      "subscriptions": []
-    }
-  },
-  {
-    "id": "fbb787b62de34eb4ab78327ad1f797c8",
-    "name": "provaa",
-    "created_on": "2026-06-18T16:54:20.573324",
-    "modified_on": "2026-06-23T15:22:00.917584",
-    "description": "",
-    "readonly": false,
-    "ginos_config": null,
-    "ros2_config": {
-      "node_name": "provaa",
-      "publishers": [],
-      "subscriptions": []
-    },
-    "mqtt_config": {
-      "broker_url": "broker.emqx.io",
-      "broker_port": 1883,
-      "node_name": "",
-      "node_type": "",
-      "max_reconnect_count": 5,
-      "reconnect_delay": 1,
-      "reconnect_rate": 2,
-      "protocol_version": 5,
-      "callback_api_version": 2,
-      "subscriptions": []
-    }
-  },
-  {
     "id": "f2bae8a9539543e0b424de648995af40",
     "name": "chat",
     "created_on": "2026-06-23T15:22:15.123727",
-    "modified_on": "2026-06-23T17:07:21.702279",
+    "modified_on": "2026-06-24T10:36:55.302429",
     "description": "",
     "readonly": false,
     "ginos_config": null,

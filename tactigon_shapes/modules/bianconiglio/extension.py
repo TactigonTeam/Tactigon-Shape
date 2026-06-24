@@ -9,6 +9,7 @@ from contextlib import contextmanager
 import os
 
 from tactigon_shapes.modules.bianconiglio.models import (
+    ModelInfo,
     XgbModelState, 
     BianconiglioConfig, 
     DataFrameFileExtension, 
@@ -22,6 +23,7 @@ class BianconiglioInterface:
     config_file_path: str
     _dataframe: pd.DataFrame
     config: BianconiglioConfig | None
+    models: list[ModelInfo] = []
 
     def __init__(self, config_file_path: str, app: Flask | None = None):
         self._logger = logging.getLogger(BianconiglioInterface.__name__)
@@ -32,25 +34,28 @@ class BianconiglioInterface:
         self.config_file_path = config_file_path
         self.load_config()
 
-        #self.models: list = [("modello1","model1"),("modello2","model2")]
-
+        self.get_xgb_models_info()
         if app:
             self.init_app(app)
 
     def init_app(self, app: Flask):
         app.extensions[BianconiglioInterface.__name__] = self
+
+        self.get_xgb_models_info()
     
     def get_shape_blocks(self):
-        updated_models = self.get_xgb_models_info()
-        if updated_models and len(updated_models) > 0 and updated_models[0].get("model_id") != "---":
-             self.models = updated_models
-        return {
-            "xgb_model_states": [(state.name, state.value) for state in XgbModelState],
-            "xgb_model_ids": [(m["description"], m["model_id"]) for m in self.models],
-            "RAG_agent_states": [(state.name, state.value) for state in RAGAgentState],
-            "RAG_agent_ids": [(m["agent_id"], m["agent_id"]) for m in self.RAG_agents], #TODO per ora estraggo solo agent_id ma se in futuro ci sara una descrizione come per xgb andra modificato il primo campo
-        }
-    
+        if self.models:
+            return {
+                "xgb_model_states": [(state.name, state.value) for state in XgbModelState],
+                "RAG_agent_states": [(state.name, state.value) for state in RAGAgentState],
+                "xgb_model_ids": [(m.description, m.model_id) for m in self.models]
+            }
+        else:
+            return {
+                "xgb_model_states": [(state.name, state.value) for state in XgbModelState],
+                "RAG_agent_states": [(state.name, state.value) for state in RAGAgentState],
+                "xgb_model_ids": [("no model available", "---")]
+            }
     @property
     def config_file(self) -> str:
         return os.path.join(self.config_file_path, "config.json")
@@ -66,8 +71,8 @@ class BianconiglioInterface:
     def load_config(self):
         """loads configuration from Bianconiglioconfig JSON
         """
-        self._logger.info(f"Bianconiglio configuration path: {self.config_file_path}")
-        self._logger.info(f"Bianconiglio configuration file: {self.config_file}")
+        # self._logger.info(f"Bianconiglio configuration path: {self.config_file_path}")
+        # self._logger.info(f"Bianconiglio configuration file: {self.config_file}")
         if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
             with open(self.config_file, "r") as f:
                 config_data = json.load(f)
@@ -76,21 +81,21 @@ class BianconiglioInterface:
                 self._logger.info("Bianconiglio configuration loaded. URL: %s", self.config.url)
 
                 # self.models = self.get_xgb_models_info()
-                models_dict = self.get_xgb_models_info()
-                self.models= models_dict.get("models_infos", [{
-                    "model_id": "---",
-                    "description": "no models available"
-                    }])
+                # models_dict = self.get_xgb_models_info()
+                # self.models= models_dict.get("models_infos", [{
+                #     "model_id": "---",
+                #     "description": "no models available"
+                #     }])
                 
                 #self.RAG_agents = self.get_RAG_agents_info()
-                RAG_agents_dict = self.get_RAG_agents_info()
-                self.RAG_agents = RAG_agents_dict.get("agents", [{
-                     "agent_id": "---",
-                     "description": "no agents available"  
-                    }])
+                # RAG_agents_dict = self.get_RAG_agents_info()
+                # self.RAG_agents = RAG_agents_dict.get("agents", [{
+                #      "agent_id": "---",
+                #      "description": "no agents available"  
+                #     }])
 
-                self._logger.info(f"models: {self.models}")
-                self._logger.info(f"agents: {self.RAG_agents}")
+                # self._logger.info(f"models: {self.models}")
+                # self._logger.info(f"agents: {self.RAG_agents}")
 
 
         else:
@@ -168,40 +173,29 @@ class BianconiglioInterface:
             self._logger.warning("GET %s failed: %s", url, e)
             return None
         
-
-    def get_xgb_models_info(self) -> dict:
+    def get_xgb_models_info(self):
         """Populate the models list with a get request
     
         l'endpoint restituisce: dict {"models_infos": [ModelInfos, ModelInfos, ModelInfos, ...]}
                         oppure: dict {"models_infos": "no models available"}
         """
         if not self.config:
-            self._logger.info("config non trovata - 1")
-            return {}
-        
+            self._logger.error("Cannot get models info because no configuration was provided.")
+            return
+
+
         url = f"{self.config.url}/models"
 
-        try:
-            
-            res = self.do_get(url)
+        res = self.do_get(url)
 
-            if not res:
-                self._logger.info("nessun modello trovato")
-                # return [{
-                #     "model_id": "---",
-                #     "description": "no models available"
-                #     }]
-            else: 
-                return res
+        if res:
+            models_info = res.get("models_infos", [])
+            self.models = [ModelInfo.FromJSON(m) for m in models_info]
+            self._logger.info(f"Loaded {len(self.models)} models from Bianconiglio")
+        else:
+            self.models = []
+            self._logger.warning(f"Could not load models info from Bianconiglio")
 
-        except TimeoutError:
-            logging.error(f" timeout api get models")
-
-        except Exception as e:
-            logging.error(f" errore get models: {e}")
-
-        # return []
-        return {}
     
     def get_xgb_model_state(self, model_id: str) -> str | None:
         """Function to get"""
@@ -271,7 +265,7 @@ class BianconiglioInterface:
             response = self.do_post(url, payload, timeout=5)
             if response and response.status_code == 200:
                 self._logger.info("Train successful")
-                self.models = self.get_xgb_models_info()
+                # self.models = self.get_xgb_models_info()
                 return response.json()
             elif response:
                 self._logger.error(f"Error from server during training. Code: {response.status_code}")
@@ -438,45 +432,49 @@ class BianconiglioInterface:
         Args:            
             msg (str): user message
         Returns:            
-            dict: response of POST"""
-        print("entro nella funzione chat")
+            dict: response of POST"""        
+
         if not self.config:
             self._logger.warning("Config is not loaded")
             return None
         
         url = f"{self.config.chord_url}/api/chat/stream"
         
-        self._logger.warning("starting new conversation.")
         
         payload = {
             "message": msg,
             "userId": self.config.user,
             "chatId": self.config.context
         }
-        print(f"msg: {msg}, msg_type: {type(msg)}")
-        try:
-            with self._stream(url, payload) as response:
-                response.raise_for_status()
-                self._logger.info("streamin risposta")
-                for line in response.iter_lines():
-                    if line:
-                        decoded_line = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
-                        print(f"line response: {decoded_line}")
-                        yield BianconiglioChatResponse(decoded_line)
+
+        with self._stream(url, payload) as response:
+            for line in response.iter_lines():
+                yield BianconiglioChatResponse(line)
+
+        return None
+
+        # # try:
+        # with self._stream(url, payload) as response:
+        #     self._logger.info(f"Response {response}")
+        #     # response.raise_for_status()
+        #     for line in response.iter_lines():
+        #         self._logger.info(f"Returned {line}")
+        #         decoded_line = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+        #         yield decoded_line
                                                  
-        except requests.exceptions.Timeout:
-            self._logger.error("TIMEOUT: The agent is taking too long to answer.")
-            return None
+        # # except requests.exceptions.Timeout:
+        # #     self._logger.error("TIMEOUT: The agent is taking too long to answer.")
+        # #     return None
         
-        except requests.exceptions.RequestException as e:
-            self._logger.error(f"Error during streaming chat: {e}")
-            return None
+        # # except requests.exceptions.RequestException as e:
+        # #     self._logger.error(f"Error during streaming chat: {e}")
+        # #     return None
         
-        except Exception as e:
-            self._logger.error(f"Unexpected error during streaming chat: {e}")
-            return None
+        # # except Exception as e:
+        # #     self._logger.error(f"Unexpected error during streaming chat: {e}")
+        # #     return None
         
-        return
+        # return
     
     def RAG_execute(self) -> bool:
         """function to execute the RAG pipeline with the uploaded documents, should be implemented in chord_b"""
@@ -506,38 +504,38 @@ class BianconiglioInterface:
             self._logger.error(f"RAG execution error: {e}")
             return False 
 
-    def get_RAG_agents_info(self) -> dict:
-        """Populate the RAG agenst list with a get request
+    # def get_RAG_agents_info(self) -> dict:
+    #     """Populate the RAG agenst list with a get request
     
-        l'endpoint restituisce: dict {"agents": [AgentInfo, AgentInfo, AgentInfo, ...]}
-                        oppure: dict {"agents": "no agents available"}
-        """
-        if not self.config:
-            self._logger.info("config non trovata - 1")
-            return {}
+    #     l'endpoint restituisce: dict {"agents": [AgentInfo, AgentInfo, AgentInfo, ...]}
+    #                     oppure: dict {"agents": "no agents available"}
+    #     """
+    #     if not self.config:
+    #         self._logger.info("config non trovata - 1")
+    #         return {}
         
-        url = f"{self.config.chord_url}/agent/all-info"
+    #     url = f"{self.config.chord_url}/agent/all-info"
 
-        try:
-            res = self.do_get(url)
+    #     try:
+    #         res = self.do_get(url)
 
-            if not res:
-                self._logger.info("No agents found")
-            #     return [{
-            #         "agent_id": "---",
-            #         "description": "no agents available"  
-            #          }]
+    #         if not res:
+    #             self._logger.info("No agents found")
+    #         #     return [{
+    #         #         "agent_id": "---",
+    #         #         "description": "no agents available"  
+    #         #          }]
 
-            else:
-                return res
+    #         else:
+    #             return res
 
-        except TimeoutError:
-            logging.error(f" timeout api get agents")
+    #     except TimeoutError:
+    #         logging.error(f" timeout api get agents")
 
-        except Exception as e:
-            logging.error(f" error while getting agents: {e}")
+    #     except Exception as e:
+    #         logging.error(f" error while getting agents: {e}")
 
-        return {}   
+    #     return {}   
 
     def get_RAG_agent_state(self, agent_id: str) -> str | None:
         """Function to get the state of a specific agent"""

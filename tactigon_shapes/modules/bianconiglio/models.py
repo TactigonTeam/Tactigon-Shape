@@ -126,6 +126,7 @@ class BianconiglioChatResponse:
         return cls(
             message=data.get("message", "")
         )
+
     def toJSON(self) -> dict:
         return {
             "message": self.message
