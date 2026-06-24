@@ -220,6 +220,7 @@ class ShapeThread(ExtensionThread):
         setattr(self.module, subscription.payload_reference, None)
 
     def run(self):
+
         self.setUp()
 
         should_run = True
@@ -235,7 +236,17 @@ class ShapeThread(ExtensionThread):
         self.close()
 
     def setUp(self):
+
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
+
+        self.current_chord_context_id = None
+        
+        if self.bianconiglio_interface:
+            chord_context = self.bianconiglio_interface.get_context()
+            if chord_context:
+                self.current_chord_context_id = chord_context.context_id
+                
+            self._logger.info(f"Lodead CHORD_CONTEXT_ID, current ID: [{self.current_chord_context_id}]")
 
         if shape_setup_fn:
             try:
@@ -270,6 +281,7 @@ class ShapeThread(ExtensionThread):
         )
     
     def close(self):
+        
         shape_close_fn = getattr(self.module, "tactigon_shape_close", None)
 
         if shape_close_fn:
@@ -298,6 +310,11 @@ class ShapeThread(ExtensionThread):
         if self._mqtt_interface:
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
+        
+        if self.current_chord_context_id:
+            self.current_chord_context_id = None
+            self._logger.info(f"CHORD_CONTEXT_ID discarded")
+
 
     def load_module(self, source: str):
         """
@@ -621,6 +638,7 @@ class ShapesApp(ExtensionApp):
 
                 current_program = self.get_shape(_config.id)
 
+
                 if current_program.code is None:
                     return (False, "Code not found")
 
@@ -657,6 +675,7 @@ class ShapesApp(ExtensionApp):
     def stop(self):
         ExtensionApp.stop(self)
         self.in_flight_log = None
+
         while True:
             try:
                 _ = self.logging_queue.get_nowait()
@@ -679,3 +698,4 @@ class ShapesApp(ExtensionApp):
             json.dump(program.state, state_json_file, indent=2)
         
         return True
+        

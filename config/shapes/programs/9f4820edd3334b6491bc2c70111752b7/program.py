@@ -385,11 +385,6 @@ def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
 
 # ---------- Generated code ---------------
 
-from numbers import Number
-
-i = None
-
-
 def tactigon_shape_setup(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -402,10 +397,8 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global chat_response, state, stato_ipotetico, i
-    debug(logging_queue, 'fanculo')
-    i = 0
-    bianconiglio_RAG_upload_file(bianconiglio, "null")
+    debug(logging_queue, bianconiglio_get_context_state(bianconiglio))
+
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -418,13 +411,9 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global chat_response, state, stato_ipotetico, i
     gesture = tskin.gesture
     touch = tskin.touch
-    if i == 0:
-        debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "'Ciao, ripeti lorem ipsum per 10 volte'"))
-        i = (i if isinstance(i, Number) else 0) + 1
-
+    pass
     return True
 
 def tactigon_shape_close(
@@ -439,5 +428,4 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global chat_response, state, stato_ipotetico, i
     pass

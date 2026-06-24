@@ -1422,21 +1422,50 @@ function loadCameraBlocks() {
 
 function loadBianconiglioBlocks(bianconiglio, file_manager) {
 // FUNZIONE ORIGINALE DI SIMO ISPIRATA A GINOS CHE RICHIEDE IN OGNI CASO ALMENO UNA DIRECTORY
-        console.log(`questo è il print di bianconiglio: ${bianconiglio}`)
-        console.log(`questo è il print di filemanager: ${file_manager}`)
-        let directory = [];            
-        let optionMapping = {};
 
-        file_manager.forEach(el => {
-            directory.push([el['directory']['name'], el['directory']['base_path']]);
-            
-            optionMapping[el['directory']['base_path']] = [['---', '']];
+    // let directory = [];            
+    // let optionMapping = {};
 
-            optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
-                const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
-                return [f_path, f_path];
-            }));
-        });
+    // file_manager.forEach(el => {
+
+    //     directory.push([el['directory']['name'], el['directory']['base_path']]);
+
+    //     optionMapping[el['directory']['base_path']] = [['---', '']];
+
+    //     optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
+    //         const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+    //         return [f_path, f_path];
+    //     }));
+    // });
+
+//===========================================================================================================
+// MIA FUNZIONE ATTUALE CHE NON FILTRA IN BASE ALLE CARTELLE MA RESTITUISCE IL CONTENUTO DI TUTTE LE CARTELLE PRESENTI (PER ORA SOLO "user_uploads")
+
+    // queste 2 liste sono hardocate perche i modelli sono in python
+    // TODO: creare un modello in js che aggiorna le liste autonomamente in caso di modifiche
+    const dataFrameExtensions = ['csv', 'json'];
+    const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
+
+    let files_for_dataframe_creation = []
+    let files_for_RAG_upload= []
+
+    file_manager.forEach(el => {
+        el['content'].map(f => {
+            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+            const extension = f_path.split('.').pop().toLowerCase();
+
+            if (dataFrameExtensions.includes(extension)){
+                // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
+                files_for_dataframe_creation.push([f_path, f['path']])
+            };
+
+            if (ragExtensions.includes(extension)){
+                // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
+                files_for_RAG_upload.push([f_path, f['path']])
+            };
+
+        })
+    })
 
 //===========================================================================================================
 
@@ -1611,7 +1640,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_get_xgb_models_info",
             "tooltip": "Returns each model infos as a list of dictionary",
             "helpUrl": "",
-            "message0": "Get the list of available xgb models ",
+            "message0": "Available xgb models ",
             "output": "Array",
             "colour": "#ec8dc6"
         },
@@ -1619,7 +1648,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_get_log",
             "tooltip": "Returns the training log of the specific model selected as a dictionary.",
             "helpUrl": "",
-            "message0": "Get %1 XGB model logs ",
+            "message0": "%1 XGB model logs ",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1634,7 +1663,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_xgb_state_list",
             "tooltip": "Attribute state from Bianconiglio ML model",
             "helpUrl": "",
-            "message0": "Xgb Models states: %1",
+            "message0": "Possible Xgb Models states: %1",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1647,26 +1676,43 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         },
         {
             "type": "bianconiglio_load_dataframe",
-            "message0": "From dir: %1 create a dataframe with file: %2",
+            "message0": "Create a dataframe with file: %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "directory",
-                    "options": directory
-                },
-                {
-                    "type": "field_dependent_dropdown",
-                    "name": "filepath",
-                    "parentName": "directory",
-                    "optionMapping": optionMapping,
-                    "defaultOptions": [['---', '']],
-                }
+                    "options": files_for_dataframe_creation
+                },    
             ],
-            "output": "DataFrame",
+            "previousStatement": null,
+            "nextStatement": null,
             "colour": "#ec8dc6",
-            "tooltip": "Load dataframe locally",
+            "tooltip": "create a dataframe with the selected input file",
             "helpUrl": ""
         },
+        // blocco con filtro su piu cartelle
+        // {
+        //     "type": "bianconiglio_load_dataframe",
+        //     "message0": "From dir: %1 create a dataframe with file: %2",
+        //     "args0": [
+        //         {
+        //             "type": "field_dropdown",
+        //             "name": "directory",
+        //             "options": directory
+        //         },
+        //         {
+        //             "type": "field_dependent_dropdown",
+        //             "name": "filepath",
+        //             "parentName": "directory",
+        //             "optionMapping": optionMapping,
+        //             "defaultOptions": [['---', '']],
+        //         }
+        //     ],
+        //     "output": "DataFrame",
+        //     "colour": "#ec8dc6",
+        //     "tooltip": "Load dataframe locally",
+        //     "helpUrl": ""
+        // },
         {
             "type": "bianconiglio_stream_chat_with_rag",
             "message0": "Send message: %1 to Chord_b-RAG-Agent",
@@ -1682,22 +1728,15 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "tooltip": "Invia il testo digitato al chord_b-RAG_Agent e restituisce la risposta.",
             "helpUrl": ""
         },
-        {
+         {
             "type": "bianconiglio_RAG_upload_file",
-            "message0": " From dir: %1 upload file: %2",
+            "message0": "Upload file: %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "directory",
-                    "options": directory
-                },
-                {
-                    "type": "field_dependent_dropdown",
-                    "name": "filepath",
-                    "parentName": "directory",
-                    "optionMapping": optionMapping,
-                    "defaultOptions": [['---', '']],
-                }
+                    "options": files_for_RAG_upload
+                },    
             ],
             "previousStatement": null,
             "nextStatement": null,
@@ -1705,6 +1744,30 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "tooltip": "Upload files into chord",
             "helpUrl": ""
         },
+        // blocco con filtro su piu cartelle
+        // {
+        //     "type": "bianconiglio_RAG_upload_file",
+        //     "message0": " From dir: %1 upload file: %2",
+        //     "args0": [
+        //         {
+        //             "type": "field_dropdown",
+        //             "name": "directory",
+        //             "options": directory
+        //         },
+        //         {
+        //             "type": "field_dependent_dropdown",
+        //             "name": "filepath",
+        //             "parentName": "directory",
+        //             "optionMapping": optionMapping,
+        //             "defaultOptions": [['---', '']],
+        //         }
+        //     ],
+        //     "previousStatement": null,
+        //     "nextStatement": null,
+        //     "colour": "#ec8dc6",
+        //     "tooltip": "Upload files into chord",
+        //     "helpUrl": ""
+        // },
         {
             "type": "bianconiglio_RAG_execute",
             "message0": "Execute chord rag",
@@ -1718,7 +1781,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "type": "bianconiglio_RAG_agent_state_list",
             "tooltip": "Attribute state from Bianconiglio ML model",
             "helpUrl": "",
-            "message0": "RAG Agents states: %1",
+            "message0": "Possible contexts states: %1",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1744,6 +1807,14 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         //     "output": "Dictionary",
         //     "colour": "#ec8dc6"
         // },
+        {
+            "type": "bianconiglio_get_context_state",
+            "tooltip": "Returns the state of the current context",
+            "helpUrl": "",
+            "message0": "current context state",
+            "output": "String",
+            "colour": "#ec8dc6"
+        }
         // {
         //     "type": "bianconiglio_get_RAG_agents_info",
         //     "tooltip": "Returns each RAG agent infos as a list of dictionary",
@@ -2122,6 +2193,12 @@ def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
         return None
     
     return bianconiglio.RAG_execute()
+
+def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
+    if not bianconiglio:
+        return []
+
+    return bianconiglio.get_context_state()
 
 # def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
 #     if not bianconiglio:
@@ -2808,7 +2885,14 @@ function defineBianconiglioGenerators() {
     //     const code = `bianconiglio_get_RAG_agents_info(bianconiglio)`;
     //     return [code, python.Order.ATOMIC];
     // };
+    
 
+    python.pythonGenerator.forBlock["bianconiglio_get_context_state"] = function (block, generator) {
+
+        const code = `bianconiglio_get_context_state(bianconiglio)`;
+        return [code, python.Order.ATOMIC];
+    };
+    
     python.pythonGenerator.forBlock["bianconiglio_RAG_agent_state_list"] = function (block, generator) {
         const state = block.getFieldValue('state');
         const code = `RAGAgentState("${state}").value`;

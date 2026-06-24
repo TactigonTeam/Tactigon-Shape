@@ -131,3 +131,27 @@ class BianconiglioChatResponse:
         return {
             "message": self.message
         }
+    
+@dataclass
+class ChordContext:
+    context_id: str
+    user_id: str
+    message: str
+    status: str
+
+    @classmethod
+    def FromJSON(cls, data: dict):
+        return cls(
+            context_id=data.get("context_id", ""),
+            user_id=data.get("user_id", ""),
+            message=data.get("message", ""),
+            status=data.get("status", "")
+        )
+
+    def toJSON(self) -> dict:
+        return {
+            "context_id": self.context_id,
+            "user_id": self.user_id,
+            "message": self.message,
+            "status": self.status
+        }

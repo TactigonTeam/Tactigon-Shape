@@ -108,12 +108,38 @@
     "id": "f2bae8a9539543e0b424de648995af40",
     "name": "chat",
     "created_on": "2026-06-23T15:22:15.123727",
-    "modified_on": "2026-06-24T10:36:55.302429",
+    "modified_on": "2026-06-24T14:48:43.178818",
     "description": "",
     "readonly": false,
     "ginos_config": null,
     "ros2_config": {
       "node_name": "chat",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "9f4820edd3334b6491bc2c70111752b7",
+    "name": "context_id_prova",
+    "created_on": "2026-06-24T16:14:23.512184",
+    "modified_on": "2026-06-24T16:22:38.371785",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "context_id_prova",
       "publishers": [],
       "subscriptions": []
     },

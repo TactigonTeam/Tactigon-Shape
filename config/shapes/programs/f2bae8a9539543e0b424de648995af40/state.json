@@ -43,6 +43,15 @@
                         }
                       }
                     }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "bianconiglio_RAG_upload_file",
+                      "id": "pYbeq:HG0#?tK5Pq5WKW",
+                      "fields": {
+                        "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/viti_dbtool.json"
+                      }
+                    }
                   }
                 }
               }
