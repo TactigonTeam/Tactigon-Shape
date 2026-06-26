@@ -5,6 +5,11 @@
       "item_type": "directory",
       "name": "user_uploads",
       "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads"
+    },
+    {
+      "item_type": "directory",
+      "name": "Dataframes",
+      "base_path": "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes"
     }
   ]
 }

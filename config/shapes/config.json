@@ -131,15 +131,15 @@
     }
   },
   {
-    "id": "9f4820edd3334b6491bc2c70111752b7",
-    "name": "context_id_prova",
-    "created_on": "2026-06-24T16:14:23.512184",
-    "modified_on": "2026-06-25T14:24:20.294460",
+    "id": "fd63b0d4a5e94475a7aa82cef3c4757b",
+    "name": "final Bianconiglio ML Workflow",
+    "created_on": "2026-06-26T10:00:57.369268",
+    "modified_on": "2026-06-26T11:24:31.870581",
     "description": "",
     "readonly": false,
     "ginos_config": null,
     "ros2_config": {
-      "node_name": "context_id_prova",
+      "node_name": "final Bianconiglio ML Workflow",
       "publishers": [],
       "subscriptions": []
     },
@@ -157,15 +157,15 @@
     }
   },
   {
-    "id": "85700ae03eab40d9811635e454e78b95",
-    "name": "prova nuova chat",
-    "created_on": "2026-06-25T12:03:50.179761",
-    "modified_on": "2026-06-25T14:10:20.328003",
+    "id": "30db288f23574fa785802134780380c2",
+    "name": "final Bianconiglio RAG agent workflow",
+    "created_on": "2026-06-26T10:35:17.336233",
+    "modified_on": "2026-06-26T10:47:11.934681",
     "description": "",
     "readonly": false,
     "ginos_config": null,
     "ros2_config": {
-      "node_name": "prova nuova chat",
+      "node_name": "final Bianconiglio RAG agent workflow",
       "publishers": [],
       "subscriptions": []
     },

@@ -1,0 +1,344 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "#3FK2~7{_tvC9QqW~xGy",
+        "x": 170,
+        "y": 10,
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "bianconiglio_train",
+              "id": "Uu7dQ^KRQ$N#j)9{umtY",
+              "inputs": {
+                "data": {
+                  "block": {
+                    "type": "bianconiglio_load_dataframe",
+                    "id": "-8z`RwrW;^!FAY-B}e]D",
+                    "fields": {
+                      "directory": "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes",
+                      "filepath": "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes/train_data.json"
+                    }
+                  }
+                },
+                "features": {
+                  "block": {
+                    "type": "lists_split",
+                    "id": "]aTAt9YPixo0WkVn#KeP",
+                    "fields": {
+                      "MODE": "SPLIT"
+                    },
+                    "inputs": {
+                      "INPUT": {
+                        "block": {
+                          "type": "text",
+                          "id": "_xr=eD4M#7Yev0Onu8pF",
+                          "fields": {
+                            "TEXT": "gesture, zone, object_detected,object, object_class, gesture_confidence, robot_state, gripper_state, target_zone"
+                          }
+                        }
+                      },
+                      "DELIM": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "wZ72y6P*1^~bnK%{B2kF",
+                          "fields": {
+                            "TEXT": ","
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "targets": {
+                  "block": {
+                    "type": "lists_split",
+                    "id": "jA_)LE5jRgA,J=X2yri8",
+                    "fields": {
+                      "MODE": "SPLIT"
+                    },
+                    "inputs": {
+                      "INPUT": {
+                        "block": {
+                          "type": "text",
+                          "id": "}JY`vm7rsS:gj7QZU,!]",
+                          "fields": {
+                            "TEXT": " risk_level, priority, action"
+                          }
+                        }
+                      },
+                      "DELIM": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "WGAV-3GFx1WGDQ]BD9^$",
+                          "fields": {
+                            "TEXT": ","
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "model_description": {
+                  "block": {
+                    "type": "text",
+                    "id": "n2Q*s)0MG5X!Rh@(-}oD",
+                    "fields": {
+                      "TEXT": "train description"
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "bianconiglio_get_xgb_models_info",
+                  "id": "|GUAv`9hIbT!GFDe5cKr",
+                  "next": {
+                    "block": {
+                      "type": "bianconiglio_retrain",
+                      "id": "iA[EeG%VgGsz5|`$!LTm",
+                      "fields": {
+                        "model": "---"
+                      },
+                      "inputs": {
+                        "data": {
+                          "block": {
+                            "type": "bianconiglio_load_dataframe",
+                            "id": "?5XBoA?n$1}~M%Rf]Dzk",
+                            "fields": {
+                              "directory": "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes",
+                              "filepath": "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes/train_data.json"
+                            }
+                          }
+                        },
+                        "features": {
+                          "block": {
+                            "type": "lists_split",
+                            "id": "*GB]Zy0v9O$KrhBcC0bL",
+                            "fields": {
+                              "MODE": "SPLIT"
+                            },
+                            "inputs": {
+                              "INPUT": {
+                                "block": {
+                                  "type": "text",
+                                  "id": "IS6?c(E:PhP$Fmo~*{f^",
+                                  "fields": {
+                                    "TEXT": "gesture, zone, object_detected,object, object_class, gesture_confidence, robot_state, gripper_state, target_zone"
+                                  }
+                                }
+                              },
+                              "DELIM": {
+                                "shadow": {
+                                  "type": "text",
+                                  "id": "7f9._vsz3Ah9Q`8os$D%",
+                                  "fields": {
+                                    "TEXT": ","
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "targets": {
+                          "block": {
+                            "type": "lists_split",
+                            "id": "@0}xzVTcc?@*|!SgVeI;",
+                            "fields": {
+                              "MODE": "SPLIT"
+                            },
+                            "inputs": {
+                              "INPUT": {
+                                "block": {
+                                  "type": "text",
+                                  "id": "~APi=aX/=CHxGpmcxLNy",
+                                  "fields": {
+                                    "TEXT": " risk_level, priority, action"
+                                  }
+                                }
+                              },
+                              "DELIM": {
+                                "shadow": {
+                                  "type": "text",
+                                  "id": "E%J@RI![f9#b[Hj;dxfl",
+                                  "fields": {
+                                    "TEXT": ","
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "model_description": {
+                          "block": {
+                            "type": "text",
+                            "id": "nS,C@em{-|Zo/!1:q0k]",
+                            "fields": {
+                              "TEXT": "retrain description"
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "bianconiglio_get_xgb_models_info",
+                          "id": "Sqqn$u`ty,01.Oc)DC@H",
+                          "next": {
+                            "block": {
+                              "type": "bianconiglio_predict",
+                              "id": "!9@|FEgY:UELo,o=Si/j",
+                              "fields": {
+                                "model": "---"
+                              },
+                              "inputs": {
+                                "data": {
+                                  "block": {
+                                    "type": "bianconiglio_load_dataframe",
+                                    "id": "kyV5zL/3rL1Ij{m?z}yn",
+                                    "fields": {
+                                      "directory": "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes",
+                                      "filepath": "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes/predict_data.json"
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "bianconiglio_get_xgb_models_info",
+                                  "id": "2R5w0}%cU*_k.`R(:JUC",
+                                  "next": {
+                                    "block": {
+                                      "type": "tactigon_shape_debug",
+                                      "id": ")+UGnK8MQ@)e7ER^hqCH",
+                                      "inputs": {
+                                        "TEXT": {
+                                          "shadow": {
+                                            "type": "text",
+                                            "id": "vGW:|=.VaV7{p`b0?JIh",
+                                            "fields": {
+                                              "TEXT": "Message"
+                                            }
+                                          },
+                                          "block": {
+                                            "type": "bianconiglio_get_xgb_model_state",
+                                            "id": "#VX_sq7SaOKA3!ZL-X[4",
+                                            "fields": {
+                                              "model": "---"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "tactigon_shape_debug",
+                                          "id": "O2)hIK5P:|HC+v,TL=B3",
+                                          "inputs": {
+                                            "TEXT": {
+                                              "shadow": {
+                                                "type": "text",
+                                                "id": "8rK%2)jodxVJE):XCGzq",
+                                                "fields": {
+                                                  "TEXT": "Tactigon"
+                                                }
+                                              },
+                                              "block": {
+                                                "type": "bianconiglio_get_log",
+                                                "id": "1:5KF7;PY*$uW*?2WwQ_",
+                                                "fields": {
+                                                  "model": "---"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "controls_if",
+                                              "id": "FRqh*d^CjQZ:30}Cti$S",
+                                              "inputs": {
+                                                "IF0": {
+                                                  "block": {
+                                                    "type": "logic_compare",
+                                                    "id": "y_Iis:_F~[/S1Lzp8`X:",
+                                                    "fields": {
+                                                      "OP": "EQ"
+                                                    },
+                                                    "inputs": {
+                                                      "A": {
+                                                        "block": {
+                                                          "type": "bianconiglio_get_xgb_model_state",
+                                                          "id": "N#jFx]/(1b#lR!VS^{NL",
+                                                          "fields": {
+                                                            "model": "---"
+                                                          }
+                                                        }
+                                                      },
+                                                      "B": {
+                                                        "block": {
+                                                          "type": "bianconiglio_xgb_state_list",
+                                                          "id": "?{4;ls#8VS$@jo,8FSSr",
+                                                          "fields": {
+                                                            "state": "READY_TO_PREDICT"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "DO0": {
+                                                  "block": {
+                                                    "type": "tactigon_shape_debug",
+                                                    "id": "/^2UvDUl0fv`afTQwAq!",
+                                                    "inputs": {
+                                                      "TEXT": {
+                                                        "shadow": {
+                                                          "type": "text",
+                                                          "id": ")F7xD,NonZk)8g$ydAF_",
+                                                          "fields": {
+                                                            "TEXT": "debug check blocco stato"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "u5eqmohTol!*W.zmY^jS",
+        "x": -130,
+        "y": 10,
+        "deletable": false
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "Y`?0?L[X-Muz}VUM!diK",
+        "x": -110,
+        "y": 190,
+        "deletable": false
+      }
+    ]
+  }
+}

@@ -338,11 +338,29 @@ def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: s
 
     return bianconiglio.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
-    if not bianconiglio:
-        return None
+# def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
+#    if not bianconiglio:
+#        return None
+#
+#    return bianconiglio.get_dataframe(file_path)
 
-    return bianconiglio.get_dataframe(file_path)
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
+    if not bianconiglio:
+        return False
+
+    return bianconiglio.load_dataframe(os.path.join(directory, file_path))
+
+# def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
+#    if not bianconiglio:
+#        return None
+#
+#    return bianconiglio.upload_document(file_path)
+
+def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
+    if not bianconiglio:
+        return False
+
+    return bianconiglio.upload_document(os.path.join(directory, file_path))
 
 def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
     if not bianconiglio:
@@ -350,12 +368,6 @@ def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None
         return None
 
     return bianconiglio.stream_chat_with_rag(user_input)
-
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
-    if not bianconiglio:
-        return None
-
-    return bianconiglio.upload_document(file_path)
 
 def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
@@ -367,48 +379,9 @@ def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
-    return bianconiglio.get_context_state()
-
-# def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
-#     if not bianconiglio:
-#         return None
-
-#     return bianconiglio.get_RAG_agent_state(agent_id)
-
-# def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
-#     if not bianconiglio:
-#        return []
-
-#     return bianconiglio.get_RAG_agents_info()
-
-        
+    return bianconiglio.get_context_state()     
 
 # ---------- Generated code ---------------
-
-count = None
-state = None
-state_check = None
-
-
-def tactigon_shape_setup(
-        tskin: TSkin,
-        keyboard: KeyboardController,
-        braccio: BraccioInterface | None,
-        zion: ZionInterface | None,
-        ros2: Ros2Interface | None,
-        ironboy: IronBoyInterface | None,
-        ginos: GinosInterface | None,
-        mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
-        logging_queue: LoggingQueue):
-
-    global state, count, state_check
-    bianconiglio_RAG_upload_file(bianconiglio, "null")
-    debug(logging_queue, bianconiglio_get_context_state(bianconiglio))
-    bianconiglio_RAG_upload_file(bianconiglio, "null")
-    state = bianconiglio_get_context_state(bianconiglio)
-    count = 0
-    state_check = RAGAgentState("IDLE").value
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -422,15 +395,33 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global state, count, state_check
     gesture = tskin.gesture
     touch = tskin.touch
-    if count == 0:
-        if state == state_check:
-            debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "'voglio creare dei bulloni lunghi 10cm con la testa di 2cm'"))
-        count = 1
-
+    pass
     return True
+
+def tactigon_shape_setup(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
+
+    bianconiglio_train(bianconiglio, 'train description', bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes", "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes/train_data.json"), ('gesture, zone, object_detected,object, object_class, gesture_confidence, robot_state, gripper_state, target_zone'.split(',')), (' risk_level, priority, action'.split(',')))
+    bianconiglio_get_xgb_models_info(bianconiglio)
+    bianconiglio_retrain(bianconiglio, '---', 'retrain description', bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes", "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes/train_data.json"), ('gesture, zone, object_detected,object, object_class, gesture_confidence, robot_state, gripper_state, target_zone'.split(',')), (' risk_level, priority, action'.split(',')))
+    bianconiglio_get_xgb_models_info(bianconiglio)
+    bianconiglio_predict(bianconiglio, '---', bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes", "/home/robot/projects/tactigon/Tactigon-Shape/Dataframes/predict_data.json"))
+    bianconiglio_get_xgb_models_info(bianconiglio)
+    debug(logging_queue, bianconiglio_get_xgb_model_state(bianconiglio, "---"))
+    debug(logging_queue, bianconiglio_get_log(bianconiglio, "null"))
+    if bianconiglio_get_xgb_model_state(bianconiglio, "---") == XgbModelState(bianconiglio, "READY_TO_PREDICT").value:
+        debug(logging_queue, 'debug check blocco stato')
 
 def tactigon_shape_close(
         tskin: TSkin,
@@ -444,5 +435,4 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global state, count, state_check
     pass

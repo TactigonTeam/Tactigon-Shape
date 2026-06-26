@@ -4,75 +4,79 @@
     "blocks": [
       {
         "type": "tactigon_shape_setup",
-        "id": "G`xde{DXE,B%=~$odrR3",
-        "x": 70,
+        "id": "X]m($9U1l{qk`Jy;oJ0z",
+        "x": 90,
         "y": 10,
         "deletable": false,
         "inputs": {
           "setup_code": {
             "block": {
               "type": "bianconiglio_RAG_upload_file",
-              "id": "rWl*LxR[QP;xx(h351Lj",
+              "id": "kjE|lDE?9X3.3A:#3-c+",
               "fields": {
-                "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/viti_dbtool.json"
+                "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                "filepath": ""
               },
               "next": {
                 "block": {
                   "type": "tactigon_shape_debug",
-                  "id": "SoEy=^#ANaTK%fdWA792",
+                  "id": "iw8@fKFK2|$i!kIvwl8u",
                   "inputs": {
                     "TEXT": {
                       "shadow": {
                         "type": "text",
-                        "id": "mf~lkj*@ETT3)praGjcJ",
+                        "id": "GDBZw1h]RDfycTY2{5lo",
                         "fields": {
                           "TEXT": "Message"
                         }
                       },
                       "block": {
                         "type": "bianconiglio_get_context_state",
-                        "id": "%uDti^X-+hB0wi%3{/W;"
+                        "id": "),Gx1WUSOaVHTeHZK/A@"
                       }
                     }
                   },
                   "next": {
                     "block": {
                       "type": "bianconiglio_RAG_upload_file",
-                      "id": "a|E`Xs{s6HPvY}VkLRPC",
+                      "id": "0B~c^afE}8BqLnj#d__e",
                       "fields": {
-                        "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/agent_full.md"
+                        "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                        "filepath": ""
                       },
                       "next": {
                         "block": {
-                          "type": "variables_set",
-                          "id": "U^)D5M5sRyQc;_esaox;",
-                          "fields": {
-                            "VAR": {
-                              "id": "qE#k|d`+^vc/.c+RDdoo"
-                            }
-                          },
+                          "type": "tactigon_shape_debug",
+                          "id": "]QEn`MlRs.7meB#cBc2i",
                           "inputs": {
-                            "VALUE": {
+                            "TEXT": {
+                              "shadow": {
+                                "type": "text",
+                                "id": "di(TOP+LBZI#/LOm!W(y",
+                                "fields": {
+                                  "TEXT": "Tactigon"
+                                }
+                              },
                               "block": {
                                 "type": "bianconiglio_get_context_state",
-                                "id": "wB1Z-:c*jhwv~%~}?7fI"
+                                "id": "~D),8`oVh%S}hD3A$EHi"
                               }
                             }
                           },
                           "next": {
                             "block": {
                               "type": "variables_set",
-                              "id": "m[O;ycf6DsBN/2PRz=O,",
+                              "id": "Go~}2?1P,63f#2{@pImn",
                               "fields": {
                                 "VAR": {
-                                  "id": "F$U:MfD!LCL$L^wfsy7A"
+                                  "id": "nBGzDIy*c^uMB|xPn6Wf"
                                 }
                               },
                               "inputs": {
                                 "VALUE": {
                                   "block": {
                                     "type": "math_number",
-                                    "id": ".#bY;r*E2v(?)m7p4Hh_",
+                                    "id": "hKxkOaqtq_/|Q-05s4hj",
                                     "fields": {
                                       "NUM": 0
                                     }
@@ -82,17 +86,17 @@
                               "next": {
                                 "block": {
                                   "type": "variables_set",
-                                  "id": "%e6JJ)`H`t[,(0iTYgwQ",
+                                  "id": "JT;@/6P?492*:e;-O[z~",
                                   "fields": {
                                     "VAR": {
-                                      "id": "(Y/wf,$kM5GRFP79ClMS"
+                                      "id": "4+#=X-O]c/^I0^+ol@!j"
                                     }
                                   },
                                   "inputs": {
                                     "VALUE": {
                                       "block": {
                                         "type": "bianconiglio_RAG_agent_state_list",
-                                        "id": "Sq5D(l`oe1?0wkU/O=#n",
+                                        "id": "Gr2i%p5r:r$~}LJV$Kd7",
                                         "fields": {
                                           "state": "IDLE"
                                         }
@@ -115,20 +119,20 @@
       },
       {
         "type": "tactigon_shape_function",
-        "id": "SoOZ|p?AiALF(_ZNB#hr",
-        "x": 70,
+        "id": "~3(QfVWm-5h.~VsXiQ1]",
+        "x": 90,
         "y": 210,
         "deletable": false,
         "inputs": {
           "BODY": {
             "block": {
               "type": "controls_if",
-              "id": "nEj{my:IsCtQai(CKz@,",
+              "id": "Dygkx-6Oe(#fDxp5K#fG",
               "inputs": {
                 "IF0": {
                   "block": {
                     "type": "logic_compare",
-                    "id": "m_@*nHot}[jQ@B3dQ3Kj",
+                    "id": "N_aJbf+YrHBUqvltcywB",
                     "fields": {
                       "OP": "EQ"
                     },
@@ -136,10 +140,10 @@
                       "A": {
                         "block": {
                           "type": "variables_get",
-                          "id": "#[tF],|Fmi!nm(!^_m[9",
+                          "id": "zX3of8O#5,|TS2M0Y/lF",
                           "fields": {
                             "VAR": {
-                              "id": "F$U:MfD!LCL$L^wfsy7A"
+                              "id": "nBGzDIy*c^uMB|xPn6Wf"
                             }
                           }
                         }
@@ -147,7 +151,7 @@
                       "B": {
                         "block": {
                           "type": "math_number",
-                          "id": "F|WMu|J2HTC#-lolpO5Q",
+                          "id": "FbRzJ4nLm6~S*he;s1yY",
                           "fields": {
                             "NUM": 0
                           }
@@ -159,35 +163,28 @@
                 "DO0": {
                   "block": {
                     "type": "controls_if",
-                    "id": "ivu/WXcx%4Q*EuwBI-,`",
+                    "id": "@TM_,yNqR-2F-EVHSF0y",
                     "inputs": {
                       "IF0": {
                         "block": {
                           "type": "logic_compare",
-                          "id": "F^ABRqn?0{6mABH/?!^-",
+                          "id": "`LbB#p?$Q^2-6[#Vl3s5",
                           "fields": {
                             "OP": "EQ"
                           },
                           "inputs": {
                             "A": {
                               "block": {
-                                "type": "variables_get",
-                                "id": "N~c7$U2B{N[i2iIn~G)/",
-                                "fields": {
-                                  "VAR": {
-                                    "id": "qE#k|d`+^vc/.c+RDdoo"
-                                  }
-                                }
+                                "type": "bianconiglio_get_context_state",
+                                "id": "yrmOjLKWZgkubCb(1Y}G"
                               }
                             },
                             "B": {
                               "block": {
-                                "type": "variables_get",
-                                "id": "sz#:epGN76Gipl@RJ?wQ",
+                                "type": "bianconiglio_RAG_agent_state_list",
+                                "id": "Q/WJ/B99S(IqPVr-1Xv?",
                                 "fields": {
-                                  "VAR": {
-                                    "id": "(Y/wf,$kM5GRFP79ClMS"
-                                  }
+                                  "state": "IDLE"
                                 }
                               }
                             }
@@ -197,52 +194,52 @@
                       "DO0": {
                         "block": {
                           "type": "tactigon_shape_debug",
-                          "id": "BzhvEi$r=i;`+qb8_,Z@",
+                          "id": "ch!(akUP5O4)!(+.Nyj2",
                           "inputs": {
                             "TEXT": {
                               "shadow": {
                                 "type": "text",
-                                "id": "owBZK~^+]0WUO^xZO]74",
+                                "id": "U$(QQgg:H5(AN^gr8J2!",
                                 "fields": {
                                   "TEXT": "Message"
                                 }
                               },
                               "block": {
                                 "type": "bianconiglio_stream_chat_with_rag",
-                                "id": ")ZBdnD3x)0cPU{-Bw.cZ",
+                                "id": "@am{mXK=o65FB1,-H[85",
                                 "inputs": {
                                   "user_input": {
                                     "block": {
                                       "type": "text",
-                                      "id": "~2a0{{!e#Q`taxGf|z[9",
+                                      "id": "Mihb,x~(GV98S9j]?c0G",
                                       "fields": {
-                                        "TEXT": "voglio creare dei bulloni lunghi 10cm con la testa di 2cm"
+                                        "TEXT": "ciao rag"
                                       }
                                     }
                                   }
                                 }
                               }
                             }
-                          }
-                        }
-                      }
-                    },
-                    "next": {
-                      "block": {
-                        "type": "variables_set",
-                        "id": "nB7lW4ORhr[kAz4!c{/3",
-                        "fields": {
-                          "VAR": {
-                            "id": "F$U:MfD!LCL$L^wfsy7A"
-                          }
-                        },
-                        "inputs": {
-                          "VALUE": {
+                          },
+                          "next": {
                             "block": {
-                              "type": "math_number",
-                              "id": "dgEHm/Q.Jdy*w.A@4|Zy",
+                              "type": "variables_set",
+                              "id": "mYShez!EBqhl`wJ84J!/",
                               "fields": {
-                                "NUM": 1
+                                "VAR": {
+                                  "id": "nBGzDIy*c^uMB|xPn6Wf"
+                                }
+                              },
+                              "inputs": {
+                                "VALUE": {
+                                  "block": {
+                                    "type": "math_number",
+                                    "id": "5iFAATIY6_Dpz*eN+IXW",
+                                    "fields": {
+                                      "NUM": 1
+                                    }
+                                  }
+                                }
                               }
                             }
                           }
@@ -258,25 +255,21 @@
       },
       {
         "type": "tactigon_shape_close",
-        "id": "^l2hkTFo=Px2a(M/`LaF",
-        "x": 50,
-        "y": 470,
+        "id": "32_ptP0tAZC-9JGsT^?6",
+        "x": -10,
+        "y": 30,
         "deletable": false
       }
     ]
   },
   "variables": [
     {
-      "name": "state",
-      "id": "qE#k|d`+^vc/.c+RDdoo"
+      "name": "counter",
+      "id": "nBGzDIy*c^uMB|xPn6Wf"
     },
     {
-      "name": "count",
-      "id": "F$U:MfD!LCL$L^wfsy7A"
-    },
-    {
-      "name": "state_check",
-      "id": "(Y/wf,$kM5GRFP79ClMS"
+      "name": "states",
+      "id": "4+#=X-O]c/^I0^+ol@!j"
     }
   ]
 }

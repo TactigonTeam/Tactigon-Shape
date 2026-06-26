@@ -338,11 +338,29 @@ def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: s
 
     return bianconiglio.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
-    if not bianconiglio:
-        return None
+# def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
+#    if not bianconiglio:
+#        return None
+#
+#    return bianconiglio.get_dataframe(file_path)
 
-    return bianconiglio.get_dataframe(file_path)
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
+    if not bianconiglio:
+        return False
+
+    return bianconiglio.load_dataframe(os.path.join(directory, file_path))
+
+# def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
+#    if not bianconiglio:
+#        return None
+#
+#    return bianconiglio.upload_document(file_path)
+
+def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
+    if not bianconiglio:
+        return False
+
+    return bianconiglio.upload_document(os.path.join(directory, file_path))
 
 def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
     if not bianconiglio:
@@ -350,12 +368,6 @@ def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None
         return None
 
     return bianconiglio.stream_chat_with_rag(user_input)
-
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
-    if not bianconiglio:
-        return None
-
-    return bianconiglio.upload_document(file_path)
 
 def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
@@ -367,25 +379,12 @@ def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
-    return bianconiglio.get_context_state()
-
-# def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
-#     if not bianconiglio:
-#         return None
-
-#     return bianconiglio.get_RAG_agent_state(agent_id)
-
-# def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
-#     if not bianconiglio:
-#        return []
-
-#     return bianconiglio.get_RAG_agents_info()
-
-        
+    return bianconiglio.get_context_state()     
 
 # ---------- Generated code ---------------
 
-state = None
+counter = None
+states = None
 
 
 def tactigon_shape_setup(
@@ -400,28 +399,13 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global state
-    bianconiglio_RAG_upload_file(bianconiglio, "null")
-    state = bianconiglio_get_context_state(bianconiglio)
-    debug(logging_queue, state)
-
-def tactigon_shape_function(
-        tskin: TSkin,
-        keyboard: KeyboardController,
-        braccio: BraccioInterface | None,
-        zion: ZionInterface | None,
-        ros2: Ros2Interface | None,
-        ironboy: IronBoyInterface | None,
-        ginos: GinosInterface | None,
-        mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
-        logging_queue: LoggingQueue):
-
-    global state
-    gesture = tskin.gesture
-    touch = tskin.touch
-    pass
-    return True
+    global counter, states
+    bianconiglio_RAG_upload_file(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads", "")
+    debug(logging_queue, bianconiglio_get_context_state(bianconiglio))
+    bianconiglio_RAG_upload_file(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads", "")
+    debug(logging_queue, bianconiglio_get_context_state(bianconiglio))
+    counter = 0
+    states = RAGAgentState("IDLE").value
 
 def tactigon_shape_close(
         tskin: TSkin,
@@ -435,5 +419,26 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global state
+    global counter, states
     pass
+def tactigon_shape_function(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
+
+    global counter, states
+    gesture = tskin.gesture
+    touch = tskin.touch
+    if counter == 0:
+        if bianconiglio_get_context_state(bianconiglio) == RAGAgentState("IDLE").value:
+            debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "'ciao rag'"))
+            counter = 1
+
+    return True
