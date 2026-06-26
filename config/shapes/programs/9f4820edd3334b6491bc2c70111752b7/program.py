@@ -385,6 +385,11 @@ def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
 
 # ---------- Generated code ---------------
 
+count = None
+state = None
+state_check = None
+
+
 def tactigon_shape_setup(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -397,7 +402,13 @@ def tactigon_shape_setup(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
+    global state, count, state_check
+    bianconiglio_RAG_upload_file(bianconiglio, "null")
     debug(logging_queue, bianconiglio_get_context_state(bianconiglio))
+    bianconiglio_RAG_upload_file(bianconiglio, "null")
+    state = bianconiglio_get_context_state(bianconiglio)
+    count = 0
+    state_check = RAGAgentState("IDLE").value
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -411,9 +422,14 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
+    global state, count, state_check
     gesture = tskin.gesture
     touch = tskin.touch
-    pass
+    if count == 0:
+        if state == state_check:
+            debug(logging_queue, bianconiglio_stream_chat_with_rag(bianconiglio, "'voglio creare dei bulloni lunghi 10cm con la testa di 2cm'"))
+        count = 1
+
     return True
 
 def tactigon_shape_close(
@@ -428,4 +444,5 @@ def tactigon_shape_close(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
+    global state, count, state_check
     pass

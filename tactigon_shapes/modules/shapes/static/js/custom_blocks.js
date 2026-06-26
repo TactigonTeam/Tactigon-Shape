@@ -2863,7 +2863,7 @@ function defineBianconiglioGenerators() {
 
         console.log(`path:${path} tipo path: ${typeof path})`);
         
-        const code = `bianconiglio_RAG_upload_file(bianconiglio, "${path}")`
+        const code = `bianconiglio_RAG_upload_file(bianconiglio, "${path}")\n`
         return code 
     };
 

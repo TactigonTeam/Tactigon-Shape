@@ -3,7 +3,7 @@
     "id": "3bbc7b4a2aeb4cc2a4e7efe7517a78c3",
     "name": "Powerpoint",
     "created_on": "2024-07-23T10:58:08.563701",
-    "modified_on": "2026-02-02T16:57:35.237410",
+    "modified_on": "2026-06-25T14:10:10.994010",
     "description": "",
     "readonly": true,
     "ginos_config": null,
@@ -134,12 +134,38 @@
     "id": "9f4820edd3334b6491bc2c70111752b7",
     "name": "context_id_prova",
     "created_on": "2026-06-24T16:14:23.512184",
-    "modified_on": "2026-06-24T16:22:38.371785",
+    "modified_on": "2026-06-25T14:24:20.294460",
     "description": "",
     "readonly": false,
     "ginos_config": null,
     "ros2_config": {
       "node_name": "context_id_prova",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "85700ae03eab40d9811635e454e78b95",
+    "name": "prova nuova chat",
+    "created_on": "2026-06-25T12:03:50.179761",
+    "modified_on": "2026-06-25T14:10:20.328003",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "prova nuova chat",
       "publishers": [],
       "subscriptions": []
     },

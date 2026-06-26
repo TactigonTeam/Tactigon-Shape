@@ -79,13 +79,34 @@ class RAGFileExtension(str, Enum):
     MD = "md"
     CSV = "csv"
     XLS = "xls"
-                  
+
+@dataclass
+class ChordContext:
+    context_id: str
+    user_id: str
+    status: str | None
+
+    @classmethod
+    def FromJSON(cls, data: dict):
+        return cls(
+            context_id=data.get("context_id", ""),
+            user_id=data.get("user_id", ""),
+            status=data.get("status", "")
+        )
+
+    def toJSON(self) -> dict:
+        return {
+            "context_id": self.context_id,
+            "user_id": self.user_id,
+            "status": self.status
+        }
+                      
 @dataclass
 class BianconiglioConfig:
-    url: str = "http://192.168.1.46:8000"
+    xgb_url: str = "http://192.168.1.46:8000"   # TODO: Change this to the correct URL for the xgb service
     chord_url: str = "http://llm.chords.cloud:11434" # TODO: Change this to the correct URL for the Chord service
     user: str = "default_user"
-    context: str = "default_context"
+    context: ChordContext | None = None
 
     @classmethod
     def Default(cls):
@@ -95,15 +116,18 @@ class BianconiglioConfig:
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            url=data.get("url", "http://localhost:8000"),
+            xgb_url=data.get("url", "http://localhost:8000"),
             chord_url=data.get("chord_url", "http://llm.chords.cloud:11434"),
             user=data.get("user", "default_user"),
-            context=data.get("context", "default_context")
+            #context=ChordContext.FromJSON(data.get("context", "")) or None
         )
 
     def toJSON(self) -> dict:
         return {
-            "url": self.url
+            "xgb_url": self.xgb_url,
+            "chord_url": self.chord_url,
+            "user": self.user,
+            #"context": self.context or None 
         }
 
     def is_valid(self) -> bool:
@@ -116,6 +140,7 @@ class BianconiglioChatmessage:
     message: str
     chatId: str
     userId: str
+    context: str
 
 @dataclass
 class BianconiglioChatResponse:
@@ -132,26 +157,3 @@ class BianconiglioChatResponse:
             "message": self.message
         }
     
-@dataclass
-class ChordContext:
-    context_id: str
-    user_id: str
-    message: str
-    status: str
-
-    @classmethod
-    def FromJSON(cls, data: dict):
-        return cls(
-            context_id=data.get("context_id", ""),
-            user_id=data.get("user_id", ""),
-            message=data.get("message", ""),
-            status=data.get("status", "")
-        )
-
-    def toJSON(self) -> dict:
-        return {
-            "context_id": self.context_id,
-            "user_id": self.user_id,
-            "message": self.message,
-            "status": self.status
-        }

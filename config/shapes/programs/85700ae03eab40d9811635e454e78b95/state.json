@@ -1,0 +1,90 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "vG{s.`UiHPxIqYlRWC(*",
+        "x": 30,
+        "y": 30,
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "bianconiglio_RAG_upload_file",
+              "id": "D:1P|sL:IhUK9`1JHO4e",
+              "fields": {
+                "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/agent_full.md"
+              },
+              "next": {
+                "block": {
+                  "type": "variables_set",
+                  "id": "(JoWn@u3(r|nQ0YTONjr",
+                  "fields": {
+                    "VAR": {
+                      "id": "WslByZadaQ0k4I*W5k*P"
+                    }
+                  },
+                  "inputs": {
+                    "VALUE": {
+                      "block": {
+                        "type": "bianconiglio_get_context_state",
+                        "id": "2ur)%-Il84ryIJC.3X2K"
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "tactigon_shape_debug",
+                      "id": "wG-y._.y!7K!4-JSd.zV",
+                      "inputs": {
+                        "TEXT": {
+                          "shadow": {
+                            "type": "text",
+                            "id": "cc-Dy_yASQPLN,y[P;Sv",
+                            "fields": {
+                              "TEXT": "Tactigon"
+                            }
+                          },
+                          "block": {
+                            "type": "variables_get",
+                            "id": "JplggDG}J,YZS{~~DQT3",
+                            "fields": {
+                              "VAR": {
+                                "id": "WslByZadaQ0k4I*W5k*P"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "rme)/!:XrDT:K;^x-7]]",
+        "x": 30,
+        "y": 150,
+        "deletable": false
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "_^Bg6+H3n#av=;+iT^cP",
+        "x": 30,
+        "y": 300,
+        "deletable": false
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "state",
+      "id": "WslByZadaQ0k4I*W5k*P"
+    }
+  ]
+}

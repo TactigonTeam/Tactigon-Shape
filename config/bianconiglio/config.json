@@ -4,6 +4,5 @@
     "url_luca" : "http://192.168.1.222:8080",
     "url_localhost": "http://localhost:8000",
     "url_jetson": "http://192.168.1.46:8000",
-    "userId": "default_user_id",
-    "chatId": "default_chat_id"
+    "user_id": "default_user_id"
 }

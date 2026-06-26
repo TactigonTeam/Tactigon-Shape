@@ -238,15 +238,11 @@ class ShapeThread(ExtensionThread):
     def setUp(self):
 
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
-
-        self.current_chord_context_id = None
         
         if self.bianconiglio_interface:
-            chord_context = self.bianconiglio_interface.get_context()
-            if chord_context:
-                self.current_chord_context_id = chord_context.context_id
-                
-            self._logger.info(f"Lodead CHORD_CONTEXT_ID, current ID: [{self.current_chord_context_id}]")
+            if self.bianconiglio_interface.start_context():  
+                self.chord_context_exist = True
+                self._logger.info(f"Lodead CHORD_CONTEXT")
 
         if shape_setup_fn:
             try:
@@ -311,9 +307,11 @@ class ShapeThread(ExtensionThread):
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
         
-        if self.current_chord_context_id:
-            self.current_chord_context_id = None
-            self._logger.info(f"CHORD_CONTEXT_ID discarded")
+        if self.chord_context_exist:
+            if self.bianconiglio_interface:   
+                if self.bianconiglio_interface.kill_context():
+                    self.chord_context_exist = False
+                    self._logger.info(f"CHORD_CONTEXT killed")
 
 
     def load_module(self, source: str):

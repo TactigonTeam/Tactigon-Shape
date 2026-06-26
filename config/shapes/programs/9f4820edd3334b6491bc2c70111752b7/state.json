@@ -5,26 +5,107 @@
       {
         "type": "tactigon_shape_setup",
         "id": "G`xde{DXE,B%=~$odrR3",
-        "x": 30,
-        "y": 30,
+        "x": 70,
+        "y": 10,
         "deletable": false,
         "inputs": {
           "setup_code": {
             "block": {
-              "type": "tactigon_shape_debug",
-              "id": ",se6llQFd,0LJuI_;%s7",
-              "inputs": {
-                "TEXT": {
-                  "shadow": {
-                    "type": "text",
-                    "id": "sz)6Hq4sXHUY@j(KWkPU",
-                    "fields": {
-                      "TEXT": "Tactigon"
+              "type": "bianconiglio_RAG_upload_file",
+              "id": "rWl*LxR[QP;xx(h351Lj",
+              "fields": {
+                "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/viti_dbtool.json"
+              },
+              "next": {
+                "block": {
+                  "type": "tactigon_shape_debug",
+                  "id": "SoEy=^#ANaTK%fdWA792",
+                  "inputs": {
+                    "TEXT": {
+                      "shadow": {
+                        "type": "text",
+                        "id": "mf~lkj*@ETT3)praGjcJ",
+                        "fields": {
+                          "TEXT": "Message"
+                        }
+                      },
+                      "block": {
+                        "type": "bianconiglio_get_context_state",
+                        "id": "%uDti^X-+hB0wi%3{/W;"
+                      }
                     }
                   },
-                  "block": {
-                    "type": "bianconiglio_get_context_state",
-                    "id": "=BHN9t-_2sft:JrR0^Zd"
+                  "next": {
+                    "block": {
+                      "type": "bianconiglio_RAG_upload_file",
+                      "id": "a|E`Xs{s6HPvY}VkLRPC",
+                      "fields": {
+                        "directory": "/home/robot/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/agent_full.md"
+                      },
+                      "next": {
+                        "block": {
+                          "type": "variables_set",
+                          "id": "U^)D5M5sRyQc;_esaox;",
+                          "fields": {
+                            "VAR": {
+                              "id": "qE#k|d`+^vc/.c+RDdoo"
+                            }
+                          },
+                          "inputs": {
+                            "VALUE": {
+                              "block": {
+                                "type": "bianconiglio_get_context_state",
+                                "id": "wB1Z-:c*jhwv~%~}?7fI"
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "variables_set",
+                              "id": "m[O;ycf6DsBN/2PRz=O,",
+                              "fields": {
+                                "VAR": {
+                                  "id": "F$U:MfD!LCL$L^wfsy7A"
+                                }
+                              },
+                              "inputs": {
+                                "VALUE": {
+                                  "block": {
+                                    "type": "math_number",
+                                    "id": ".#bY;r*E2v(?)m7p4Hh_",
+                                    "fields": {
+                                      "NUM": 0
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "variables_set",
+                                  "id": "%e6JJ)`H`t[,(0iTYgwQ",
+                                  "fields": {
+                                    "VAR": {
+                                      "id": "(Y/wf,$kM5GRFP79ClMS"
+                                    }
+                                  },
+                                  "inputs": {
+                                    "VALUE": {
+                                      "block": {
+                                        "type": "bianconiglio_RAG_agent_state_list",
+                                        "id": "Sq5D(l`oe1?0wkU/O=#n",
+                                        "fields": {
+                                          "state": "IDLE"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -35,17 +116,167 @@
       {
         "type": "tactigon_shape_function",
         "id": "SoOZ|p?AiALF(_ZNB#hr",
-        "x": 30,
-        "y": 150,
-        "deletable": false
+        "x": 70,
+        "y": 210,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "nEj{my:IsCtQai(CKz@,",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "logic_compare",
+                    "id": "m_@*nHot}[jQ@B3dQ3Kj",
+                    "fields": {
+                      "OP": "EQ"
+                    },
+                    "inputs": {
+                      "A": {
+                        "block": {
+                          "type": "variables_get",
+                          "id": "#[tF],|Fmi!nm(!^_m[9",
+                          "fields": {
+                            "VAR": {
+                              "id": "F$U:MfD!LCL$L^wfsy7A"
+                            }
+                          }
+                        }
+                      },
+                      "B": {
+                        "block": {
+                          "type": "math_number",
+                          "id": "F|WMu|J2HTC#-lolpO5Q",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "controls_if",
+                    "id": "ivu/WXcx%4Q*EuwBI-,`",
+                    "inputs": {
+                      "IF0": {
+                        "block": {
+                          "type": "logic_compare",
+                          "id": "F^ABRqn?0{6mABH/?!^-",
+                          "fields": {
+                            "OP": "EQ"
+                          },
+                          "inputs": {
+                            "A": {
+                              "block": {
+                                "type": "variables_get",
+                                "id": "N~c7$U2B{N[i2iIn~G)/",
+                                "fields": {
+                                  "VAR": {
+                                    "id": "qE#k|d`+^vc/.c+RDdoo"
+                                  }
+                                }
+                              }
+                            },
+                            "B": {
+                              "block": {
+                                "type": "variables_get",
+                                "id": "sz#:epGN76Gipl@RJ?wQ",
+                                "fields": {
+                                  "VAR": {
+                                    "id": "(Y/wf,$kM5GRFP79ClMS"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "DO0": {
+                        "block": {
+                          "type": "tactigon_shape_debug",
+                          "id": "BzhvEi$r=i;`+qb8_,Z@",
+                          "inputs": {
+                            "TEXT": {
+                              "shadow": {
+                                "type": "text",
+                                "id": "owBZK~^+]0WUO^xZO]74",
+                                "fields": {
+                                  "TEXT": "Message"
+                                }
+                              },
+                              "block": {
+                                "type": "bianconiglio_stream_chat_with_rag",
+                                "id": ")ZBdnD3x)0cPU{-Bw.cZ",
+                                "inputs": {
+                                  "user_input": {
+                                    "block": {
+                                      "type": "text",
+                                      "id": "~2a0{{!e#Q`taxGf|z[9",
+                                      "fields": {
+                                        "TEXT": "voglio creare dei bulloni lunghi 10cm con la testa di 2cm"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "variables_set",
+                        "id": "nB7lW4ORhr[kAz4!c{/3",
+                        "fields": {
+                          "VAR": {
+                            "id": "F$U:MfD!LCL$L^wfsy7A"
+                          }
+                        },
+                        "inputs": {
+                          "VALUE": {
+                            "block": {
+                              "type": "math_number",
+                              "id": "dgEHm/Q.Jdy*w.A@4|Zy",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       {
         "type": "tactigon_shape_close",
         "id": "^l2hkTFo=Px2a(M/`LaF",
-        "x": 30,
-        "y": 300,
+        "x": 50,
+        "y": 470,
         "deletable": false
       }
     ]
-  }
+  },
+  "variables": [
+    {
+      "name": "state",
+      "id": "qE#k|d`+^vc/.c+RDdoo"
+    },
+    {
+      "name": "count",
+      "id": "F$U:MfD!LCL$L^wfsy7A"
+    },
+    {
+      "name": "state_check",
+      "id": "(Y/wf,$kM5GRFP79ClMS"
+    }
+  ]
 }
