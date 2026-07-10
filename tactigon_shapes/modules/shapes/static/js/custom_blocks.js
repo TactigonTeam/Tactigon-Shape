@@ -1626,7 +1626,7 @@ import json
 import os
 from numbers import Number
 from datetime import datetime
-from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
+from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue, KeyboardController
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
@@ -1711,13 +1711,13 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
     debug(logging_queue, "Cannot listen...")
     return []
 
-def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
-    for k in commands:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.press(_k)
-    for k in commands[::-1]:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.release(_k)
+# def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
+#     for k in commands:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.press(_k)
+#     for k in commands[::-1]:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.release(_k)
 
 def braccio_move(braccio: BraccioInterface | None, logging_queue: LoggingQueue, x: float, y: float, z: float):
     if braccio:

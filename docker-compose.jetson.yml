@@ -1,0 +1,116 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+volumes:
+  ollama_data:
+  tactigon-config:
+  open-webui:
+
+services:
+  ollama:
+    image: ollama/ollama:0.12.10
+    container_name: ollama
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: 
+      [
+        "/bin/bash",
+        "-c",
+        "ollama serve & sleep 5 && ollama pull mistral && wait",
+      ]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep -q mistral"]
+      interval: 10s
+      timeout: 10s
+      retries: 180
+
+  tactigon-shapes:
+    # image: nextdeveloper/tactigon-shapes
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tactigon-shapes
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      ollama:
+        condition: service_healthy
+    network_mode: host
+    ipc: host
+    ports:
+      - "5123:5123"
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+      DL_AUDIODRIVER: dummy
+    volumes:
+      - tactigon-config:/app/config
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /var/run/dbus:/var/run/dbus
+
+  speech:
+    build:
+      context: ./speech
+      dockerfile: Dockerfile
+    container_name: tactigon-speech-socket
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    environment:
+      TSS_ADDRESS: 127.0.0.1
+      TSS_PORT: 50007
+      TSS_CONFIG: config.json
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: always
+    network_mode: host
+    ipc: host
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui:/app/backend/data
+
+  ros-camera-tracking:
+      build:
+        context: ./ros
+        dockerfile: nodes/camera_tracking/Dockerfile
+      container_name: ros-camera-tracking
+      restart: unless-stopped
+      network_mode: host
+      ipc: host
+      ports:
+        - "8081:8081"
+      privileged: true
+      environment:
+        - ROS_DOMAIN_ID=0
+        - SDL_AUDIODRIVER=dummy
+        - DISPLAY=${DISPLAY:-:0}
+      devices:
+        - /dev:/dev
+      volumes:
+        - /var/run/dbus:/var/run/dbus
+        - /tmp/.X11-unix:/tmp/.X11-unix
