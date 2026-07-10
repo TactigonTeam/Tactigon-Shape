@@ -8,19 +8,24 @@ import json
 import os
 from numbers import Number
 from datetime import datetime
-from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
+from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue, KeyboardController
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
-from tactigon_shapes.modules..extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
+from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
+#from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
+import rclpy
+from rclpy.node import Node
+import pandas as pd
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -88,13 +93,13 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
     debug(logging_queue, "Cannot listen...")
     return []
 
-def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
-    for k in commands:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.press(_k)
-    for k in commands[::-1]:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.release(_k)
+# def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
+#     for k in commands:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.press(_k)
+#     for k in commands[::-1]:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.release(_k)
 
 def braccio_move(braccio: BraccioInterface | None, logging_queue: LoggingQueue, x: float, y: float, z: float):
     if braccio:
@@ -262,20 +267,109 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
+def ros2_get_topics(ros2: Ros2Interface | None):
+    """
+    Returns a list of lists containing the name and the type of the active ROS2 topics.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_topics()
+    return result if result is not None else []
+
+def ros2_get_nodes(ros2: Ros2Interface | None):
+    """
+    Returns a list of strings containing the name of the active ROS2 nodes.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_nodes()
+    return result if result is not None else []
+
+def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
+    if not ros2:
+        return True # Avoid blocking if ros2 is not configured
+    return ros2.is_ros2_node_ready()
+        
+def get_marker_id(payload) -> int:
+    try:
+        _parsed_id = int(payload.get('id', -1))
+        marker_id = _parsed_id if 0 <= _parsed_id <= 999 else -1
+    except (ValueError, TypeError, AttributeError):
+        marker_id = -1
+    return marker_id
+
+
+def bianconiglio_ml_train(bianconiglio: BianconiglioInterface | None, data, features, targets):
+    if not bianconiglio:
+        return "ERROR"
+    return bianconiglio.train(data, features, targets)
+
+def bianconiglio_ml_predict(bianconiglio: BianconiglioInterface | None, data):
+    if not bianconiglio:
+        return {}
+    return bianconiglio.predict(data)
+
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None):
+    if not bianconiglio:
+        return "ERROR"
+    return bianconiglio.status()
+
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not bianconiglio:
+        return None
+
+    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
 
 # ---------- Generated code ---------------
 
-from numbers import Number
+train_dataset = None
+model_state = None
+predict_dataset = None
+features = None
+targets = None
+old_model_state = None
+train_flag = None
+predict_flag = None
+error_flag = None
 
-tap_hold = None
-tap_hold_counter = None
 
+def tactigon_shape_close(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
 
-tap_hold = False
-tap_hold_counter = 0
+    global train_dataset, predict_dataset, features, targets, train_flag, predict_flag, error_flag, model_state, old_model_state
+    pass
+def tactigon_shape_setup(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
 
-# This is the main function that runs your code. Any
-# code blocks you add to this section will be executed.
+    global train_dataset, predict_dataset, features, targets, train_flag, predict_flag, error_flag, model_state, old_model_state
+    train_dataset = bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "train_dataset.json")
+    predict_dataset = bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "predict_dataset.json")
+    features = 'gesture, zone, object_detected, object, object_class, gesture_confidence, robot_state, gripper_state, target_zone'.split(', ')
+    targets = 'action, priority, risk_level'.split(', ')
+    train_flag = False
+    predict_flag = False
+    error_flag = False
+
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -285,26 +379,26 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global tap_hold, tap_hold_counter
+    global train_dataset, predict_dataset, features, targets, train_flag, predict_flag, error_flag, model_state, old_model_state
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "TAP_AND_HOLD"):
-        if tap_hold == False:
-            tap_hold = True
-            keyboard_press(keyboard, HotKey.parse('<f5>'))
-            debug(logging_queue, 'Toggle presentation')
-    elif check_touch(touch, "SINGLE_TAP"):
-        keyboard_press(keyboard, HotKey.parse('p'))
-        debug(logging_queue, 'Prev slide')
-    else:
-        tap_hold_counter = (tap_hold_counter if isinstance(tap_hold_counter, Number) else 0) + 1
-        if tap_hold_counter >= 5:
-            tap_hold = False
-            tap_hold_counter = 0
-    if check_gesture(gesture, "twist"):
-        keyboard_press(keyboard, HotKey.parse('n'))
-        debug(logging_queue, 'Next slide')
+    model_state = bianconiglio_get_model_state(bianconiglio)
+    if model_state != old_model_state:
+        debug(logging_queue, ('CURRENT MODEL STATE: ' + str(model_state)))
+        old_model_state = model_state
+    if old_model_state == BianconiglioState("NOT_TRAINED").value:
+        if train_flag == False:
+            debug(logging_queue, bianconiglio_ml_train(bianconiglio, train_dataset, features, targets))
+            train_flag = True
+    elif old_model_state == BianconiglioState("TRAINING").value:
+        if train_flag == False:
+            debug(logging_queue, 'trainingggggggggg...')
+    elif old_model_state == BianconiglioState("READY_TO_PREDICT").value:
+        if predict_flag == False:
+            debug(logging_queue, bianconiglio_ml_predict(bianconiglio, predict_dataset))
+            predict_flag = True
 
     return True

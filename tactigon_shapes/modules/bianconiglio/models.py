@@ -21,8 +21,6 @@ from enum import Enum
 from dataclasses import dataclass
 
 class BianconiglioState(Enum):
-    BOOT = "BOOT"
-    CHECK_MODEL = "CHECK_MODEL"
     NOT_TRAINED = "NOT_TRAINED"
     TRAINING = "TRAINING"
     READY_TO_PREDICT = "READY_TO_PREDICT"
@@ -30,24 +28,63 @@ class BianconiglioState(Enum):
     FALLBACK = "FALLBACK"
     ERROR = "ERROR"
 
+@dataclass
+class ModelInfo:
+   model_id: str
+   created_on: str
+   update_on: str
+   description: str
+   features: list[str]
+   targets: list[str]
+   state: BianconiglioState
+
+   @classmethod
+   def FromJSON(cls, json: dict):
+       return cls(
+           model_id=json.get("model_id", ""),
+           created_on=json.get("created_on", ""),
+           update_on=json.get("update_on", ""),
+           description=json.get("description", ""),
+           features=json.get("description", []),
+           targets=json.get("description", []),
+           state=json.get("state", BianconiglioState.NOT_TRAINED),
+       )
+   def toJSON(self) -> dict:
+       return {
+           "model_id": self.model_id,
+           "created_on": self.created_on,
+           "update_on": self.update_on,
+           "description": self.description,
+           "features": self.features,
+           "targets": self.targets,
+           "state": self.state,
+       }
+  
+
+
 class DataFrameFileExtension(str, Enum):
     CSV = "csv"
     JSON = "json"
+                  
 @dataclass
 class BianconiglioConfig:
-    url: str = "http://192.168.1.34:8000"
-    train_endpoint: str = "/train_dataset"
-    predict_endpoint: str = "/predict"
-    status_endpoint: str = "/status"
+    url: str = "http://192.168.1.46:8000"
+    base_endpoint: str = "/models"
+    train_endpoint: str = "/train"       # /models/train
+    retrain_endpoint: str = "/retrain"   # /models/{model_id}/retrain
+    predict_endpoint: str = "/predict"   # /models/{model_id}/predict
+    status_endpoint: str = "/status"     # /models/{model_id}/status
+    log_endpoint: str = "/logs"          # /models/{model_id}/logs
 
     @classmethod
     def Default(cls):
-        return cls()
+        return cls(
+        )
 
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            url=data.get("url", "http://192.168.1.34:8000")
+            url=data.get("url", "http://localhost:8000")
         )
 
     def toJSON(self) -> dict:

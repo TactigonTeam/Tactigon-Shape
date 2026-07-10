@@ -103,5 +103,109 @@
       "subscriptions": []
     },
     "mqtt_config": null
+  },
+  {
+    "id": "fb7e5ca596dc48608332898c25010159",
+    "name": "prova train",
+    "created_on": "2026-06-11T15:49:10.495014",
+    "modified_on": "2026-06-12T16:01:10.760130",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "prova train",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "e3c53be61a3a4521abf31950d8198a9b",
+    "name": "prova retrain",
+    "created_on": "2026-06-12T15:24:55.790110",
+    "modified_on": "2026-06-12T16:03:38.811375",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "prova retrain",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "dbdd6c67cb374c858cf71c497e2f502a",
+    "name": "prova predict",
+    "created_on": "2026-06-12T15:25:06.488260",
+    "modified_on": "2026-06-12T15:48:17.877657",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "prova predict",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "a609a8a26d1847e4a3d46c2f6913aa4c",
+    "name": "prova get infos",
+    "created_on": "2026-06-12T15:25:17.035836",
+    "modified_on": "2026-06-12T16:15:07.787748",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "prova get infos",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
   }
 ]

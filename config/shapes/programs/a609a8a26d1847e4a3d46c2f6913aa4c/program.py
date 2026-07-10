@@ -14,13 +14,18 @@ from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSe
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
-from tactigon_shapes.modules..extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
+import rclpy
+from rclpy.node import Node
+import pandas as pd
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -262,20 +267,107 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
+def ros2_get_topics(ros2: Ros2Interface | None):
+    """
+    Returns a list of lists containing the name and the type of the active ROS2 topics.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_topics()
+    return result if result is not None else []
+
+def ros2_get_nodes(ros2: Ros2Interface | None):
+    """
+    Returns a list of strings containing the name of the active ROS2 nodes.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_nodes()
+    return result if result is not None else []
+
+def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
+    if not ros2:
+        return True # Avoid blocking if ros2 is not configured
+    return ros2.is_ros2_node_ready()
+        
+def get_marker_id(payload) -> int:
+    try:
+        _parsed_id = int(payload.get('id', -1))
+        marker_id = _parsed_id if 0 <= _parsed_id <= 999 else -1
+    except (ValueError, TypeError, AttributeError):
+        marker_id = -1
+    return marker_id
+
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+    if not bianconiglio:
+        return {}
+
+    return bianconiglio.train(description, data, features, targets)
+
+def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
+    if not bianconiglio:
+        return {}
+
+    return bianconiglio.retrain(model_desc, new_description, data, features, targets)
+
+def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame):
+    if not bianconiglio:
+        return {}
+
+    return bianconiglio.predict(model_desc, data)
+
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
+    if not bianconiglio:
+        return None
+
+    res = bianconiglio.get_status(model_id)
+
+    if res == None:
+        return "errore"
+
+    return bianconiglio.get_status(model_id)
+
+def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
+    if not bianconiglio:
+        return []
+
+    return bianconiglio.get_models_info()
+
+def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
+    if not bianconiglio:
+        return None
+
+    return bianconiglio.get_log(model_id)
+
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not bianconiglio:
+        return None
+
+    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+
 
 # ---------- Generated code ---------------
 
-from numbers import Number
-
-tap_hold = None
-tap_hold_counter = None
+status = None
 
 
-tap_hold = False
-tap_hold_counter = 0
+def tactigon_shape_setup(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
 
-# This is the main function that runs your code. Any
-# code blocks you add to this section will be executed.
+    global status
+    status = bianconiglio_get_model_state(bianconiglio, "0d281576-33b9-47cf-95fa-d0631584d6d1")
+
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -285,26 +377,27 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global tap_hold, tap_hold_counter
+    global status
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "TAP_AND_HOLD"):
-        if tap_hold == False:
-            tap_hold = True
-            keyboard_press(keyboard, HotKey.parse('<f5>'))
-            debug(logging_queue, 'Toggle presentation')
-    elif check_touch(touch, "SINGLE_TAP"):
-        keyboard_press(keyboard, HotKey.parse('p'))
-        debug(logging_queue, 'Prev slide')
-    else:
-        tap_hold_counter = (tap_hold_counter if isinstance(tap_hold_counter, Number) else 0) + 1
-        if tap_hold_counter >= 5:
-            tap_hold = False
-            tap_hold_counter = 0
-    if check_gesture(gesture, "twist"):
-        keyboard_press(keyboard, HotKey.parse('n'))
-        debug(logging_queue, 'Next slide')
+    debug(logging_queue, status)
 
     return True
+
+def tactigon_shape_close(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
+
+    global status
+    pass
