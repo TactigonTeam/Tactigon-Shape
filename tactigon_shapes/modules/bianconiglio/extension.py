@@ -128,11 +128,16 @@ class BianconiglioInterface:
             res = requests.get(url)
             res.raise_for_status()
 
-            data =res.json()
-            clean_res = [f"ID: {m.get('model_id')} - Desc: {m.get('description')}" for m in data['models_infos']]
+            data = res.json()
+
+            if isinstance(data.get('models_infos'), list):
+                clean_res = [f"ID: {m.get('model_id', 'N/A')} - Desc: {m.get('description', 'N/A')}" for m in data['models_infos']]
+                self._logger.info("Modelli trovati:\n" + "\n".join(clean_res))
+            else:
+                self._logger.info(f"Status modelli: {data.get('models_infos')}")
+
             self._logger.info(f"GET %s response: %s", url, res.status_code)
-            self._logger.info("\n".join(clean_res))
-            return res.json()
+            return data
 
         except Exception as e:
             self._logger.warning("GET %s failed: %s", url, e)
@@ -141,8 +146,8 @@ class BianconiglioInterface:
     def get_models_info(self) -> list:
         """Populate the models list with a get request
     
-        l'endpoint restituisce: dict {"models": [ModelInfos, ModelInfos, ModelInfos, ...]}
-                        oppure: dict {"models": "no models available"}
+        l'endpoint restituisce: dict {"models_infos": [ModelInfos, ...]}
+                        oppure: dict {"models_infos": "no models available"}
         """
         if not self.config:
             self._logger.info("config non trovata - 1")
@@ -152,14 +157,14 @@ class BianconiglioInterface:
             self._logger.info("url =" + url)
             res = self.do_get(url)
 
-            if not res:
-                self._logger.info("nessun modello trovato")
+            if not res or isinstance(res.get("models_infos"), str):
+                self._logger.info("nessun modello trovato o api vuota")
                 return [{
                     "model_id": "---",
                     "description": "no models available"
-                    }]
+                }]
             
-            return res["models_infos"]
+            return res.get("models_infos", [])
 
         except TimeoutError:
             logging.error(f" timeout api get models")
@@ -270,6 +275,7 @@ class BianconiglioInterface:
         self._logger.info(f"Data type: {type(data)}")
 
         payload = {
+            "description": ",".join(data.columns),
             "model_id": model_id,
             "data": data.to_dict(orient="records"),
         }
@@ -286,11 +292,11 @@ class BianconiglioInterface:
                 self._logger.error(f"Predict failed: {response.status_code if response else 'No Response'}")
                 if response:
                     self._logger.error(f"Error details: {response.text}")
-                return {}
+                return {"message": response.text}
 
         except Exception as e:
             self._logger.error(f"Predict error: {e}")
-            return {}     
+            return {"exception" : e}     
 
 
     def file_to_dataframe(self,file_path: str) -> pd.DataFrame | None:
@@ -316,7 +322,8 @@ class BianconiglioInterface:
             
             return df
         except Exception as e:
-            self._logger.error("Cannot read file into dataframe. %s", e.with_traceback)
+            self._logger.error(f"Cannot read file into dataframe: {str(e)}", exc_info=True)
+            return None
             
         return None
     

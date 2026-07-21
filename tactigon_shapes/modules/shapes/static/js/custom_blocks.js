@@ -1538,7 +1538,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                     "options": bianconiglio.models
                 }
             ],
-            "output": "Dictionary",
+            "output": "BianconiglioState",
             "colour": "#ec8dc6"
         },
         {

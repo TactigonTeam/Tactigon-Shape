@@ -23,20 +23,20 @@ FROM eprosima/vulcanexus:jazzy-base
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
-RUN apt-get update && apt-get install -y \
-    python3-pip \
-    bluetooth \
-    bluez \
-    libbluetooth-dev \
-    pkg-config \
-    build-essential \
-    libportaudio2 portaudio19-dev \
-    xvfb xserver-xorg-core libice6 libxrender1 libfontconfig1 libglib2.0-0 \
-    curl \
-    iproute2 \
-    net-tools \
-    bash \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y
+    # python3-pip \
+    # bluetooth \
+    # bluez \
+    # libbluetooth-dev \
+    # pkg-config \
+    # build-essential \
+    # libportaudio2 portaudio19-dev \
+    # xvfb xserver-xorg-core libice6 libxrender1 libfontconfig1 libglib2.0-0 \
+    # curl \
+    # iproute2 \
+    # net-tools \
+    # bash \
+    # && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -45,7 +45,8 @@ COPY ros/msgs /app/msgs
 SHELL ["/bin/bash", "-c"]
 RUN source /opt/vulcanexus/jazzy/setup.bash && \
     colcon build
-    
+
+
 COPY ./requirements.txt /app/requirements.txt
 COPY config /app/config
 COPY models /app/models
@@ -53,8 +54,9 @@ COPY speech /app/speech
 COPY tactigon_shapes /app/tactigon_shapes
 COPY main.py /app/main.py
 
-RUN pip install --no-cache-dir -r /app/requirements.txt
 
+RUN pip install --ignore-installed -r /app/requirements.txt
+RUN source /opt/vulcanexus/jazzy/setup.bash && colcon build
 EXPOSE 5123
 EXPOSE 50007
 
