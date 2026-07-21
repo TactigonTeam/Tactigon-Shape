@@ -1,0 +1,239 @@
+# **GUIDA JETSON ORIN SHAPE**
+
+## **PREREQUISITI**
+
+
+1. **Hardware Richiesto**
+  
+    - Nvidia Jetson Orin NX 16GB con carrier board reComputer J4012. [Link](https://wiki.seeedstudio.com/J401_carrierboard_Hardware_Interfaces_Usage) al dispositivo.
+
+    - Alimentatore originale del Jetson Orin (fondamentale per evitare cali di tensione durante i test di Docker/GPU).
+
+    - Monitor con cavo HDMI o DisplayPort.
+
+    - Tastiera e mouse USB.
+
+    - Connessione a Internet: Un cavo Ethernet collegato o un'antenna Wi-Fi (la guida esegue molti apt update e scarica container Docker pesanti, quindi una connessione stabile è d'obbligo).
+
+2. **Software di partenza**
+
+    - Il Jetson deve essere già flashato con JetPack 6.0 (generalmente arriva di fabbrica con jetpack 6.0 gia installato). In caso contrario, o se si riscontrano problemi, è necessario un PC Host separato (con Ubuntu o Windows) e - un cavo USB-C per ri-flashare la scheda seguendo la guida e assicurandosi di scaricarel'immagine corretta (JetPack 6.0). [Link](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack/) alla guida ufficiale.
+
+3. **Requisiti per il Dispositivo Esterno**
+
+    - Driver bluethoot Esterno per il collegamento wireless
+
+    - Dispositivo Tactigon TSkin carico e pronto per l'accoppiamento Bluetooth/Wi-Fi alla fine della procedura. [link] al dispositivo. #TODO: inserire link di 
+    acquisto Tactigon TSkin
+
+
+
+## **CONFIGURAZIONE INIZIALE UBUNTU**
+
+- Accettare i termini di licenza
+
+- Selezionare la lingua preferita 
+
+- Selezionare il layout della tastiera
+
+- Selezionare il fuso orario
+
+- Inserire le credenziali (nome, username, password) e salvarle in un posto sicuro
+
+- Deselezionare l'installazione del browser Chromium
+
+- Skippare il login di Google, Microsoft, ecc.
+
+- Skippare Ubuntu Pro
+
+- Skippare i report di debug di Ubuntu
+
+- Skippare l'utilizzo della geolocalizzazione
+
+- Skippare l'installazione dei software
+
+## **INSTALLAZIONE PACCHETTI**
+
+- Aggiorna i repository e il sistema:
+  
+  ```bash
+  sudo apt update && sudo apt upgrade -y
+  ```
+
+- Installare i pacchetti:
+  
+  ```bash
+  sudo apt install -y git cmake build-essential
+  ```
+
+- Installa Firefox con:
+  
+  ```bash
+  sudo apt install flatpak
+  
+  sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+  
+  sudo flatpak install flathub org.mozilla.firefox  
+  ```
+
+- Riavvia
+
+## **INSTALLAZIONE DOCKER**
+
+- Prima di tutto impostiamo la versione di `iptables` compatibile con il kernel Nvidia:
+  
+  ```bash
+  sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+  sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+  ```
+
+- Imposta la repository di Docker:
+  
+  ```bash
+  # Aggiungi docker\'s GPG key:
+  sudo apt update
+  sudo apt install ca-certificates curl
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+  
+  # Aggiungi il repository:
+  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  
+  sudo apt update
+  ```
+
+- Per un problema di compatibilità tra JetPack 6 e Docker v28+ (Docker v28+ richiede il modulo `iptable_raw` che non è incluso nel kernel dei Jetson):
+  
+  ```bash
+  sudo apt install docker-ce=5:27.5* docker-ce-cli=5:27.5* containerd.io docker-buildx-plugin docker-compose-plugin
+  ```
+
+- Blocca la versione di Docker con:
+  
+  ```bash
+  sudo apt-mark hold docker-ce docker-ce-cli
+  ```
+
+- Puoi testare che stia runnando con:
+  
+  ```bash
+  sudo systemctl status docker
+  ```
+
+- Oppure lanciarlo manualmente con:
+  
+  ```bash
+  sudo systemctl start docker
+  ```
+
+- Per avviare Docker in automatico all'avvio:
+  
+  ```bash
+  sudo systemctl enable --now docker 
+  ```
+
+- Dai i permessi al tuo utente per usare Docker in modo da non dover usare `sudo` ogni volta 
+  
+  ```bash
+  sudo usermod -aG docker $USER
+  ```
+  
+ - Riavvia per confermare le modifiche sui i permessi di docker
+
+- Lancia il container `Hello-World` per testare Docker (avendo dato i permessi funziona anche senza "sudo"):
+  
+  ```bash
+  docker run hello-world
+  ```
+
+- Configura Docker per usare il runtime Nvidia:
+  
+  ```bash
+  sudo apt install -y nvidia-container-toolkit
+  
+  sudo nvidia-ctk runtime configure --runtime=docker
+  ```
+
+- Riavvia Docker:
+  
+  ```bash
+  sudo systemctl restart docker
+  ```
+
+- Crea la cartella dove salvare il progetto di Shape:
+  
+  ```bash
+  mkdir -p ~/Projects && cd ~/Projects
+  ```
+
+## **INSTALLA VSCODE PER LO SVILUPPO (OPZIONALE MA CONSIGLIATO)**
+
+- Inserisci da terminale questi comandi:
+  
+  ```bash
+  sudo apt update
+  sudo apt install -y software-properties-common apt-transport-https wget
+  wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/vscode-archive-keyring.gpg > /dev/null
+  echo "deb [arch=arm64 signed-by=/usr/share/keyrings/vscode-archive-keyring.gpg] https://packages.microsoft.com/repos/vscode stable main" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+  sudo apt update
+  sudo apt install code
+  ```
+
+- Lancia VSCode con questo comando (il . lancerà VSCode dalla cartella corrente):
+  
+  ```bash
+  code .
+  ```
+
+# **SETUP DEL PROGETTO TACTIGON-SHAPE E BUILD DEL DOCKER**
+
+- Clona il progetto di Tactigon-Shape (il branch dev/jetson-nano):
+  
+  ```bash
+  git clone -b dev/jetson-nano https://github.com/TactigonTeam/Tactigon-Shape.git
+  ```
+
+- Prima di buildare il container essendo un container che richiede la GPU, aggiungi la sezione della della scheda video in `/Projects/Tactigon-Shape/docker-compose.jetson.yml`:
+	  
+	  ```yaml
+	  ollama:
+	  image: ollama/ollama:latest
+	  container_name: ollama
+	  restart: unless-stopped
+	  network_mode: host
+	  ipc: host
+	  
+	  👇 AGGIUNGI QUESTO IN QUESTA ESATTA POSIZIONE 👇
+
+	  deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+		    
+	  👆 ------------------------------- 👆
+	    volumes:
+	      - ollama_data:/root/.ollama
+	    entrypoint: 
+	  ```
+
+- Entra in Tactigon-Shape
+
+  ```bash
+  cd Tactigon-Shape
+  ```
+  
+- Lancia il container, potrebbe impiegarci vari minuti:
+  
+  ```bash
+  docker compose -f docker-compose.jetson.yml up --build
+  ```
+
+- Aprire il browser a pagina `127.0.0.1:5123` e collegare il TSkin per usare Shapes
+

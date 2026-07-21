@@ -752,7 +752,7 @@
                         <shadow type="text">
                         </shadow>
                     </value>
-
+                </block>
                 <!--commentati i blocchi in sviluppo-->
                 {#
                 </block>
@@ -765,7 +765,7 @@
             </category>
         {% endif %}
         <sep></sep>
-        <category name="Keyboard" colour="#c2c2c2">
+        {# <category name="Keyboard" colour="#c2c2c2">
             <block type="keyboard_press"></block>
             <block type="keyboard_key"></block>
             <block type="keyboard_mod_plus_key"></block>
@@ -773,7 +773,7 @@
             <block type="keyboard_funckey"></block>
             <block type="keyboard_mod_plus_funckey"></block>
             <block type="keyboard_mod_plus_mod_plus_funckey"></block>
-        </category>
+        </category> #}
         <category name="Camera" colour="#ff5050">
             <block type="get_marker_id">
                 <value name="PAYLOAD_IN">
@@ -781,6 +781,21 @@
                         <field name="VAR">payload</field>
                     </block>
                 </value>
+            </block>
+        </category>
+        <category name="Chord" colour="#ec8dc6">
+            <block type="chord_train"></block>
+            <block type="chord_retrain"></block>
+            <block type="chord_predict"></block>
+            <block type="chord_get_model_state"></block>
+            <block type="chord_ml_state_list"></block>
+            <block type="chord_get_models_info"></block>
+            <block type="chord_get_log"></block>
+            <block type="chord_load_dataframe">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
             </block>
         </category>
     </xml>

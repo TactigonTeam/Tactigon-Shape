@@ -17,10 +17,10 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
+from flask import current_app
+from tactigon_shapes.modules.chord.extension import ChordInterface
 
-from tactigon_shapes.modules.ginos.models import LLMMessageRole
-
-def get_ginos_blocks():
-    return dict(
-        roles=[(role.name, role.value) for role in LLMMessageRole]
-    )
+def get_chord_interface() -> ChordInterface | None:
+    if ChordInterface.__name__ in current_app.extensions and isinstance(current_app.extensions[ChordInterface.__name__], ChordInterface):
+        return current_app.extensions[ChordInterface.__name__]
+    return None

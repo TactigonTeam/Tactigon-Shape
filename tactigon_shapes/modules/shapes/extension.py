@@ -34,7 +34,7 @@ from typing import Tuple, Any
 from pathlib import Path
 from flask import Flask
 from werkzeug.datastructures import FileStorage
-from pynput.keyboard import Controller as KeyboardController
+# from pynput.keyboard import Controller as KeyboardController
 
 from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
@@ -47,10 +47,14 @@ from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
 from tactigon_shapes.modules.file_manager.extension import FileManager
+from tactigon_shapes.modules.chord.extension import ChordInterface
 from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 IMPORT_FOLDER_NAME = 'import'
 IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
+
+class KeyboardController:
+    pass
 
 class LoggingQueue(Queue):
     def debug(self, msg: str):
@@ -75,8 +79,8 @@ class ShapeThread(ExtensionThread):
 
     _logger: logging.Logger
     _tskin: TSkin
-    _keyboard: KeyboardController
     _logging_queue: LoggingQueue
+    _keyboard: KeyboardController | None = None
     _braccio_interface: BraccioInterface | None = None
     _zion_interface: ZionInterface | None = None
     _ironboy_interface: IronBoyInterface | None = None
@@ -85,18 +89,20 @@ class ShapeThread(ExtensionThread):
     _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
     _file_manager: FileManager | None = None
-    
+    _chord_interface: ChordInterface | None = None
+
     def __init__(
             self, 
             base_path: str, 
             app: ShapeConfig, 
             tskin: TSkin,
-            keyboard: KeyboardController, 
+            keyboard: KeyboardController | None, 
             braccio: BraccioInterface | None, 
             zion: ZionInterface | None, 
             ros2: Ros2Interface | None,
             ironboy: IronBoyInterface | None,
             file_manager: FileManager | None,
+            chord: ChordInterface | None, 
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -107,6 +113,7 @@ class ShapeThread(ExtensionThread):
         self._ros2_interface = ros2
         self._ironboy_interface = ironboy
         self._file_manager = file_manager
+        self._chord_interface = chord
 
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
@@ -140,6 +147,14 @@ class ShapeThread(ExtensionThread):
     @zion_interface.setter
     def zion_interface(self, zion_interface: ZionInterface | None):
         self._zion_interface = zion_interface
+
+    @property
+    def chord_interface(self) -> ChordInterface | None:
+        return self._chord_interface
+
+    @chord_interface.setter
+    def chord_interface(self, chord_interface: ChordInterface | None):
+        self._chord_interface = chord_interface
 
     @property
     def ros2_interface(self) -> Ros2Interface | None:
@@ -236,6 +251,7 @@ class ShapeThread(ExtensionThread):
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
+                    self._chord_interface,
                     self._logging_queue
                 )
             except Exception as e:
@@ -252,6 +268,7 @@ class ShapeThread(ExtensionThread):
             self._ironboy_interface, 
             self._ginos_interface,
             self._mqtt_interface,
+            self._chord_interface,
             self._logging_queue
         )
     
@@ -269,6 +286,7 @@ class ShapeThread(ExtensionThread):
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
+                    self._chord_interface,
                     self._logging_queue
                 )
             except Exception as e:
@@ -302,7 +320,7 @@ class ShapesApp(ExtensionApp):
     config_file_path: str
     config: list[ShapeConfig]
     shapes_file_path: str
-    keyboard: KeyboardController
+    keyboard: KeyboardController | None = None
     current_id: UUID | None = None
     logging_queue: LoggingQueue
     in_flight_log: DebugMessage | None = None
@@ -313,11 +331,12 @@ class ShapesApp(ExtensionApp):
     _zion_interface: ZionInterface | None = None
     _ros2_interface: Ros2Interface | None = None
     _file_manager: FileManager | None = None
+    _chord_interface: ChordInterface | None = None
 
     def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
         self.shapes_file_path = config_path
-        self.keyboard = KeyboardController()
+        # self.keyboard = KeyboardController()
         self.logging_queue = LoggingQueue()
         self._logger = logging.getLogger(ShapesApp.__name__)
 
@@ -338,7 +357,6 @@ class ShapesApp(ExtensionApp):
     @braccio_interface.setter
     def braccio_interface(self, braccio_interface: BraccioInterface | None):
         self._braccio_interface = braccio_interface
-    
 
     @property
     def zion_interface(self) -> ZionInterface | None:
@@ -371,6 +389,14 @@ class ShapesApp(ExtensionApp):
     @file_manager.setter
     def file_manager(self, file_manager: FileManager):
         self._file_manager = file_manager
+
+    @property
+    def chord_interface(self) -> ChordInterface | None:
+        return self._chord_interface
+
+    @chord_interface.setter
+    def chord_interface(self, chord_interface: ChordInterface | None):
+        self._chord_interface = chord_interface
 
     def get_log(self) -> DebugMessage | None:
         if self.in_flight_log:
@@ -585,8 +611,6 @@ class ShapesApp(ExtensionApp):
                 state = json.load(state_json_file)
 
         return Program(state, code)
-    
-    
 
     def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
         if self.is_running:
@@ -612,6 +636,7 @@ class ShapesApp(ExtensionApp):
                         ros2=self.ros2_interface,
                         ironboy=self.ironboy_interface, 
                         file_manager=self.file_manager,
+                        chord=self.chord_interface,
                         logging_queue=self.logging_queue,
                     ) 
                     self.thread.start()

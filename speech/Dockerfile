@@ -17,12 +17,19 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-FROM python:3.8-slim
+FROM python:3.7-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
+
+COPY config.json /app/config.json
+COPY deepspeech-0.9.3-models.tflite /app/deepspeech-0.9.3-models.tflite
+COPY shapes.scorer /app/shapes.scorer
+COPY deepspeech-0.9.3-cp37-cp37m-linux_aarch64.whl /app/deepspeech-0.9.3-cp37-cp37m-linux_aarch64.whl
+COPY tactigon_speech_socket-5.5.0.3-cp37-cp37m-manylinux_2_17_aarch64.whl /app/tactigon_speech_socket-5.5.0.3-cp37-cp37m-manylinux_2_17_aarch64.whl
+
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -31,11 +38,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir tactigon_speech_socket==5.5.0.2
-
-COPY config.json /app/config.json
-COPY deepspeech-0.9.3-models.tflite /app/deepspeech-0.9.3-models.tflite
-COPY shapes.scorer /app/shapes.scorer
+RUN pip install --no-cache-dir ./tactigon_speech_socket-5.5.0.3-cp37-cp37m-manylinux_2_17_aarch64.whl --no-deps
+RUN pip install --no-cache-dir ./deepspeech-0.9.3-cp37-cp37m-linux_aarch64.whl
 
 ENV TSS_ADDRESS=0.0.0.0
 ENV TSS_PORT=50007

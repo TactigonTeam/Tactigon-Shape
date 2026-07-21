@@ -14,13 +14,18 @@ from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSe
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
-from tactigon_shapes.modules..extension import IronBoyInterface, IronBoyCommand
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.chord.extension import ChordInterface
+from tactigon_shapes.modules.chord.models import ChordState
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
+import rclpy
+from rclpy.node import Node
+import pandas as pd
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -262,20 +267,96 @@ def mqtt_unregister(mqtt: MQTTClient | None):
     
     mqtt.unregister()
 
+def ros2_get_topics(ros2: Ros2Interface | None):
+    """
+    Returns a list of lists containing the name and the type of the active ROS2 topics.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_topics()
+    return result if result is not None else []
+
+def ros2_get_nodes(ros2: Ros2Interface | None):
+    """
+    Returns a list of strings containing the name of the active ROS2 nodes.
+    """
+    if not ros2:
+        return []
+    
+    result = ros2.get_nodes()
+    return result if result is not None else []
+
+def ros2_is_ready(ros2: Ros2Interface | None) -> bool:
+    if not ros2:
+        return True # Avoid blocking if ros2 is not configured
+    return ros2.is_ros2_node_ready()
+        
+def get_marker_id(payload) -> int:
+    try:
+        _parsed_id = int(payload.get('id', -1))
+        marker_id = _parsed_id if 0 <= _parsed_id <= 999 else -1
+    except (ValueError, TypeError, AttributeError):
+        marker_id = -1
+    return marker_id
+
+def chord_train(chord: ChordInterface | None, description: str, data: pd.DataFrame, features: list, targets: list, url: str):
+    if not chord:
+        return {}
+
+    return chord.train(description, data, features, targets, url)
+
+def chord_retrain(chord: ChordInterface | None, model_id: str, data: pd.DataFrame, features: list, targets: list):
+    if not chord:
+        return {}
+
+    return chord.retrain(model_id, data, features, targets)
+
+def chord_predict(chord: ChordInterface | None, model_id: str, data: pd.DataFrame):
+    if not chord:
+        return {}
+
+    return chord.predict(model_id, data)
+
+def chord_get_model_state(chord: ChordInterface | None, model_id: str):
+    if not chord:
+        return None
+
+    return chord.get_status(model_id)
+
+def chord_get_models_info(chord: ChordInterface | None):
+    if not chord:
+        return []
+
+    return chord.get_models_info()
+
+def chord_get_log(chord: ChordInterface | None, model_id: str):
+    if not chord:
+        return None
+
+    return chord.get_log(model_id)
+
+def chord_load_dataframe(chord: ChordInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chord:
+        return None
+
+    return chord.get_dataframe(os.path.join(directory, file_path))
 
 # ---------- Generated code ---------------
 
-from numbers import Number
+def tactigon_shape_setup(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        chord: ChordInterface | None,
+        logging_queue: LoggingQueue):
 
-tap_hold = None
-tap_hold_counter = None
-
-
-tap_hold = False
-tap_hold_counter = 0
-
-# This is the main function that runs your code. Any
-# code blocks you add to this section will be executed.
+    pass
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -285,26 +366,26 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
+        chord: ChordInterface | None,
         logging_queue: LoggingQueue):
 
-    global tap_hold, tap_hold_counter
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "TAP_AND_HOLD"):
-        if tap_hold == False:
-            tap_hold = True
-            keyboard_press(keyboard, HotKey.parse('<f5>'))
-            debug(logging_queue, 'Toggle presentation')
-    elif check_touch(touch, "SINGLE_TAP"):
-        keyboard_press(keyboard, HotKey.parse('p'))
-        debug(logging_queue, 'Prev slide')
-    else:
-        tap_hold_counter = (tap_hold_counter if isinstance(tap_hold_counter, Number) else 0) + 1
-        if tap_hold_counter >= 5:
-            tap_hold = False
-            tap_hold_counter = 0
-    if check_gesture(gesture, "twist"):
-        keyboard_press(keyboard, HotKey.parse('n'))
-        debug(logging_queue, 'Next slide')
+    for count in range(10):
+        debug(logging_queue, 'Tactigon')
 
     return True
+
+def tactigon_shape_close(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        chord: ChordInterface | None,
+        logging_queue: LoggingQueue):
+
+    pass

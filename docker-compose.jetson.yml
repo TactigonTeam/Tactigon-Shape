@@ -17,12 +17,6 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
-networks:
-  tactigon-net:
-    name: tactigon-net
-    driver: bridge
-
 volumes:
   ollama_data:
   tactigon-config:
@@ -33,8 +27,8 @@ services:
     image: ollama/ollama:0.12.10
     container_name: ollama
     restart: unless-stopped
-    networks:
-      - tactigon-net
+    network_mode: host
+    ipc: host
     ports:
       - "11434:11434"
     volumes:
@@ -62,18 +56,17 @@ services:
     depends_on:
       ollama:
         condition: service_healthy
-    networks:
-      - tactigon-net
+    network_mode: host
+    ipc: host
     ports:
       - "5123:5123"
     environment:
       DISPLAY: ${DISPLAY:-:0}
-      SDL_AUDIODRIVER: dummy
+      DL_AUDIODRIVER: dummy
     volumes:
       - tactigon-config:/app/config
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
-      - ./config/chord:/app/config/chord
 
   speech:
     build:
@@ -81,10 +74,10 @@ services:
       dockerfile: Dockerfile
     container_name: tactigon-speech-socket
     restart: unless-stopped
-    networks:
-      - tactigon-net
+    network_mode: host
+    ipc: host
     environment:
-      TSS_ADDRESS: tactigon-shapes
+      TSS_ADDRESS: 127.0.0.1
       TSS_PORT: 50007
       TSS_CONFIG: config.json
 
@@ -92,8 +85,8 @@ services:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     restart: always
-    networks:
-      - tactigon-net
+    network_mode: host
+    ipc: host
     ports:
       - "3000:8080"
     extra_hosts:
@@ -107,8 +100,8 @@ services:
         dockerfile: nodes/camera_tracking/Dockerfile
       container_name: ros-camera-tracking
       restart: unless-stopped
-      networks:
-        - tactigon-net 
+      network_mode: host
+      ipc: host
       ports:
         - "8081:8081"
       privileged: true

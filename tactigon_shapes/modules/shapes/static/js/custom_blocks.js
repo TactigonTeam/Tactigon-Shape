@@ -31,6 +31,7 @@ function loadCustomBlocks(response) {
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos : {};
     const file_manager = response ? response.file_manager : {};
+    const chord = response ? response.chord : {};
 
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
@@ -44,6 +45,7 @@ function loadCustomBlocks(response) {
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
+    loadChordBlocks(chord, file_manager);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1159,8 +1161,8 @@ function loadRos2Blocks(ros2blocks) {
             "output": null,
             "colour": 225,
             "inputsInline": false
-        }                                     
-                    
+        }
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1314,7 +1316,8 @@ function loadGinosAIBlocks(ginos, file_manager) {
             "colour": "#EB6152",
             "tooltip": "",
             "helpUrl": ""
-        },
+        }        
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1417,6 +1420,192 @@ function loadCameraBlocks() {
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
+function loadChordBlocks(chord, file_manager) {
+    let directory = [];            
+    let optionMapping = {};
+
+    file_manager.forEach(el => {
+        directory.push([el['directory']['name'], el['directory']['base_path']]);
+        optionMapping[el['directory']['base_path']] = [['---', '']];
+
+        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
+            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
+            return [f_path, f_path];
+        }));
+    });
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "chord_train",
+            "tooltip": "Sends training data to a new ML model through API call, returns training results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Train data %1 using features %2 and targets %3 in model %4",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "model_description",
+                    "check": "String"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "chord_retrain",
+            "tooltip": "Sends training data to an existing ML model through API call, returns training results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Retrain model %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chord.models
+                }
+            ],
+            "message1": "data %1 using features %2 and targets %3",
+            "args1": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Array"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "chord_predict",
+            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Predict result from %1 using %2",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chord.models
+                },
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "chord_get_model_state",
+            "tooltip": "Returns the ML model state through API call as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get model state %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chord.models
+                }
+            ],
+            "output": "ChordState",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "chord_get_models_info",
+            "tooltip": "Returns each model infos as a list of dictionary",
+            "helpUrl": "",
+            "message0": "Get models list",
+            "output": "Array",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "chord_get_log",
+            "tooltip": "Returns the training log of the specific model selected as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get model log %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chord.models
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#ec8dc6"
+        },
+        // {
+        //     "type": "get_model_state",
+        //     "tooltip": "Returns the ML model state through API call as a dictionary.",
+        //     "helpUrl": "",
+        //     "message0": "Get ML model state",
+        //     "output": "ChordState",
+        //     "colour": "#ec8dc6"
+        // },
+        {
+            "type": "chord_ml_state_list",
+            "tooltip": "Attribute state from Chord ML model",
+            "helpUrl": "",
+            "message0": "State %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": chord.states
+                }
+            ],
+            "output": "ChordState",
+            "colour": "#ec8dc6"
+        },
+        {
+            "type": "chord_load_dataframe",
+            "message0": "Create dataframe from %1 %2",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "directory",
+                    "options": directory
+                },
+                {
+                    "type": "field_dependent_dropdown",
+                    "name": "filepath",
+                    "parentName": "directory",
+                    "optionMapping": optionMapping,
+                    "defaultOptions": [['---', '']],
+                }
+            ],
+            "output": "DataFrame",
+            "colour": "#ec8dc6",
+            "tooltip": "Load dataframe locally",
+            "helpUrl": ""
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+
+}
+
 function defineImportsAndLibraries() {
     return `
 # Shapes by Next Industries
@@ -1428,7 +1617,7 @@ import json
 import os
 from numbers import Number
 from datetime import datetime
-from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
+from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue, KeyboardController
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
@@ -1438,11 +1627,14 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.chord.extension import ChordInterface
+from tactigon_shapes.modules.chord.models import ChordState, ChordConfig
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
 import rclpy
 from rclpy.node import Node
+import pandas as pd
 
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
@@ -1510,13 +1702,13 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
     debug(logging_queue, "Cannot listen...")
     return []
 
-def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
-    for k in commands:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.press(_k)
-    for k in commands[::-1]:
-        _k = k.char if isinstance(k, KeyCode) and k.char else k
-        keyboard.release(_k)
+# def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
+#     for k in commands:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.press(_k)
+#     for k in commands[::-1]:
+#         _k = k.char if isinstance(k, KeyCode) and k.char else k
+#         keyboard.release(_k)
 
 def braccio_move(braccio: BraccioInterface | None, logging_queue: LoggingQueue, x: float, y: float, z: float):
     if braccio:
@@ -1717,6 +1909,57 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
+def chord_train(chord: ChordInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+    if not chord:
+        return {}
+
+    return chord.train(description, data, features, targets)
+
+def chord_retrain(chord: ChordInterface | None, model_desc: str, data: pd.DataFrame | None, features: list, targets: list):
+    if not chord:
+        return {}
+    
+    if data is None:
+        return {}
+
+    return chord.retrain(model_desc, data, features, targets)
+
+def chord_predict(chord: ChordInterface | None, model_desc: str, data: pd.DataFrame):
+    if not chord:
+        return {}
+
+    return chord.predict(model_desc, data)
+
+def chord_get_model_state(chord: ChordInterface | None, model_id: str):
+    if not chord:
+        return None
+
+    res = chord.get_status(model_id)
+
+    if res == None:
+        return "errore"
+
+    return res
+
+def chord_get_models_info(chord: ChordInterface | None):
+    if not chord:
+        return []
+
+    return chord.get_models_info()
+
+def chord_get_log(chord: ChordInterface | None, model_id: str):
+    if not chord:
+        return None
+
+    return chord.get_log(model_id)
+
+def chord_load_dataframe(chord: ChordInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chord:
+        return None
+
+    return chord.get_dataframe(os.path.join(directory, file_path))
+
+
 # ---------- Generated code ---------------
 
 `;
@@ -1749,6 +1992,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chord: ChordInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1779,6 +2023,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chord: ChordInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1809,6 +2054,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chord: ChordInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
@@ -1832,6 +2078,7 @@ function defineCustomGenerators() {
     defineGinosAIGenerators();
     defineMQTTGenerators();
     defineCameraGenerators();
+    defineChordGenerators();
 }
 
 function defineShapesGenerators() {
@@ -2173,19 +2420,19 @@ function defineRos2Generators() {
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_topic_list'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_topic_list'] = function (block, generator) {
         const code = `ros2_get_topics(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_node_list'] = function (block, generator) {
         const code = `ros2_get_nodes(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_node_ready'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_node_ready'] = function (block, generator) {
         const code = `ros2_is_ready(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 }
 
@@ -2280,6 +2527,71 @@ function defineMQTTGenerators() {
     }
 }
 
+function defineChordGenerators() {
+
+    python.pythonGenerator.forBlock["chor_train"] = function (block, generator) {
+        const description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
+
+        const code = `chord_train(chord, ${description}, ${data}, ${features}, ${targets})`;
+
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chor_retrain"] = function (block, generator) {
+        const model_desc = block.getFieldValue('model');
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
+
+        const code = `chord_retrain(chord, '${model_desc}', ${data}, ${features}, ${targets})`;
+
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chor_predict"] = function (block, generator) {
+        const model_desc = block.getFieldValue('model');
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+
+        const code = `chord_predict(chord, '${model_desc}', ${data})`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chor_get_model_state"] = function (block, generator) {
+        const model_id = block.getFieldValue('model');
+        
+        const code = `chord_get_model_state(chord, "${model_id}")`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chor_get_models_info"] = function (block, generator) {
+
+        const code = `chord_get_models_info(chord)`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chor_get_log"] = function (block, generator) {
+        const model_id = block.getFieldValue('model');
+
+        const code = `chord_get_log(chord, "${model_id}")`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chor_ml_state_list"] = function (block, generator) {
+        const state = block.getFieldValue('state');
+        const code = `ChordState("${state}").value`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+    
+    python.pythonGenerator.forBlock["chor_load_dataframe"] = function (block, generator) {
+        const dir = block.getFieldValue('directory');
+        const fpath = block.getFieldValue('filepath');
+        return [`chord_load_dataframe(chord, "${dir}", "${fpath}")`, python.Order.ATOMIC];
+    };
+}
+
 function defineCameraGenerators() {
     python.pythonGenerator.forBlock['get_marker_id'] = function(block, generator) {
         const value_payload = generator.valueToCode(block, 'PAYLOAD', generator.ORDER_MEMBER) || '{}';
@@ -2288,6 +2600,7 @@ function defineCameraGenerators() {
         return [code, generator.ORDER_FUNCTION_CALL];
     };
 }
+
 
 function clean_topic_names(topic) {
     return topic
