@@ -18,8 +18,8 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
+from tactigon_shapes.modules.chord.extension import ChordInterface
+from tactigon_shapes.modules.chord.models import ChordState
 #from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -301,26 +301,26 @@ def get_marker_id(payload) -> int:
     return marker_id
 
 
-def bianconiglio_ml_train(bianconiglio: BianconiglioInterface | None, data, features, targets):
-    if not bianconiglio:
+def chord_ml_train(chord: ChordInterface | None, data, features, targets):
+    if not chord:
         return "ERROR"
-    return bianconiglio.train(data, features, targets)
+    return chord.train(data, features, targets)
 
-def bianconiglio_ml_predict(bianconiglio: BianconiglioInterface | None, data):
-    if not bianconiglio:
+def chord_ml_predict(chord: ChordInterface | None, data):
+    if not chord:
         return {}
-    return bianconiglio.predict(data)
+    return chord.predict(data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
+def chord_get_model_state(chord: ChordInterface | None):
+    if not chord:
         return "ERROR"
-    return bianconiglio.status()
+    return chord.status()
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
-    if not bianconiglio:
+def chord_load_dataframe(chord: ChordInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chord:
         return None
 
-    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+    return chord.get_dataframe(os.path.join(directory, file_path))
 
 # ---------- Generated code ---------------
 
@@ -344,7 +344,7 @@ def tactigon_shape_close(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
+        chord: ChordInterface | None,
         logging_queue: LoggingQueue):
 
     global train_dataset, predict_dataset, features, targets, train_flag, predict_flag, error_flag, model_state, old_model_state
@@ -358,12 +358,12 @@ def tactigon_shape_setup(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
+        chord: ChordInterface | None,
         logging_queue: LoggingQueue):
 
     global train_dataset, predict_dataset, features, targets, train_flag, predict_flag, error_flag, model_state, old_model_state
-    train_dataset = bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "train_dataset.json")
-    predict_dataset = bianconiglio_load_dataframe(bianconiglio, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "predict_dataset.json")
+    train_dataset = chord_load_dataframe(chord, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "train_dataset.json")
+    predict_dataset = chord_load_dataframe(chord, "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame", "predict_dataset.json")
     features = 'gesture, zone, object_detected, object, object_class, gesture_confidence, robot_state, gripper_state, target_zone'.split(', ')
     targets = 'action, priority, risk_level'.split(', ')
     train_flag = False
@@ -379,26 +379,26 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
+        chord: ChordInterface | None,
         logging_queue: LoggingQueue):
 
     global train_dataset, predict_dataset, features, targets, train_flag, predict_flag, error_flag, model_state, old_model_state
     gesture = tskin.gesture
     touch = tskin.touch
-    model_state = bianconiglio_get_model_state(bianconiglio)
+    model_state = chord_get_model_state(chord)
     if model_state != old_model_state:
         debug(logging_queue, ('CURRENT MODEL STATE: ' + str(model_state)))
         old_model_state = model_state
-    if old_model_state == BianconiglioState("NOT_TRAINED").value:
+    if old_model_state == ChordState("NOT_TRAINED").value:
         if train_flag == False:
-            debug(logging_queue, bianconiglio_ml_train(bianconiglio, train_dataset, features, targets))
+            debug(logging_queue, chord_ml_train(chord, train_dataset, features, targets))
             train_flag = True
-    elif old_model_state == BianconiglioState("TRAINING").value:
+    elif old_model_state == ChordState("TRAINING").value:
         if train_flag == False:
             debug(logging_queue, 'trainingggggggggg...')
-    elif old_model_state == BianconiglioState("READY_TO_PREDICT").value:
+    elif old_model_state == ChordState("READY_TO_PREDICT").value:
         if predict_flag == False:
-            debug(logging_queue, bianconiglio_ml_predict(bianconiglio, predict_dataset))
+            debug(logging_queue, chord_ml_predict(chord, predict_dataset))
             predict_flag = True
 
     return True

@@ -31,7 +31,7 @@ function loadCustomBlocks(response) {
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos : {};
     const file_manager = response ? response.file_manager : {};
-    const bianconiglio = response ? response.bianconiglio : {};
+    const chord = response ? response.chord : {};
 
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
@@ -45,7 +45,7 @@ function loadCustomBlocks(response) {
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
-    loadBianconiglioBlocks(bianconiglio, file_manager);
+    loadChordBlocks(chord, file_manager);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1420,8 +1420,7 @@ function loadCameraBlocks() {
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadBianconiglioBlocks(bianconiglio, file_manager) {
-    console.log(bianconiglio)
+function loadChordBlocks(chord, file_manager) {
     let directory = [];            
     let optionMapping = {};
 
@@ -1436,10 +1435,10 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
     });
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
-            "type": "bianconiglio_train",
+            "type": "chord_train",
             "tooltip": "Sends training data to a new ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Data for training %1 Features %2 Targets %3 Model Description %4",
+            "message0": "Train data %1 using features %2 and targets %3 in model %4",
             "args0": [
                 {
                     "type": "input_value",
@@ -1466,18 +1465,18 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_retrain",
+            "type": "chord_retrain",
             "tooltip": "Sends training data to an existing ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Model to retrain %1",
+            "message0": "Retrain model %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
+                    "options": chord.models
                 }
             ],
-            "message1": "Data for training %1 Features %2 Targets %3 New Model Description %4",
+            "message1": "data %1 using features %2 and targets %3",
             "args1": [
                 {
                     "type": "input_value",
@@ -1493,30 +1492,22 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                     "type": "input_value",
                     "name": "targets",
                     "check": "Array"
-                },
-                {
-                    "type": "input_value",
-                    "name": "model_description",
-                    "check": "String"
                 }
             ],
             "output": "Dictionary",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_predict",
+            "type": "chord_predict",
             "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
             "helpUrl": "",
-            "message0": "Model for prediction %1",
+            "message0": "Predict result from %1 using %2",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
-                }
-            ],
-            "message1": "Data for prediction %1",
-            "args1": [
+                    "options": chord.models
+                },
                 {
                     "type": "input_value",
                     "name": "data",
@@ -1527,7 +1518,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_model_state",
+            "type": "chord_get_model_state",
             "tooltip": "Returns the ML model state through API call as a dictionary.",
             "helpUrl": "",
             "message0": "Get model state %1",
@@ -1535,14 +1526,14 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
+                    "options": chord.models
                 }
             ],
-            "output": "BianconiglioState",
+            "output": "ChordState",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_models_info",
+            "type": "chord_get_models_info",
             "tooltip": "Returns each model infos as a list of dictionary",
             "helpUrl": "",
             "message0": "Get models list",
@@ -1550,7 +1541,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_log",
+            "type": "chord_get_log",
             "tooltip": "Returns the training log of the specific model selected as a dictionary.",
             "helpUrl": "",
             "message0": "Get model log %1",
@@ -1558,7 +1549,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.models
+                    "options": chord.models
                 }
             ],
             "output": "Dictionary",
@@ -1569,26 +1560,26 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         //     "tooltip": "Returns the ML model state through API call as a dictionary.",
         //     "helpUrl": "",
         //     "message0": "Get ML model state",
-        //     "output": "BianconiglioState",
+        //     "output": "ChordState",
         //     "colour": "#ec8dc6"
         // },
         {
-            "type": "bianconiglio_ml_state_list",
-            "tooltip": "Attribute state from Bianconiglio ML model",
+            "type": "chord_ml_state_list",
+            "tooltip": "Attribute state from Chord ML model",
             "helpUrl": "",
-            "message0": "State: %1",
+            "message0": "State %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "state",
-                    "options": bianconiglio.states
+                    "options": chord.states
                 }
             ],
-            "output": "BianconiglioState",
+            "output": "ChordState",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_load_dataframe",
+            "type": "chord_load_dataframe",
             "message0": "Create dataframe from %1 %2",
             "args0": [
                 {
@@ -1636,8 +1627,8 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState, BianconiglioConfig
+from tactigon_shapes.modules.chord.extension import ChordInterface
+from tactigon_shapes.modules.chord.models import ChordState, ChordConfig
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -1918,52 +1909,55 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
-    if not bianconiglio:
+def chord_train(chord: ChordInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+    if not chord:
         return {}
 
-    return bianconiglio.train(description, data, features, targets)
+    return chord.train(description, data, features, targets)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
-    if not bianconiglio:
+def chord_retrain(chord: ChordInterface | None, model_desc: str, data: pd.DataFrame | None, features: list, targets: list):
+    if not chord:
+        return {}
+    
+    if data is None:
         return {}
 
-    return bianconiglio.retrain(model_desc, new_description, data, features, targets)
+    return chord.retrain(model_desc, data, features, targets)
 
-def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame):
-    if not bianconiglio:
+def chord_predict(chord: ChordInterface | None, model_desc: str, data: pd.DataFrame):
+    if not chord:
         return {}
 
-    return bianconiglio.predict(model_desc, data)
+    return chord.predict(model_desc, data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+def chord_get_model_state(chord: ChordInterface | None, model_id: str):
+    if not chord:
         return None
 
-    res = bianconiglio.get_status(model_id)
+    res = chord.get_status(model_id)
 
     if res == None:
         return "errore"
 
-    return bianconiglio.get_status(model_id)
+    return res
 
-def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
+def chord_get_models_info(chord: ChordInterface | None):
+    if not chord:
         return []
 
-    return bianconiglio.get_models_info()
+    return chord.get_models_info()
 
-def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+def chord_get_log(chord: ChordInterface | None, model_id: str):
+    if not chord:
         return None
 
-    return bianconiglio.get_log(model_id)
+    return chord.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
-    if not bianconiglio:
+def chord_load_dataframe(chord: ChordInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chord:
         return None
 
-    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+    return chord.get_dataframe(os.path.join(directory, file_path))
 
 
 # ---------- Generated code ---------------
@@ -1998,7 +1992,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chord: ChordInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -2029,7 +2023,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chord: ChordInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -2060,7 +2054,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chord: ChordInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
@@ -2084,7 +2078,7 @@ function defineCustomGenerators() {
     defineGinosAIGenerators();
     defineMQTTGenerators();
     defineCameraGenerators();
-    defineBianconiglioGenerators();
+    defineChordGenerators();
 }
 
 function defineShapesGenerators() {
@@ -2533,71 +2527,69 @@ function defineMQTTGenerators() {
     }
 }
 
-function defineBianconiglioGenerators() {
+function defineChordGenerators() {
 
-    python.pythonGenerator.forBlock["bianconiglio_train"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_train"] = function (block, generator) {
         const description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
         const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
 
-        const code = `bianconiglio_train(bianconiglio, ${description}, ${data}, ${features}, ${targets})`;
+        const code = `chord_train(chord, ${description}, ${data}, ${features}, ${targets})`;
 
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_retrain"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_retrain"] = function (block, generator) {
         const model_desc = block.getFieldValue('model');
-        const new_description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
         const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
 
-        const code = `bianconiglio_retrain(bianconiglio, '${model_desc}', ${new_description}, ${data}, ${features}, ${targets})`;
+        const code = `chord_retrain(chord, '${model_desc}', ${data}, ${features}, ${targets})`;
 
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_predict"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_predict"] = function (block, generator) {
         const model_desc = block.getFieldValue('model');
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
 
-        const code = `bianconiglio_predict(bianconiglio, '${model_desc}', ${data})`;
+        const code = `chord_predict(chord, '${model_desc}', ${data})`;
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_model_state"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_get_model_state"] = function (block, generator) {
         const model_id = block.getFieldValue('model');
         
-        const code = `bianconiglio_get_model_state(bianconiglio, "${model_id}")`;
+        const code = `chord_get_model_state(chord, "${model_id}")`;
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_models_info"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_get_models_info"] = function (block, generator) {
 
-        const code = `bianconiglio_get_models_info(bianconiglio)`;
+        const code = `chord_get_models_info(chord)`;
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_log"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_get_log"] = function (block, generator) {
         const model_id = block.getFieldValue('model');
 
-        const code = `bianconiglio_get_log(bianconiglio, "${model_id}")`;
+        const code = `chord_get_log(chord, "${model_id}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_ml_state_list"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_ml_state_list"] = function (block, generator) {
         const state = block.getFieldValue('state');
-        const code = `BianconiglioState("${state}").value`;
+        const code = `ChordState("${state}").value`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
     
-    python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chor_load_dataframe"] = function (block, generator) {
         const dir = block.getFieldValue('directory');
         const fpath = block.getFieldValue('filepath');
-        return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${fpath}")`, python.Order.ATOMIC];
+        return [`chord_load_dataframe(chord, "${dir}", "${fpath}")`, python.Order.ATOMIC];
     };
-    
 }
 
 function defineCameraGenerators() {

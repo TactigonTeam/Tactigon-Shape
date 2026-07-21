@@ -21,7 +21,7 @@
               "inputs": {
                 "VALUE": {
                   "block": {
-                    "type": "bianconiglio_load_dataframe",
+                    "type": "chord_load_dataframe",
                     "id": "#gYI8V-OKs{b@=u/uv*e",
                     "fields": {
                       "directory": "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame",
@@ -42,7 +42,7 @@
                   "inputs": {
                     "VALUE": {
                       "block": {
-                        "type": "bianconiglio_load_dataframe",
+                        "type": "chord_load_dataframe",
                         "id": "aZ#+Sd,nh.Jav1t!~n}X",
                         "fields": {
                           "directory": "/home/robot/projects/tactigon/Tactigon-Shape/DataFrame",
@@ -226,7 +226,7 @@
               "inputs": {
                 "VALUE": {
                   "block": {
-                    "type": "bianconiglio_get_model_state",
+                    "type": "chord_get_model_state",
                     "id": "7B!uC2ynMr`?D,_2r,8]"
                   }
                 }
@@ -369,7 +369,7 @@
                               },
                               "B": {
                                 "block": {
-                                  "type": "bianconiglio_ml_state_list",
+                                  "type": "chord_ml_state_list",
                                   "id": "%KhC7%HMw[Jg]=,Wjt6d",
                                   "fields": {
                                     "state": "NOT_TRAINED"
@@ -429,7 +429,7 @@
                                         }
                                       },
                                       "block": {
-                                        "type": "bianconiglio_ml_train",
+                                        "type": "chord_ml_train",
                                         "id": "B/!nL1HpG0sb+,XZFAo8",
                                         "inputs": {
                                           "data": {
@@ -517,7 +517,7 @@
                               },
                               "B": {
                                 "block": {
-                                  "type": "bianconiglio_ml_state_list",
+                                  "type": "chord_ml_state_list",
                                   "id": "4ov6hIqB%jiK@qZmGiYL",
                                   "fields": {
                                     "state": "TRAINING"
@@ -604,7 +604,7 @@
                               },
                               "B": {
                                 "block": {
-                                  "type": "bianconiglio_ml_state_list",
+                                  "type": "chord_ml_state_list",
                                   "id": "+pK.vhVA.Nsq#J_ph[w!",
                                   "fields": {
                                     "state": "READY_TO_PREDICT"
@@ -664,7 +664,7 @@
                                         }
                                       },
                                       "block": {
-                                        "type": "bianconiglio_ml_predict",
+                                        "type": "chord_ml_predict",
                                         "id": "Kri[^3g4sx*65%(nA`4w",
                                         "inputs": {
                                           "data": {

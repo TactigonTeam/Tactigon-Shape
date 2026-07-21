@@ -17,6 +17,10 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-from flask import Blueprint
+from flask import current_app
+from tactigon_shapes.modules.chord.extension import ChordInterface
 
-bp = Blueprint("bianconiglio", __name__, url_prefix="/bianconiglio")
+def get_chord_interface() -> ChordInterface | None:
+    if ChordInterface.__name__ in current_app.extensions and isinstance(current_app.extensions[ChordInterface.__name__], ChordInterface):
+        return current_app.extensions[ChordInterface.__name__]
+    return None

@@ -17,10 +17,6 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-from flask import current_app
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from flask import Blueprint
 
-def get_bianconiglio_interface() -> BianconiglioInterface | None:
-    if BianconiglioInterface.__name__ in current_app.extensions and isinstance(current_app.extensions[BianconiglioInterface.__name__], BianconiglioInterface):
-        return current_app.extensions[BianconiglioInterface.__name__]
-    return None
+bp = Blueprint("chord", __name__, url_prefix="/chord")

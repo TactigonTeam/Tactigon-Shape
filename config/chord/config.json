@@ -1,5 +1,5 @@
 {
-    "url": "http://decision-api:8000",
+    "url": "http://192.168.1.59:8000",
     "base_endpoint": "/models",
     "train_endpoint": "/train",
     "retrain_endpoint": "/retrain",

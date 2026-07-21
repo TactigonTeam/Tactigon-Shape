@@ -47,7 +47,7 @@ from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
 from tactigon_shapes.modules.file_manager.extension import FileManager
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from tactigon_shapes.modules.chord.extension import ChordInterface
 from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 IMPORT_FOLDER_NAME = 'import'
@@ -89,7 +89,7 @@ class ShapeThread(ExtensionThread):
     _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
     _file_manager: FileManager | None = None
-    _bianconiglio_interface: BianconiglioInterface | None = None
+    _chord_interface: ChordInterface | None = None
 
     def __init__(
             self, 
@@ -102,7 +102,7 @@ class ShapeThread(ExtensionThread):
             ros2: Ros2Interface | None,
             ironboy: IronBoyInterface | None,
             file_manager: FileManager | None,
-            bianconiglio: BianconiglioInterface | None, 
+            chord: ChordInterface | None, 
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -113,7 +113,7 @@ class ShapeThread(ExtensionThread):
         self._ros2_interface = ros2
         self._ironboy_interface = ironboy
         self._file_manager = file_manager
-        self._bianconiglio_interface = bianconiglio
+        self._chord_interface = chord
 
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
@@ -149,12 +149,12 @@ class ShapeThread(ExtensionThread):
         self._zion_interface = zion_interface
 
     @property
-    def bianconiglio_interface(self) -> BianconiglioInterface | None:
-        return self._bianconiglio_interface
+    def chord_interface(self) -> ChordInterface | None:
+        return self._chord_interface
 
-    @bianconiglio_interface.setter
-    def bianconiglio_interface(self, bianconiglio_interface: BianconiglioInterface | None):
-        self._bianconiglio_interface = bianconiglio_interface
+    @chord_interface.setter
+    def chord_interface(self, chord_interface: ChordInterface | None):
+        self._chord_interface = chord_interface
 
     @property
     def ros2_interface(self) -> Ros2Interface | None:
@@ -251,7 +251,7 @@ class ShapeThread(ExtensionThread):
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
-                    self._bianconiglio_interface,
+                    self._chord_interface,
                     self._logging_queue
                 )
             except Exception as e:
@@ -268,7 +268,7 @@ class ShapeThread(ExtensionThread):
             self._ironboy_interface, 
             self._ginos_interface,
             self._mqtt_interface,
-            self._bianconiglio_interface,
+            self._chord_interface,
             self._logging_queue
         )
     
@@ -286,7 +286,7 @@ class ShapeThread(ExtensionThread):
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
-                    self._bianconiglio_interface,
+                    self._chord_interface,
                     self._logging_queue
                 )
             except Exception as e:
@@ -331,7 +331,7 @@ class ShapesApp(ExtensionApp):
     _zion_interface: ZionInterface | None = None
     _ros2_interface: Ros2Interface | None = None
     _file_manager: FileManager | None = None
-    _bianconiglio_interface: BianconiglioInterface | None = None
+    _chord_interface: ChordInterface | None = None
 
     def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
@@ -357,7 +357,6 @@ class ShapesApp(ExtensionApp):
     @braccio_interface.setter
     def braccio_interface(self, braccio_interface: BraccioInterface | None):
         self._braccio_interface = braccio_interface
-    
 
     @property
     def zion_interface(self) -> ZionInterface | None:
@@ -392,12 +391,12 @@ class ShapesApp(ExtensionApp):
         self._file_manager = file_manager
 
     @property
-    def bianconiglio_interface(self) -> BianconiglioInterface | None:
-        return self._bianconiglio_interface
+    def chord_interface(self) -> ChordInterface | None:
+        return self._chord_interface
 
-    @bianconiglio_interface.setter
-    def bianconiglio_interface(self, bianconiglio_interface: BianconiglioInterface | None):
-        self._bianconiglio_interface = bianconiglio_interface
+    @chord_interface.setter
+    def chord_interface(self, chord_interface: ChordInterface | None):
+        self._chord_interface = chord_interface
 
     def get_log(self) -> DebugMessage | None:
         if self.in_flight_log:
@@ -612,8 +611,6 @@ class ShapesApp(ExtensionApp):
                 state = json.load(state_json_file)
 
         return Program(state, code)
-    
-    
 
     def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
         if self.is_running:
@@ -639,7 +636,7 @@ class ShapesApp(ExtensionApp):
                         ros2=self.ros2_interface,
                         ironboy=self.ironboy_interface, 
                         file_manager=self.file_manager,
-                        bianconiglio=self.bianconiglio_interface,
+                        chord=self.chord_interface,
                         logging_queue=self.logging_queue,
                     ) 
                     self.thread.start()

@@ -20,13 +20,15 @@
 from enum import Enum
 from dataclasses import dataclass
 
-class BianconiglioState(Enum):
+
+class ChordState(Enum):
     NOT_TRAINED = "NOT_TRAINED"
     TRAINING = "TRAINING"
     READY_TO_PREDICT = "READY_TO_PREDICT"
     PREDICTING = "PREDICTING"
     FALLBACK = "FALLBACK"
     ERROR = "ERROR"
+
 
 @dataclass
 class ModelInfo:
@@ -36,7 +38,7 @@ class ModelInfo:
    description: str
    features: list[str]
    targets: list[str]
-   state: BianconiglioState
+   state: ChordState
 
    @classmethod
    def FromJSON(cls, json: dict):
@@ -47,7 +49,7 @@ class ModelInfo:
            description=json.get("description", ""),
            features=json.get("description", []),
            targets=json.get("description", []),
-           state=json.get("state", BianconiglioState.NOT_TRAINED),
+           state=json.get("state", ChordState.NOT_TRAINED),
        )
    def toJSON(self) -> dict:
        return {
@@ -65,27 +67,35 @@ class ModelInfo:
 class DataFrameFileExtension(str, Enum):
     CSV = "csv"
     JSON = "json"
-                  
-@dataclass
-class BianconiglioConfig:
-    url: str = "http://192.168.1.46:8000"
-    base_endpoint: str = "/models"
-    train_endpoint: str = "/train"       # /models/train
-    retrain_endpoint: str = "/retrain"   # /models/{model_id}/retrain
-    predict_endpoint: str = "/predict"   # /models/{model_id}/predict
-    status_endpoint: str = "/status"     # /models/{model_id}/status
-    log_endpoint: str = "/logs"          # /models/{model_id}/logs
 
-    @classmethod
-    def Default(cls):
-        return cls(
-        )
+
+@dataclass
+class ChordConfig:
+    url: str = "http://192.168.1.46:8000"
 
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
             url=data.get("url", "http://localhost:8000")
         )
+    
+    def models_endpoint(self) -> str:
+        return f"{self.url}/models"
+    
+    def train_endpoint(self) -> str:
+        return f"{self.models_endpoint()}/train"
+    
+    def retrain_endpoint(self, model_id: str) -> str:
+        return f"{self.models_endpoint()}/{model_id}/train"
+
+    def predict_endpoint(self, model_id) -> str:
+        return f"{self.models_endpoint()}/{model_id}/predict"
+    
+    def status_endpoint(self, model_id) -> str:
+        return f"{self.models_endpoint()}/{model_id}/status"
+    
+    def log_endpoint(self, model_id) -> str:
+        return f"{self.models_endpoint()}/{model_id}/logs"
 
     def toJSON(self) -> dict:
         return {

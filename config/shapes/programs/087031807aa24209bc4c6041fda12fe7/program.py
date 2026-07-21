@@ -18,8 +18,8 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioState
+from tactigon_shapes.modules.chord.extension import ChordInterface
+from tactigon_shapes.modules.chord.models import ChordState
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -300,47 +300,47 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list, url: str):
-    if not bianconiglio:
+def chord_train(chord: ChordInterface | None, description: str, data: pd.DataFrame, features: list, targets: list, url: str):
+    if not chord:
         return {}
 
-    return bianconiglio.train(description, data, features, targets, url)
+    return chord.train(description, data, features, targets, url)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.DataFrame, features: list, targets: list):
-    if not bianconiglio:
+def chord_retrain(chord: ChordInterface | None, model_id: str, data: pd.DataFrame, features: list, targets: list):
+    if not chord:
         return {}
 
-    return bianconiglio.retrain(model_id, description, data, features, targets)
+    return chord.retrain(model_id, data, features, targets)
 
-def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: str, data: pd.DataFrame):
-    if not bianconiglio:
+def chord_predict(chord: ChordInterface | None, model_id: str, data: pd.DataFrame):
+    if not chord:
         return {}
 
-    return bianconiglio.predict(model_id, data)
+    return chord.predict(model_id, data)
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+def chord_get_model_state(chord: ChordInterface | None, model_id: str):
+    if not chord:
         return None
 
-    return bianconiglio.get_status(model_id)
+    return chord.get_status(model_id)
 
-def bianconiglio_get_models_info(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
+def chord_get_models_info(chord: ChordInterface | None):
+    if not chord:
         return []
 
-    return bianconiglio.get_models_info()
+    return chord.get_models_info()
 
-def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+def chord_get_log(chord: ChordInterface | None, model_id: str):
+    if not chord:
         return None
 
-    return bianconiglio.get_log(model_id)
+    return chord.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
-    if not bianconiglio:
+def chord_load_dataframe(chord: ChordInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chord:
         return None
 
-    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+    return chord.get_dataframe(os.path.join(directory, file_path))
 
 # ---------- Generated code ---------------
 
@@ -353,7 +353,7 @@ def tactigon_shape_setup(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
+        chord: ChordInterface | None,
         logging_queue: LoggingQueue):
 
     pass
@@ -366,7 +366,7 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
+        chord: ChordInterface | None,
         logging_queue: LoggingQueue):
 
     gesture = tskin.gesture
@@ -385,7 +385,7 @@ def tactigon_shape_close(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
+        chord: ChordInterface | None,
         logging_queue: LoggingQueue):
 
     pass
