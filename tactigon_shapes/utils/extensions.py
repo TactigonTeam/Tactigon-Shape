@@ -26,9 +26,19 @@ from tactigon_shapes.modules.zion.extension import ZionInterface
 from tactigon_shapes.modules.tskin.manager import TSKIN_EXTENSION
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.file_manager.extension import FileManager
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
 
-excluded_apps = [SocketApp.name, TSKIN_EXTENSION, "socketio", BraccioInterface.__name__, ZionInterface.__name__, IronBoyInterface.__name__, FileManager.__name__, BianconiglioInterface.__name__]
+excluded_apps = [
+    SocketApp.name, 
+    TSKIN_EXTENSION, 
+    "socketio", 
+    BraccioInterface.__name__, 
+    ZionInterface.__name__, 
+    IronBoyInterface.__name__, 
+    FileManager.__name__, 
+    ChordsLLMInterface.__name__,
+    ChordsMLInterface.__name__,
+]
 
 def stop_apps(exclude: str | None = None):
     l = excluded_apps

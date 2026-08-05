@@ -36,7 +36,6 @@ from flask import Flask
 from werkzeug.datastructures import FileStorage
 from pynput.keyboard import Controller as KeyboardController
 
-from tactigon_shapes.modules.chords.extension import ChordsLLMInterface
 from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface
@@ -48,7 +47,7 @@ from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
 from tactigon_shapes.modules.file_manager.extension import FileManager
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
 from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 IMPORT_FOLDER_NAME = 'import'
@@ -88,7 +87,7 @@ class ShapeThread(ExtensionThread):
     _ros2_subscription: list[Ros2Subscription] = []
     _file_manager: FileManager | None = None
     _chords_llm : ChordsLLMInterface | None = None
-    _bianconiglio_interface: BianconiglioInterface | None = None
+    _chords_ml: ChordsMLInterface | None = None
 
     def __init__(
             self, 
@@ -102,7 +101,7 @@ class ShapeThread(ExtensionThread):
             ironboy: IronBoyInterface | None,
             file_manager: FileManager | None,
             chords_llm: ChordsLLMInterface | None,
-            bianconiglio: BianconiglioInterface | None, 
+            chords_ml: ChordsMLInterface | None, 
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -114,7 +113,7 @@ class ShapeThread(ExtensionThread):
         self._ironboy_interface = ironboy
         self._file_manager = file_manager
         self._chords_llm = chords_llm
-        self._bianconiglio_interface = bianconiglio
+        self._chords_ml = chords_ml
 
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
@@ -131,47 +130,6 @@ class ShapeThread(ExtensionThread):
         ExtensionThread.__init__(self)
 
         self.load_module(path.join(base_path, "programs", app.id.hex, "program.py"))
-
-
-    @property
-    def braccio_interface(self) -> BraccioInterface | None:
-        return self._braccio_interface
-
-    @braccio_interface.setter
-    def braccio_interface(self, braccio_interface: BraccioInterface | None):
-        self._braccio_interface = braccio_interface
-
-    @property
-    def zion_interface(self) -> ZionInterface | None:
-        return self._zion_interface
-
-    @zion_interface.setter
-    def zion_interface(self, zion_interface: ZionInterface | None):
-        self._zion_interface = zion_interface
-
-    @property
-    def bianconiglio_interface(self) -> BianconiglioInterface | None:
-        return self._bianconiglio_interface
-
-    @bianconiglio_interface.setter
-    def bianconiglio_interface(self, bianconiglio_interface: BianconiglioInterface | None):
-        self._bianconiglio_interface = bianconiglio_interface
-
-    @property
-    def ros2_interface(self) -> Ros2Interface | None:
-        return self._ros2_interface
-
-    @ros2_interface.setter
-    def ros2_interface(self, ros2_interface: Ros2Interface | None):
-        self._ros2_interface = ros2_interface
-
-    @property
-    def ironboy_interface(self) -> IronBoyInterface | None:
-        return self.ironboy_interface
-
-    @ironboy_interface.setter
-    def ironboy_interface(self, ironboy_interface: IronBoyInterface | None):
-        self._ironboy_interface = ironboy_interface
 
     @staticmethod
     def debouce(tskin: TSkin | None) -> bool:
@@ -252,14 +210,14 @@ class ShapeThread(ExtensionThread):
                 self.module.tactigon_shape_setup(
                     self._tskin, 
                     self._keyboard, 
-                    self.braccio_interface, 
-                    self.zion_interface, 
+                    self._braccio_interface, 
+                    self._zion_interface, 
                     self._ros2_interface,
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
                     self._chords_llm,
-                    self._bianconiglio_interface,
+                    self._chords_ml,
                     self._logging_queue
                 )
             except Exception as e:
@@ -270,14 +228,14 @@ class ShapeThread(ExtensionThread):
         return self.module.tactigon_shape_function(
             self._tskin, 
             self._keyboard, 
-            self.braccio_interface, 
-            self.zion_interface, 
+            self._braccio_interface, 
+            self._zion_interface, 
             self._ros2_interface,
             self._ironboy_interface, 
             self._ginos_interface,
             self._mqtt_interface,
             self._chords_llm,
-            self._bianconiglio_interface,
+            self._chords_ml,
             self._logging_queue
         )
     
@@ -290,14 +248,14 @@ class ShapeThread(ExtensionThread):
                 self.module.tactigon_shape_close(
                     self._tskin, 
                     self._keyboard, 
-                    self.braccio_interface, 
-                    self.zion_interface, 
+                    self._braccio_interface, 
+                    self._zion_interface, 
                     self._ros2_interface,
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
                     self._chords_llm,
-                    self._bianconiglio_interface,
+                    self._chords_ml,
                     self._logging_queue
                 )
             except Exception as e:
@@ -347,7 +305,7 @@ class ShapesApp(ExtensionApp):
     _ros2_interface: Ros2Interface | None = None
     _file_manager: FileManager | None = None
     _chords_llm :  ChordsLLMInterface | None = None
-    _bianconiglio_interface: BianconiglioInterface | None = None
+    _chords_ml: ChordsMLInterface | None = None
 
     def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
@@ -374,7 +332,6 @@ class ShapesApp(ExtensionApp):
     def braccio_interface(self, braccio_interface: BraccioInterface | None):
         self._braccio_interface = braccio_interface
     
-
     @property
     def zion_interface(self) -> ZionInterface | None:
         return self._zion_interface
@@ -408,20 +365,20 @@ class ShapesApp(ExtensionApp):
         self._file_manager = file_manager
 
     @property
+    def chords_ml(self) -> ChordsMLInterface | None:
+        return self._chords_ml
+
+    @chords_ml.setter
+    def chords_ml(self, chords_ml: ChordsMLInterface | None):
+        self._chords_ml = chords_ml
+
+    @property
     def chords_llm(self) -> ChordsLLMInterface | None:
         return self._chords_llm
 
     @chords_llm.setter
     def chords_llm(self, chords_llm: ChordsLLMInterface | None):
         self._chords_llm = chords_llm
-
-    @property
-    def bianconiglio_interface(self) -> BianconiglioInterface | None:
-        return self._bianconiglio_interface
-
-    @bianconiglio_interface.setter
-    def bianconiglio_interface(self, bianconiglio_interface: BianconiglioInterface | None):
-        self._bianconiglio_interface = bianconiglio_interface
 
     def get_log(self) -> DebugMessage | None:
         if self.in_flight_log:
@@ -662,7 +619,7 @@ class ShapesApp(ExtensionApp):
                         ironboy=self.ironboy_interface, 
                         file_manager=self.file_manager,
                         chords_llm=self.chords_llm,
-                        bianconiglio=self.bianconiglio_interface,
+                        chords_ml=self.chords_ml,
                         logging_queue=self.logging_queue,
                     ) 
                     self.thread.start()

@@ -1,7 +1,7 @@
 import logging
 
 from tactigon_shapes.modules.chords.extension import ChordsLLMInterface
-from tactigon_shapes.modules.chords.models import ChordsLLMConfig, ChatMessage, Chat
+from tactigon_shapes.modules.chords.models import ChordsLLMConfig, ChordsLLMChatMessage, ChordsLLMChat
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 

@@ -19,7 +19,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import XgbModelState
+from tactigon_shapes.modules.bianconiglio.models import ChordsMLModelState
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -318,11 +318,11 @@ def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: s
 
     return bianconiglio.predict(model_id, data)
 
-def bianconiglio_get_xgb_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
+def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
-    return bianconiglio.get_xgb_model_state(model_id)
+    return bianconiglio.get_model_state(model_id)
 
 def bianconiglio_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:

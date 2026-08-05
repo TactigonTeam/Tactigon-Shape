@@ -226,7 +226,7 @@
               "inputs": {
                 "VALUE": {
                   "block": {
-                    "type": "bianconiglio_get_xgb_model_state",
+                    "type": "bianconiglio_get_model_state",
                     "id": "7B!uC2ynMr`?D,_2r,8]"
                   }
                 }

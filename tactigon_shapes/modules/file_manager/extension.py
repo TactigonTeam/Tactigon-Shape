@@ -343,7 +343,7 @@ class FileManager:
         self.save_config()
         self._logger.info(f"Directory '{directory.name}' deleted")
 
-    def get_blocks(self):
+    def get_shape_blocks(self):
         blocks = []
         for directory in self.config.directories:
             blocks.append({

@@ -7,6 +7,7 @@ import types
 import json
 import os
 import logging
+import pandas as pd
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -19,16 +20,12 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.chords.extension import ChordsLLMInterface
-from tactigon_shapes.modules.chords.models import ChordAgentStateEnum
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import XgbModelState, BianconiglioConfig, RAGAgentState
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
+from tactigon_shapes.modules.chords.models import ChordsLLMAgentStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any, Generator
 from pathlib import Path
-import rclpy
 from rclpy.node import Node
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -304,84 +301,75 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def chords_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
-    if not bianconiglio:
-        return {}
-    
-    if data is None:
+def chords_ml_train(chords_ml: ChordsMLInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+    if not chords_ml:
         return {}
 
-    return bianconiglio.train(description, data, features, targets)
+    return chords_ml.train(description, data, features, targets)
 
-def chords_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
-    if not bianconiglio:
+def chords_ml_retrain(chords_ml: ChordsMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
+    if not chords_ml:
         return {}
 
-    return bianconiglio.retrain(model_desc, new_description, data, features, targets)
+    return chords_ml.retrain(model_desc, new_description, data, features, targets)
 
-def chords_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame) -> dict:
-    if not bianconiglio:
+def chords_ml_predict(chords_ml: ChordsMLInterface | None, model_desc: str, data: pd.DataFrame) -> dict:
+    if not chords_ml:
         return {}
 
-    return bianconiglio.predict(model_desc, data)
+    return chords_ml.predict(model_desc, data)
 
-def chords_get_xgb_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+def chords_ml_get_model_state(chords_ml: ChordsMLInterface | None, model_id: str):
+    if not chords_ml:
         return None
 
-    return bianconiglio.get_xgb_model_state(model_id)
+    return chords_ml.get_model_state(model_id)
 
-def chords_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
+def chords_ml_get_models_info(chords_ml: ChordsMLInterface | None):
+    if not chords_ml:
         return []
 
-    return bianconiglio.get_xgb_models_info()
+    return chords_ml.get_models_info()
 
-def chords_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+def chords_ml_log(chords_ml: ChordsMLInterface | None, model_id: str):
+    if not chords_ml:
         return None
 
-    return bianconiglio.get_log(model_id)
+    return chords_ml.get_log(model_id)
 
-def chords_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
-    if not bianconiglio:
+def chords_ml_load_dataframe(chords_ml: ChordsMLInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chords_ml:
         return None
 
-    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+    return chords_ml.get_dataframe(os.path.join(directory, file_path))
 
-def chordsllm_stream(chords: ChordsLLMInterface | None, user_input: str):
-    if not chords:
+def chords_llm_stream(chords_llm: ChordsLLMInterface | None, user_input: str):
+    if not chords_llm:
         return None
 
-    return chords.stream(user_input)
+    return chords_llm.stream(user_input)
 
-def chordsllm_upload(chords: ChordsLLMInterface | None, file_path: str) -> bool:
-    if not chords:
+def chords_llm_upload(chords_llm: ChordsLLMInterface | None, file_path: str) -> bool:
+    if not chords_llm:
         return False
     
-    return chords.upload(file_path)
+    return chords_llm.upload(file_path)
 
-def chordsllm_rag(chords: ChordsLLMInterface | None) -> bool:
-    if not chords:
+def chords_llm_rag(chords_llm: ChordsLLMInterface | None) -> bool:
+    if not chords_llm:
         return False
     
-    return chords.rag()
+    return chords_llm.rag()
 
-def chordsllm_get_chat_status(chords: ChordsLLMInterface | None) -> ChordAgentStateEnum | None:
-    if not chords:
+def chords_llm_get_chat_status(chords_llm: ChordsLLMInterface | None) -> ChordsLLMAgentStateEnum | None:
+    if not chords_llm:
         return None
 
-    status = chords.chat_status()
+    status = chords_llm.chat_status()
 
-    if status:
-        return status.status
-
-    return    
+    return status.status if status else None 
 
 # ---------- Generated code ---------------
-
-state = None
-
 
 def tactigon_shape_setup(
         tskin: TSkin,
@@ -392,13 +380,12 @@ def tactigon_shape_setup(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        chords: ChordsLLMInterface | None,
-        bianconiglio: BianconiglioInterface | None,
+        chords_llm: ChordsLLMInterface | None,
+        chords_ml: ChordsMLInterface | None,
         logging_queue: LoggingQueue):
 
-    global state
-    chordsllm_upload(chords, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/2606_NEXT INDUSTRIES - Comunicazione accettazione distacco.pdf")
-    chordsllm_rag(chords)
+    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/2606_NEXT INDUSTRIES - Comunicazione accettazione distacco.pdf")
+    chords_llm_rag(chords_llm)
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -409,18 +396,17 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        chords: ChordsLLMInterface | None,
-        bianconiglio: BianconiglioInterface | None,
+        chords_llm: ChordsLLMInterface | None,
+        chords_ml: ChordsMLInterface | None,
         logging_queue: LoggingQueue):
 
-    global state
     gesture = tskin.gesture
     touch = tskin.touch
-    state = chordsllm_get_chat_status(chords)
-    if state == ChordAgentStateEnum("IDLE"):
-        debug(logging_queue, chordsllm_stream(chords, 'Ciao, cosa puoi dirmi del documento di accettazione?'))
+    if chords_llm_get_chat_status(chords_llm) == ChordsLLMAgentStateEnum("IDLE"):
+        debug(logging_queue, chords_llm_stream(chords_llm, 'Dimmi cosa sai del documento di accettazione'))
         return False
-    debug(logging_queue, 'Non ancora....')
+    time.sleep(1)
+    debug(logging_queue, 'Wait until ready...')
 
     return True
 
@@ -433,9 +419,8 @@ def tactigon_shape_close(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        chords: ChordsLLMInterface | None,
-        bianconiglio: BianconiglioInterface | None,
+        chords_llm: ChordsLLMInterface | None,
+        chords_ml: ChordsMLInterface | None,
         logging_queue: LoggingQueue):
 
-    global state
     pass

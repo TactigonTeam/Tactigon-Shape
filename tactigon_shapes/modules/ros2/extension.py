@@ -390,7 +390,7 @@ class Ros2Interface:
     def init_app(self, app: Flask):
         app.extensions[Ros2Interface.__name__] = self
 
-    def get_blocks(self):
+    def get_shape_blocks(self):
         return {
             "default_types": [(n, n) for n in get_message_name()],
             "commands": [(c.name, c.identifier) for c in self.config.ros2_commands] if self.config.ros2_commands else [("", "")],

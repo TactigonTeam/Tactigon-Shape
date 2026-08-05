@@ -105,10 +105,10 @@
     "mqtt_config": null
   },
   {
-    "id": "a68eac2e36e745fe9a8beb0267a99944",
-    "name": "test",
-    "created_on": "2026-08-05T17:56:43.989830",
-    "modified_on": "2026-08-05T22:59:22.403325",
+    "id": "714f231a90c645daa7d5ccf6d676214a",
+    "name": "Test LLM con RAG",
+    "created_on": "2026-08-06T00:14:13.475477",
+    "modified_on": "2026-08-06T00:29:19.167188",
     "description": "",
     "readonly": false,
     "ginos_config": null,
