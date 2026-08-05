@@ -45,7 +45,7 @@ function loadCustomBlocks(response) {
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
-    loadBianconiglioBlocks(bianconiglio, file_manager);
+    loadChordsBlocks(bianconiglio, file_manager);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -109,17 +109,28 @@ function loadShapesBlocks() {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "shapes_stop",
+            "message0": "Stop shape",
+            "args0": [],
+            "previousStatement": null,
+            "colour": "#EB6152",
             "tooltip": "Stop shape execution",
             "helpUrl": "",
-            "message0": "Stop shape %1",
+        },
+        {
+            "type": "shapes_sleep",
+            "message0": "Sleep for %1 seconds",
             "args0": [
                 {
-                    "type": "input_dummy",
-                    "name": "NAME"
+                    "type": "input_value",
+                    "name": "NUM",
+                    "check": "Number",
                 }
             ],
             "previousStatement": null,
+            "nextStatement": null,
             "colour": "#EB6152",
+            "tooltip": "Sleep for given seconds",
+            "helpUrl": "",
         },
         {
             "type": "tactigon_shape_debug",
@@ -1420,57 +1431,7 @@ function loadCameraBlocks() {
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadBianconiglioBlocks(bianconiglio, file_manager) {
-// FUNZIONE ORIGINALE DI SIMO ISPIRATA A GINOS CHE RICHIEDE IN OGNI CASO ALMENO UNA DIRECTORY
-
-    // let directory = [];            
-    // let optionMapping = {};
-
-    // file_manager.forEach(el => {
-
-    //     directory.push([el['directory']['name'], el['directory']['base_path']]);
-
-    //     optionMapping[el['directory']['base_path']] = [['---', '']];
-
-    //     optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
-    //         const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
-    //         return [f_path, f_path];
-    //     }));
-    // });
-
-//===========================================================================================================
-
-// MIA FUNZIONE ATTUALE CHE NON FILTRA IN BASE ALLE CARTELLE MA RESTITUISCE IL CONTENUTO DI TUTTE LE CARTELLE PRESENTI (PER ORA SOLO "user_uploads")
-
-    // // queste 2 liste sono hardocate perche i modelli sono in python
-    // // TODO: creare un modello in js che aggiorna le liste autonomamente in caso di modifiche
-    // const dataFrameExtensions = ['csv', 'json'];
-    // const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
-
-    // let files_for_dataframe_creation = []
-    // let files_for_RAG_upload= []
-
-    // file_manager.forEach(el => {
-    //     el['content'].map(f => {
-    //         const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
-    //         const extension = f_path.split('.').pop().toLowerCase();
-
-    //         if (dataFrameExtensions.includes(extension)){
-    //             // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
-    //             files_for_dataframe_creation.push([f_path, f['path']])
-    //         };
-
-    //         if (ragExtensions.includes(extension)){
-    //             // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
-    //             files_for_RAG_upload.push([f_path, f['path']])
-    //         };
-
-    //     })
-    // })
-
-//===========================================================================================================    
-// FUNZIONE ISPIRATA A GINOS MA CON MAPPATURA PER ESTENSIONE PER PERMETTERE LA VISUALIZZAZIONE SOLO DEI FILE CONSENTITI
-
+function loadChordsBlocks(chords, file_manager) {
     const dataFrameExtensions = ['csv', 'json'];
     const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
     let directory = [];            
@@ -1506,69 +1467,12 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         });
     });
     
-
-//===========================================================================================================
-
-// MIA FUNZIONE CHE FUNZIONAVA CON PIU DIRECTORY NEL CONFIG DI FILE_MANAGER FILTRANDO PER TIPO DI DOCUMENTO
-    
-    // let DF_directory = [['---', '']]; 
-    // let RAG_directory = [['---', '']];            
-    
-    // let DF_optionMapping = {};
-    // let RAG_optionMapping = {};
-
-    // const dataFrameExtensions = ['csv', 'json'];
-    // const ragExtensions = ['pdf', 'json', 'md', 'csv', 'xls']
-
-    // const df_dir_names = ["CSV", "JSON"]
-    // const rag_dir_names = ["PDF", "JSON", "MD", "CSV", "XLS"]
-
-    // file_manager.forEach(el => {
-    //     const dirName = el['directory']['name'];
-    //     const basePath = el['directory']['base_path'];
-    //     //console.log(`questo è il print di dirName: ${dirName}`)
-
-    //     // elenchi delle cartelle per i 2 dropdown
-    //     if (df_dir_names.includes(dirName)){ 
-    //         DF_directory.push([dirName, basePath])
-    //     }
-
-    //     if (rag_dir_names.includes(dirName)){
-    //         RAG_directory.push([dirName, basePath])
-    //     }
-
-    //     // Valori di default
-    //     DF_optionMapping[basePath] = [['---', '']];
-    //     RAG_optionMapping[basePath] = [['---', '']];
-
-    //     // ciclo i file della cartella mapparli
-    //     el['content'].forEach(f => {
-    //         const f_path = f['path'].replace(basePath + "/", '');
-    //         const extension = f_path.split('.').pop().toLowerCase();
-
-    //         // estensione da DataFrame
-    //         if (dataFrameExtensions.includes(extension)){
-    //             // Passiamo f_path come nome visibile, e f['path'] (percorso completo) come valore reale
-    //             DF_optionMapping[basePath].push([f_path, f['path']]);
-    //         }
-    //         //console.log(`df_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
-            
-    //         // estensione da RAG
-    //         if (ragExtensions.includes(extension)){
-    //             RAG_optionMapping[basePath].push([f_path, f['path']]);
-    //         }
-    //         //console.log(`rag_file_path: ${f_path}di tipo: ${typeof(f_path)}`)
-    //     });
-    // });
-    
-//===========================================================================================================
-
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
-            "type": "bianconiglio_train",
+            "type": "chords_train",
             "tooltip": "Sends training data to a new ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Train a Bianconiglio ML model with this dataset %1 Features %2 Targets %3 Model Description %4",
+            "message0": "Train a ML model with this dataset %1 Features %2 Targets %3 Model Description %4",
             "args0": [
                 {
                     "type": "input_value",
@@ -1596,18 +1500,18 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_retrain",
+            "type": "chords_retrain",
             "tooltip": "Sends training data to an existing ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Retrain %1 Bianconiglio ML Model ",
+            "message0": "Retrain %1 ML Model ",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.xgb_model_ids
+                    "options": chords.xgb_model_ids
                 }
             ],
-            "message1": "with this dataset %1 Features %2 Targets %3 New Model Description %4",
+            "message1": "with this dataset %1 Features %2 Targets %3",
             "args1": [
                 {
                     "type": "input_value",
@@ -1623,11 +1527,6 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
                     "type": "input_value",
                     "name": "targets",
                     "check": "Array"
-                },
-                {
-                    "type": "input_value",
-                    "name": "model_description",
-                    "check": "String"
                 }
             ],
             "previousStatement": null,
@@ -1635,47 +1534,43 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_predict",
+            "type": "chords_predict",
             "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
             "helpUrl": "",
-            "message0": "Use %1 Bianconiglio ML Model to predict ",
+            "message0": "Predict result from %1 using %2 ML Model",
             "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "model",
-                    "options": bianconiglio.xgb_model_ids
-                }
-            ],
-            "message1": "from these data %1",
-            "args1": [
                 {
                     "type": "input_value",
                     "name": "data",
                     "check": "DataFrame"
+                },
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chords.xgb_model_ids
                 }
             ],
-            "previousStatement": null,
-            "nextStatement": null,
+            "output": "Dictionary",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_xgb_model_state",
+            "type": "chords_get_xgb_model_state",
             "tooltip": "Returns the model state through API call as a dictionary.",
             "helpUrl": "",
-            "message0": "Get state of %1 Bianconiglio ML Model",
+            "message0": "Get state of %1 ML Model",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.xgb_model_ids
+                    "options": chords.xgb_model_ids
                 }
             ],
             "output": "String",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_xgb_models_info",
-            "tooltip": "refresh the list of Bianconiglio models",
+            "type": "chords_get_xgb_models_info",
+            "tooltip": "refresh the list of models",
             "helpUrl": "",
             "message0": "Refresh models ",
             "previousStatement": null,
@@ -1683,37 +1578,37 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_log",
+            "type": "chords_get_log",
             "tooltip": "Returns the training log of the specific model selected as a dictionary.",
             "helpUrl": "",
-            "message0": "Get logs of %1 Bianconiglio ML model ",
+            "message0": "Get logs of %1 ML model ",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "model",
-                    "options": bianconiglio.xgb_model_ids
+                    "options": chords.xgb_model_ids
                 }
             ],
             "output": "Dictionary",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_xgb_state_list",
-            "tooltip": "Attribute state from Bianconiglio ML model",
+            "type": "chords_xgb_state_list",
+            "tooltip": "Attribute state from ML model",
             "helpUrl": "",
-            "message0": "Bianconiglio ML Models states: %1",
+            "message0": "ML Models states: %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "state",
-                    "options": bianconiglio.xgb_model_states
+                    "options": chords.xgb_model_states
                 }
             ],
             "output": "String",
             "colour": "#ec8dc6"
         },
         // {
-        //     "type": "bianconiglio_load_dataframe",
+        //     "type": "chords_load_dataframe",
         //     "message0": "Create a dataframe with file: %1",
         //     "args0": [
         //         {
@@ -1729,7 +1624,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         // },
         // blocco con filtro su piu cartelle
         {
-            "type": "bianconiglio_load_dataframe",
+            "type": "chords_load_dataframe",
             "message0": "From dir: %1 create a dataframe with file: %2",
             "args0": [
                 {
@@ -1751,8 +1646,8 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "helpUrl": ""
         },
         {
-            "type": "bianconiglio_stream_chat_with_rag",
-            "message0": "Send message: %1 to Bianconiglio RAG Agent",
+            "type": "chordsllm_stream",
+            "message0": "Send message: %1 to RAG Agent",
             "args0": [
                 {
                     "type": "input_value",
@@ -1766,7 +1661,7 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "helpUrl": ""
         },
         // {
-        //     "type": "bianconiglio_RAG_upload_file",
+        //     "type": "chordsllm_rag",
         //     "message0": "Upload file: %1 to bianconiglio RAG Agent" ,
         //     "args0": [
         //         {
@@ -1783,8 +1678,8 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
         // },
         // blocco con filtro su piu cartelle
         {
-            "type": "bianconiglio_RAG_upload_file",
-            "message0": "From dir: %1 upload file: %2",
+            "type": "chordsllm_upload",
+            "message0": "Upload %1 %2 to chat documents",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1802,12 +1697,12 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "previousStatement": null,
             "nextStatement": null,
             "colour": "#ec8dc6",
-            "tooltip": "Upload files into chord",
+            "tooltip": "Upload files to chords chat",
             "helpUrl": ""
         },
         {
-            "type": "bianconiglio_RAG_execute",
-            "message0": "Execute Bianconiglio RAG",
+            "type": "chordsllm_rag",
+            "message0": "Execute RAG",
             "previousStatement": null,
             "nextStatement": null,
             "colour": "#ec8dc6",
@@ -1815,25 +1710,25 @@ function loadBianconiglioBlocks(bianconiglio, file_manager) {
             "helpUrl": ""
         },
         {
-            "type": "bianconiglio_RAG_agent_state_list",
-            "tooltip": "Attribute state from Bianconiglio ML model",
+            "type": "chordsllm_agent_state",
+            "tooltip": "Attribute state from ML model",
             "helpUrl": "",
-            "message0": "Bianconiglio RAG Agent states: %1",
+            "message0": "RAG Agent states: %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "state",
-                    "options": bianconiglio.RAG_agent_states
+                    "options": chords.RAG_agent_states
                 }
             ],
             "output": "String",
             "colour": "#ec8dc6"
         },
         {
-            "type": "bianconiglio_get_context_state",
+            "type": "chordsllm_get_chat_status",
             "tooltip": "Returns the state of the current context",
             "helpUrl": "",
-            "message0": "Get Bianconiglio RAG Agent state",
+            "message0": "Get RAG Agent state",
             "output": "String",
             "colour": "#ec8dc6"
         }
@@ -1864,10 +1759,12 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface
+from tactigon_shapes.modules.chords.models import ChordAgentStateEnum
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
 from tactigon_shapes.modules.bianconiglio.models import XgbModelState, BianconiglioConfig, RAGAgentState
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
-from typing import Union, Any
+from typing import Union, Any, Generator
 from pathlib import Path
 import rclpy
 from rclpy.node import Node
@@ -2147,84 +2044,79 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+def chords_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
     if not bianconiglio:
+        return {}
+    
+    if data is None:
         return {}
 
     return bianconiglio.train(description, data, features, targets)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
+def chords_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
     return bianconiglio.retrain(model_desc, new_description, data, features, targets)
 
-def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame):
+def chords_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame) -> dict:
     if not bianconiglio:
         return {}
 
     return bianconiglio.predict(model_desc, data)
 
-def bianconiglio_get_xgb_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
+def chords_get_xgb_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
     return bianconiglio.get_xgb_model_state(model_id)
 
-def bianconiglio_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
+def chords_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
     if not bianconiglio:
         return []
 
     return bianconiglio.get_xgb_models_info()
 
-def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
+def chords_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
         return None
 
     return bianconiglio.get_log(model_id)
 
-# def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
-#    if not bianconiglio:
-#        return None
-#
-#    return bianconiglio.get_dataframe(file_path)
-
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
-    if not bianconiglio:
-        return False
-
-    return bianconiglio.load_dataframe(os.path.join(directory, file_path))
-
-# def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
-#    if not bianconiglio:
-#        return None
-#
-#    return bianconiglio.upload_document(file_path)
-
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> bool:
-    if not bianconiglio:
-        return False
-
-    return bianconiglio.upload_document(os.path.join(directory, file_path))
-
-def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
-    if not bianconiglio:
-        logger.error("mannaggia non c'è bianconiglio")
-        return None
-
-    return bianconiglio.stream_chat_with_rag(user_input)
-
-def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
+def chords_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
     if not bianconiglio:
         return None
+
+    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
+
+def chordsllm_stream(chords: ChordsLLMInterface | None, user_input: str):
+    if not chords:
+        return None
+
+    return chords.stream(user_input)
+
+def chordsllm_upload(chords: ChordsLLMInterface | None, file_path: str) -> bool:
+    if not chords:
+        return False
     
-    return bianconiglio.RAG_execute()
+    return chords.upload(file_path)
 
-def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
-        return []
+def chordsllm_rag(chords: ChordsLLMInterface | None) -> bool:
+    if not chords:
+        return False
+    
+    return chords.rag()
 
-    return bianconiglio.get_context_state()     
+def chordsllm_get_chat_status(chords: ChordsLLMInterface | None) -> ChordAgentStateEnum | None:
+    if not chords:
+        return None
+
+    status = chords.chat_status()
+
+    if status:
+        return status.status
+
+    return    
 
 # ---------- Generated code ---------------
 
@@ -2258,6 +2150,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords: ChordsLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
@@ -2289,6 +2182,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords: ChordsLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
@@ -2320,6 +2214,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords: ChordsLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'bianconiglio: BianconiglioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
@@ -2329,8 +2224,6 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + "return True\n";
         return code;
     };
-
-
 
     defineShapesGenerators();
     defineTSkinGenerators();
@@ -2344,7 +2237,7 @@ function defineCustomGenerators() {
     defineGinosAIGenerators();
     defineMQTTGenerators();
     defineCameraGenerators();
-    defineBianconiglioGenerators();
+    defineChordsGenerators();
 }
 
 function defineShapesGenerators() {
@@ -2354,8 +2247,14 @@ function defineShapesGenerators() {
         return code;
     };
 
+    python.pythonGenerator.forBlock['shapes_sleep'] = function (block, generator) {
+        var seconds = generator.valueToCode(block, 'NUM', python.Order.ATOMIC);
+        var code = `time.sleep(${seconds})\n`;
+        return code;
+    };
+    
     python.pythonGenerator.forBlock['shapes_stop'] = function () {
-        return "return False";
+        return "return False\n";
     };
 }
 
@@ -2793,136 +2692,100 @@ function defineMQTTGenerators() {
     }
 }
 
-function defineBianconiglioGenerators() {
+function defineChordsGenerators() {
 
-    python.pythonGenerator.forBlock["bianconiglio_train"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chords_train"] = function (block, generator) {
         const description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
         const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
 
-        const code = `bianconiglio_train(bianconiglio, ${description}, ${data}, ${features}, ${targets})\n`;
+        const code = `chords_train(bianconiglio, ${description}, ${data}, ${features}, ${targets})\n`;
 
         return code
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_retrain"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chords_retrain"] = function (block, generator) {
         const model_desc = block.getFieldValue('model');
-        const new_description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
         const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
         const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
 
-        const code = `bianconiglio_retrain(bianconiglio, '${model_desc}', ${new_description}, ${data}, ${features}, ${targets})\n`;
+        const code = `chords_retrain(bianconiglio, '${model_desc}', ${data}, ${features}, ${targets})\n`;
 
         return code
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_predict"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chords_predict"] = function (block, generator) {
         const model_desc = block.getFieldValue('model');
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
 
-        const code = `bianconiglio_predict(bianconiglio, '${model_desc}', ${data})\n`;
-        return code
-    };
-
-    python.pythonGenerator.forBlock["bianconiglio_get_xgb_model_state"] = function (block, generator) {
-        const model_id = block.getFieldValue('model');
-        
-        const code = `bianconiglio_get_xgb_model_state(bianconiglio, "${model_id}")`;
+        const code = `chords_predict(bianconiglio, '${model_desc}', ${data})`;
         return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_xgb_models_info"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chords_get_xgb_model_state"] = function (block, generator) {
+        const model_id = block.getFieldValue('model');
+        
+        const code = `chords_get_xgb_model_state(bianconiglio, "${model_id}")`;
+        return [code, python.Order.ATOMIC];
+    };
 
-        const code = `bianconiglio_get_xgb_models_info(bianconiglio)\n`;
+    python.pythonGenerator.forBlock["chords_get_xgb_models_info"] = function (block, generator) {
+
+        const code = `chords_get_xgb_models_info(bianconiglio)\n`;
         return code
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_get_log"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chords_get_log"] = function (block, generator) {
         const model_id = block.getFieldValue('xgb_models_id');
 
-        const code = `bianconiglio_get_log(bianconiglio, "${model_id}")`;
+        const code = `chords_get_log(bianconiglio, "${model_id}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_xgb_state_list"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chords_xgb_state_list"] = function (block, generator) {
         const state = block.getFieldValue('state');
         const code = `XgbModelState(bianconiglio, "${state}").value`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
-    
-    // python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
-    //     const path = block.getFieldValue('filepath');
 
-    //     const code =`bianconiglio_load_dataframe(bianconiglio, "${path}")`
-
-    //     return [code,Blockly.Python.ORDER_ATOMIC];
-    // };
-
-    python.pythonGenerator.forBlock["bianconiglio_load_dataframe"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chords_load_dataframe"] = function (block, generator) {
         const dir = block.getFieldValue('directory');
         const fpath = block.getFieldValue('filepath');
-        return [`bianconiglio_load_dataframe(bianconiglio, "${dir}", "${fpath}")`, python.Order.ATOMIC];
+        return [`chords_load_dataframe(bianconiglio, "${dir}", "${fpath}")`, python.Order.ATOMIC];
     };
     
-    python.pythonGenerator.forBlock['bianconiglio_stream_chat_with_rag'] = function(block, generator) {
+    python.pythonGenerator.forBlock['chordsllm_stream'] = function(block, generator) {
         const userInput = generator.valueToCode(block, 'user_input', python.Order.ATOMIC);
 
-        const code = `bianconiglio_stream_chat_with_rag(bianconiglio, "${userInput}")`;
-        console.log(`"user input: ${userInput}`)
-        console.log(`entro nella funzione`)
-
+        const code = `chordsllm_stream(chords, ${userInput})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    // python.pythonGenerator.forBlock['bianconiglio_RAG_upload_file'] = function(block, generator) {
-    //     const path = block.getFieldValue('filepath');
-
-    //     console.log(`path:${path} tipo path: ${typeof path})`);
-        
-    //     const code = `bianconiglio_RAG_upload_file(bianconiglio, "${path}")\n`
-    //     return code 
-    // };
-
-    python.pythonGenerator.forBlock["bianconiglio_RAG_upload_file"] = function (block, generator) {
-        const dir = block.getFieldValue('directory');
-        const fpath = block.getFieldValue('filepath');
-        const code = `bianconiglio_RAG_upload_file(bianconiglio, "${dir}", "${fpath}")\n`;
+    python.pythonGenerator.forBlock["chordsllm_upload"] = function (block, generator) {
+        const path = block.getFieldValue('filepath');
+        const code = `chordsllm_upload(chords, "${path}")\n`;
 
         return code
     };
 
-    python.pythonGenerator.forBlock["bianconiglio_RAG_execute"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chordsllm_rag"] = function (block, generator) {
 
-        const code = `bianconiglio_RAG_execute(bianconiglio)\n`;
+        const code = `chordsllm_rag(chords)\n`;
 
         return code
     };
 
-    // python.pythonGenerator.forBlock["bianconiglio_get_RAG_agent_state"] = function (block, generator) {
-    //     const agent_id = block.getFieldValue('agent_id');
-        
-    //     const code = `bianconiglio_get_RAG_agent_state(bianconiglio, "${agent_id}")`;
-    //     return [code, python.Order.ATOMIC];
-    // };
+    python.pythonGenerator.forBlock["chordsllm_get_chat_status"] = function (block, generator) {
 
-    // python.pythonGenerator.forBlock["bianconiglio_get_RAG_agents_info"] = function (block, generator) {
-
-    //     const code = `bianconiglio_get_RAG_agents_info(bianconiglio)`;
-    //     return [code, python.Order.ATOMIC];
-    // };
-    
-
-    python.pythonGenerator.forBlock["bianconiglio_get_context_state"] = function (block, generator) {
-
-        const code = `bianconiglio_get_context_state(bianconiglio)`;
+        const code = `chordsllm_get_chat_status(chords)`;
         return [code, python.Order.ATOMIC];
     };
     
-    python.pythonGenerator.forBlock["bianconiglio_RAG_agent_state_list"] = function (block, generator) {
+    python.pythonGenerator.forBlock["chordsllm_agent_state"] = function (block, generator) {
         const state = block.getFieldValue('state');
-        const code = `RAGAgentState("${state}").value`;
+        const code = `ChordAgentStateEnum("${state}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
@@ -2936,8 +2799,6 @@ function defineCameraGenerators() {
         return [code, generator.ORDER_FUNCTION_CALL];
     };
 }
-
-
 
 function clean_topic_names(topic) {
     return topic

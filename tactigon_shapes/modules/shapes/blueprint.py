@@ -106,13 +106,13 @@ def index(program_id: str | None = None):
     state = _shapes.get_state(current_config.id) if current_config else None
 
     return render_template("shapes/index.jinja",
-                           current_config=current_config,
-                           current_running_program=_shapes.current_id,
-                           is_running=_shapes.is_running,
-                           state=json.dumps(state),
-                           shapes_config=_shapes.config,
-                           blocks_config=blocks_config,
-                           )
+        current_config=current_config,
+        current_running_program=_shapes.current_id,
+        is_running=_shapes.is_running,
+        state=json.dumps(state),
+        shapes_config=_shapes.config,
+        blocks_config=blocks_config,
+    )
 
 
 @bp.route("/add", methods=["POST"])

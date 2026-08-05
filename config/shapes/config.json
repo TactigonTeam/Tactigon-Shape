@@ -105,67 +105,15 @@
     "mqtt_config": null
   },
   {
-    "id": "f2bae8a9539543e0b424de648995af40",
-    "name": "chat",
-    "created_on": "2026-06-23T15:22:15.123727",
-    "modified_on": "2026-06-24T14:48:43.178818",
+    "id": "a68eac2e36e745fe9a8beb0267a99944",
+    "name": "test",
+    "created_on": "2026-08-05T17:56:43.989830",
+    "modified_on": "2026-08-05T22:59:22.403325",
     "description": "",
     "readonly": false,
     "ginos_config": null,
     "ros2_config": {
-      "node_name": "chat",
-      "publishers": [],
-      "subscriptions": []
-    },
-    "mqtt_config": {
-      "broker_url": "broker.emqx.io",
-      "broker_port": 1883,
-      "node_name": "",
-      "node_type": "",
-      "max_reconnect_count": 5,
-      "reconnect_delay": 1,
-      "reconnect_rate": 2,
-      "protocol_version": 5,
-      "callback_api_version": 2,
-      "subscriptions": []
-    }
-  },
-  {
-    "id": "fd63b0d4a5e94475a7aa82cef3c4757b",
-    "name": "final Bianconiglio ML Workflow",
-    "created_on": "2026-06-26T10:00:57.369268",
-    "modified_on": "2026-06-26T11:24:31.870581",
-    "description": "",
-    "readonly": false,
-    "ginos_config": null,
-    "ros2_config": {
-      "node_name": "final Bianconiglio ML Workflow",
-      "publishers": [],
-      "subscriptions": []
-    },
-    "mqtt_config": {
-      "broker_url": "broker.emqx.io",
-      "broker_port": 1883,
-      "node_name": "",
-      "node_type": "",
-      "max_reconnect_count": 5,
-      "reconnect_delay": 1,
-      "reconnect_rate": 2,
-      "protocol_version": 5,
-      "callback_api_version": 2,
-      "subscriptions": []
-    }
-  },
-  {
-    "id": "30db288f23574fa785802134780380c2",
-    "name": "final Bianconiglio RAG agent workflow",
-    "created_on": "2026-06-26T10:35:17.336233",
-    "modified_on": "2026-06-26T10:47:11.934681",
-    "description": "",
-    "readonly": false,
-    "ginos_config": null,
-    "ros2_config": {
-      "node_name": "final Bianconiglio RAG agent workflow",
+      "node_name": "test",
       "publishers": [],
       "subscriptions": []
     },

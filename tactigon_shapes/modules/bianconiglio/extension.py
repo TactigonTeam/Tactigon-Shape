@@ -3,11 +3,8 @@ import os
 import json
 import pandas as pd
 import requests
-import httpx
 from flask import Flask
-from contextlib import contextmanager
 import os
-import uuid
 
 from tactigon_shapes.modules.bianconiglio.models import (
     ModelInfo,
@@ -16,10 +13,12 @@ from tactigon_shapes.modules.bianconiglio.models import (
     DataFrameFileExtension, 
     RAGFileExtension,
     RAGAgentState,
-    BianconiglioChatResponse,
-    ChordContext
+    ChordChat
 )
 from tactigon_shapes.modules.file_manager.extension import FileManager
+
+
+
 class BianconiglioInterface:
     config_file_path: str
     _dataframe: pd.DataFrame
@@ -124,7 +123,8 @@ class BianconiglioInterface:
         self._logger.info("Bianconiglio configuration saved.")
 
     def do_post(self, url: str, payload: dict, timeout: int = 10) -> requests.Response | None:
-        """function used to make a POST request.
+        """
+        Function used to make a POST request.
         header contains authentication token.
         error 401 is checked in case credentials fail or timeout
         Args:
@@ -136,13 +136,16 @@ class BianconiglioInterface:
         """
         if not self.config or not self.config.is_valid():
             return None
+        
+        self._logger.info(f"POST: {url}, {payload}")
 
         try:
             res = requests.post(
                 url,
                 json=payload,
                 timeout=timeout
-                )
+            )
+            res.raise_for_status()
             
             self._logger.debug("POST %s payload: %s response: %s", url, payload, res.status_code)
             return res
@@ -304,7 +307,7 @@ class BianconiglioInterface:
         self._logger.info(f"Data type: {type(data)}")
 
         payload = {
-            "model_id": model_id,
+            # "model_id": model_id,
             "data": data.to_dict(orient="records"),
         }
 
@@ -397,184 +400,161 @@ class BianconiglioInterface:
             self._logger.warning(f"wasnt able to retrieve context id")
             return 
         else: 
-            context_id = res.get("context_id") #TODO response ipotetica da adattare a quella vera
+            chat_id = res.get("chat_id") #TODO response ipotetica da adattare a quella vera
 
-        return ChordContext.FromJSON(res)
+        return ChordChat.FromJSON(res)
 
+    # def start_context(self) -> bool:
+    #     if not self.config:
+    #         self._logger.warning("Config is not loaded")
+    #         return False
+        
+    #     data = {
+    #         "chat_id": str(uuid.uuid4()),
+    #         "user_id": self.config.user
+    #     }
+
+
+    #     self.config.context = ChordChat.FromJSON(data)
+
+    #     self._logger.info(f"started a new context, context id: {self.config.context.chat_id}")
+
+    #     return True
     
-        """Function to get the state of a specific context"""
+    # def _upsert_context(self, data: dict) -> bool:
+    #     """function that upsert the context"""
 
-        if not self.config:
-            self._logger.warning("Config is not loaded")
-            return
+    #     if not self.config:
+    #         self._logger.warning("Config is not loaded")
+    #         return False
         
-        chord_context = self.get_context()
-        if chord_context:
-            context_id = chord_context.context_id
+    #     self.config.context = ChordChat.FromJSON(data)
+
+    #     self._logger.info(f"chord context upserted")
+
+    #     return True
+
+    # def kill_context(self) -> bool:
+    #     if not self.config:
+    #         self._logger.warning("Config is not loaded")
+    #         return False
         
-        url = f"{self.config.chord_url}/{context_id}/status"
-
-        res = self.do_get(url, timeout=5)
-
-        if not res:
-            self._logger.warning(f"wasnt able to retrieve context state")
-            return
-        else:
-            if res.get("state", "") in [e.value for e in RAGAgentState]:
-                return res.get("state", "")  
-
-    def start_context(self) -> bool:
-        if not self.config:
-            self._logger.warning("Config is not loaded")
-            return False
+    #     self.config.context = None
         
-        data = {
-            "context_id": str(uuid.uuid4()),
-            "user_id": self.config.user
-        }
+    #     self._logger.warning("Context killed")
 
+    #     return True
 
-        self.config.context = ChordContext.FromJSON(data)
+    # def get_context_state(self) -> str | None:
+    #     """Function to get the state of a specific context"""
 
-        self._logger.info(f"started a new context, context id: {self.config.context.context_id}")
-
-        return True
-    
-    def _upsert_context(self, data: dict) -> bool:
-        """function that upsert the context"""
-
-        if not self.config:
-            self._logger.warning("Config is not loaded")
-            return False
+    #     if not self.config:
+    #         self._logger.warning("Config is not loaded")
+    #         return
         
-        self.config.context = ChordContext.FromJSON(data)
+    #     if self.config.context:
 
-        self._logger.info(f"chord context upserted")
-
-        return True
-
-    def kill_context(self) -> bool:
-        if not self.config:
-            self._logger.warning("Config is not loaded")
-            return False
+    #         chat_id = self.config.context.chat_id
         
-        self.config.context = None
-        
-        self._logger.warning("Context killed")
+    #         url = f"{self.config.chord_url}/chats/{chat_id}/status"
 
-        return True
+    #         res = self.do_get(url, timeout=5)
 
-    def get_context_state(self) -> str | None:
-        """Function to get the state of a specific context"""
-
-        if not self.config:
-            self._logger.warning("Config is not loaded")
-            return
-        
-        if self.config.context:
-
-            context_id = self.config.context.context_id
-        
-            url = f"{self.config.chord_url}/{context_id}/status"
-
-            res = self.do_get(url, timeout=5)
-
-            if not res:
-                self._logger.warning(f"wasnt able to retrieve context state")
-                return
+    #         if not res:
+    #             self._logger.warning(f"wasnt able to retrieve context state")
+    #             return
             
-            if self._upsert_context(res):
+    #         if self._upsert_context(res):
 
-                self._logger.info(f"chord context state usperted to: {res["state"]}")
-                return res.get("state")
+    #             self._logger.info(f"chord context state usperted to: {res["state"]}")
+    #             return res.get("state")
     
-    def upload_document(self, file_path: str):
-        """Load a document from the file manager, reads it and sends it to chord_b via POST.
-        Args:
-            file_path (str): path of the file to upload, should be in the file manager
-        Returns:
-            dict: response of POST"""
+    # def upload_document(self, file_path: str):
+    #     """Load a document from the file manager, reads it and sends it to chord_b via POST.
+    #     Args:
+    #         file_path (str): path of the file to upload, should be in the file manager
+    #     Returns:
+    #         dict: response of POST"""
         
-        if not self.config:
-            self._logger.warning("Config is not loaded")
-            return None
+    #     if not self.config:
+    #         self._logger.warning("Config is not loaded")
+    #         return None
 
-        if FileManager.get_file_extension(file_path) not in self.rag_extensions:
-            self._logger.error("File type not supported.")
-            return None
+    #     if FileManager.get_file_extension(file_path) not in self.rag_extensions:
+    #         self._logger.error("File type not supported.")
+    #         return None
 
-        url = f"{self.config.chord_url}/chordB/api/upload" 
-        timeout= 60
+    #     url = f"{self.config.chord_url}/api/upload" 
+    #     timeout= 60
 
-        if not self.config.context:
-            self._logger.warning("unable to find context")
-        else:
-            try:
-                with open(file_path, 'rb') as f:
-                    data = {
-                        "user_id": self.config.user,
-                        "context_id": self.config.context.context_id
-                    }
+    #     if not self.config.context:
+    #         self._logger.warning("unable to find context")
+    #     else:
+    #         try:
+    #             with open(file_path, 'rb') as f:
+    #                 data = {
+    #                     "user_id": self.config.user,
+    #                     "chat_id": self.config.context.chat_id
+    #                 }
 
-                    files = {
-                        "file": ( os.path.basename(file_path), f, "application/octet-stream" )
-                    }
+    #                 files = {
+    #                     "file": ( os.path.basename(file_path), f, "application/octet-stream" )
+    #                 }
 
-                    res = requests.post(
-                        url,
-                        data=data,
-                        files=files,
-                        timeout=timeout
-                    )
+    #                 res = requests.post(
+    #                     url,
+    #                     data=data,
+    #                     files=files,
+    #                     timeout=timeout
+    #                 )
                     
-                    if res:
-                        self._logger.info(f"Uploading document {file_path} to {url}")
+    #                 if res:
+    #                     self._logger.info(f"Uploading document {file_path} to {url}")
 
-                    return
+    #                 return
 
-            except requests.exceptions.Timeout:
-                self._logger.error("TIMEOUT: The prediction is taking too long.")
-                return None
+    #         except requests.exceptions.Timeout:
+    #             self._logger.error("TIMEOUT: The prediction is taking too long.")
+    #             return None
             
-            except requests.exceptions.RequestException as e:
-                self._logger.error(f"Error during streaming chat: {e}")
-                return None  
+    #         except requests.exceptions.RequestException as e:
+    #             self._logger.error(f"Error during streaming chat: {e}")
+    #             return None  
             
-            except Exception as e:
-                self._logger.error(f"Error uploading document: {e}")
-                return None
+    #         except Exception as e:
+    #             self._logger.error(f"Error uploading document: {e}")
+    #             return None
   
-    def _stream(self, url: str, payload: dict):
-        return httpx.stream("POST", url=url, json=payload, timeout=60)
+    # def _stream(self, url: str, payload: dict):
+    #     return httpx.stream("POST", url=url, json=payload, timeout=60)
 
-    def stream_chat_with_rag(self, msg: str): 
-        """Create the payload with the user quesry and sends i to the agent via POST.
-        Args:            
-            msg (str): user message
-        Returns:            
-            dict: response of POST"""        
+    # def stream_chat_with_rag(self, msg: str): 
+    #     """Create the payload with the user quesry and sends i to the agent via POST.
+    #     Args:            
+    #         msg (str): user message
+    #     Returns:            
+    #         dict: response of POST"""        
 
-        if not self.config:
-            self._logger.warning("Config is not loaded")
-            return None
+    #     if not self.config:
+    #         self._logger.warning("Config is not loaded")
+    #         return None
         
-        url = f"{self.config.chord_url}/api/chat/stream"
-        
-        if not self.config.context:
-            self._logger.warning("unable to find context")
-        else:
+    #     if not self.config.context:
+    #         self._logger.warning("unable to find context")
+    #     else:
 
-            payload = {
-                "message": msg,
-                "user_id": self.config.user,
-                "context_id": self.config.context.context_id
-            }
+    #         url = f"{self.config.chord_url}/api/chats/{self.config.context.chat_id}/stream"
+            
+    #         payload = {
+    #             "message": msg,
+    #             "user_id": self.config.user,
+    #         }
 
-            with self._stream(url, payload) as response:
-                for line in response.iter_lines():
-                    yield BianconiglioChatResponse(line)
+    #         with self._stream(url, payload) as response:
+    #             for line in response.iter_lines():
+    #                 yield BianconiglioChatResponse(line)
 
-        return None
+    #     return None
 
         # # try:
         # with self._stream(url, payload) as response:

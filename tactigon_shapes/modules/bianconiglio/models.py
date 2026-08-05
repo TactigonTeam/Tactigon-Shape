@@ -35,6 +35,18 @@ class RAGAgentState(Enum):
     INDEXING = "INDEXING"
     ERROR = "ERROR"
 
+class DataFrameFileExtension(str, Enum):
+    CSV = "csv"
+    JSON = "json"
+
+class RAGFileExtension(str, Enum):
+    PDF = "pdf"
+    JSON = "json"
+    MD = "md"
+    CSV = "csv"
+    XLS = "xls"
+
+
 @dataclass
 class ModelInfo:
    model_id: str
@@ -69,44 +81,34 @@ class ModelInfo:
   
 
 
-class DataFrameFileExtension(str, Enum):
-    CSV = "csv"
-    JSON = "json"
-
-class RAGFileExtension(str, Enum):
-    PDF = "pdf"
-    JSON = "json"
-    MD = "md"
-    CSV = "csv"
-    XLS = "xls"
 
 @dataclass
-class ChordContext:
-    context_id: str
+class ChordChat:
+    chat_id: str
     user_id: str
     status: str | None
 
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            context_id=data.get("context_id", ""),
+            chat_id=data.get("chat_id", ""),
             user_id=data.get("user_id", ""),
             status=data.get("status", "")
         )
 
     def toJSON(self) -> dict:
         return {
-            "context_id": self.context_id,
+            "chat_id": self.chat_id,
             "user_id": self.user_id,
             "status": self.status
         }
-                      
+
 @dataclass
 class BianconiglioConfig:
     xgb_url: str = "http://192.168.1.46:8000"   # TODO: Change this to the correct URL for the xgb service
     chord_url: str = "http://llm.chords.cloud:11434" # TODO: Change this to the correct URL for the Chord service
     user: str = "default_user"
-    context: ChordContext | None = None
+    context: ChordChat | None = None
 
     @classmethod
     def Default(cls):
@@ -138,9 +140,8 @@ class BianconiglioConfig:
 @dataclass
 class BianconiglioChatmessage:
     message: str
-    chatId: str
-    userId: str
-    context: str
+    chat_id: str
+    user_id: str
 
 @dataclass
 class BianconiglioChatResponse:

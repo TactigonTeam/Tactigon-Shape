@@ -36,6 +36,7 @@ from flask import Flask
 from werkzeug.datastructures import FileStorage
 from pynput.keyboard import Controller as KeyboardController
 
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface
 from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface
@@ -86,6 +87,7 @@ class ShapeThread(ExtensionThread):
     _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
     _file_manager: FileManager | None = None
+    _chords_llm : ChordsLLMInterface | None = None
     _bianconiglio_interface: BianconiglioInterface | None = None
 
     def __init__(
@@ -99,6 +101,7 @@ class ShapeThread(ExtensionThread):
             ros2: Ros2Interface | None,
             ironboy: IronBoyInterface | None,
             file_manager: FileManager | None,
+            chords_llm: ChordsLLMInterface | None,
             bianconiglio: BianconiglioInterface | None, 
             logging_queue: LoggingQueue,
         ):
@@ -110,6 +113,7 @@ class ShapeThread(ExtensionThread):
         self._ros2_interface = ros2
         self._ironboy_interface = ironboy
         self._file_manager = file_manager
+        self._chords_llm = chords_llm
         self._bianconiglio_interface = bianconiglio
 
         if app.ginos_config:
@@ -229,6 +233,7 @@ class ShapeThread(ExtensionThread):
             try:
                 should_run = self.main()
             except Exception as e:
+                self._logger.error(e)
                 self._logging_queue.error(str(e.with_traceback))
 
             time.sleep(self.TICK)
@@ -238,11 +243,9 @@ class ShapeThread(ExtensionThread):
     def setUp(self):
 
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
-        
-        if self.bianconiglio_interface:
-            if self.bianconiglio_interface.start_context():  
-                self.chord_context_exist = True
-                self._logger.info(f"Lodead CHORD_CONTEXT")
+
+        if self._chords_llm:
+            self._chords_llm.init()
 
         if shape_setup_fn:
             try:
@@ -255,6 +258,7 @@ class ShapeThread(ExtensionThread):
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
+                    self._chords_llm,
                     self._bianconiglio_interface,
                     self._logging_queue
                 )
@@ -272,6 +276,7 @@ class ShapeThread(ExtensionThread):
             self._ironboy_interface, 
             self._ginos_interface,
             self._mqtt_interface,
+            self._chords_llm,
             self._bianconiglio_interface,
             self._logging_queue
         )
@@ -291,6 +296,7 @@ class ShapeThread(ExtensionThread):
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
+                    self._chords_llm,
                     self._bianconiglio_interface,
                     self._logging_queue
                 )
@@ -307,11 +313,8 @@ class ShapeThread(ExtensionThread):
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
         
-        if self.chord_context_exist:
-            if self.bianconiglio_interface:   
-                if self.bianconiglio_interface.kill_context():
-                    self.chord_context_exist = False
-                    self._logger.info(f"CHORD_CONTEXT killed")
+        if self._chords_llm:
+            self._chords_llm.deinit()
 
 
     def load_module(self, source: str):
@@ -343,6 +346,7 @@ class ShapesApp(ExtensionApp):
     _zion_interface: ZionInterface | None = None
     _ros2_interface: Ros2Interface | None = None
     _file_manager: FileManager | None = None
+    _chords_llm :  ChordsLLMInterface | None = None
     _bianconiglio_interface: BianconiglioInterface | None = None
 
     def __init__(self, config_path: str, flask_app: Flask | None = None):
@@ -402,6 +406,14 @@ class ShapesApp(ExtensionApp):
     @file_manager.setter
     def file_manager(self, file_manager: FileManager):
         self._file_manager = file_manager
+
+    @property
+    def chords_llm(self) -> ChordsLLMInterface | None:
+        return self._chords_llm
+
+    @chords_llm.setter
+    def chords_llm(self, chords_llm: ChordsLLMInterface | None):
+        self._chords_llm = chords_llm
 
     @property
     def bianconiglio_interface(self) -> BianconiglioInterface | None:
@@ -624,8 +636,6 @@ class ShapesApp(ExtensionApp):
                 state = json.load(state_json_file)
 
         return Program(state, code)
-    
-    
 
     def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
         if self.is_running:
@@ -635,7 +645,6 @@ class ShapesApp(ExtensionApp):
             if _config.id == config_id:
 
                 current_program = self.get_shape(_config.id)
-
 
                 if current_program.code is None:
                     return (False, "Code not found")
@@ -652,6 +661,7 @@ class ShapesApp(ExtensionApp):
                         ros2=self.ros2_interface,
                         ironboy=self.ironboy_interface, 
                         file_manager=self.file_manager,
+                        chords_llm=self.chords_llm,
                         bianconiglio=self.bianconiglio_interface,
                         logging_queue=self.logging_queue,
                     ) 

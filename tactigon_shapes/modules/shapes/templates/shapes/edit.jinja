@@ -416,6 +416,13 @@
         <sep></sep>
         <category name="Runtime" colour="#EB6152">
             <block type="shapes_stop"></block>
+            <block type="shapes_sleep">
+                <value name="NUM">
+                    <shadow type="math_number">
+                        <field name="NUM">5</field>
+                    </shadow>
+                </value>
+            </block>
             <block type="tactigon_shape_debug">
                 <value name="TEXT">
                     <shadow type="text">
@@ -783,34 +790,32 @@
                 </value>
             </block>
         </category>
-        <category name="Bianconiglio" colour="#ec8dc6">
-            <block type="bianconiglio_load_dataframe">
+        <category name="Chord" colour="#ec8dc6">
+            <block type="chords_load_dataframe">
                     <value name="input_path">
                         <shadow type="text">
                         </shadow>
                     </value>
             </block>
-            <block type="bianconiglio_train"></block>
-            <block type="bianconiglio_retrain"></block>
-            <block type="bianconiglio_predict"></block>
-            <block type="bianconiglio_xgb_state_list"></block>
-            <block type="bianconiglio_get_xgb_model_state"></block>
-            <block type="bianconiglio_get_xgb_models_info"></block>
-            <block type="bianconiglio_get_log"></block>
-            <block type="bianconiglio_stream_chat_with_rag">
+            <block type="chords_train"></block>
+            <block type="chords_retrain"></block>
+            <block type="chords_predict"></block>
+            <block type="chords_xgb_state_list"></block>
+            <block type="chords_get_xgb_model_state"></block>
+            <block type="chords_get_xgb_models_info"></block>
+            <block type="chords_get_log"></block>
+            <block type="chordsllm_stream">
                 <value name="user_input"></value>
             </block>
-            <block type="bianconiglio_RAG_upload_file">
+            <block type="chordsllm_upload">
                     <value name="input_path">
                         <shadow type="text">
                         </shadow>
                     </value>
             </block>
-            <block type="bianconiglio_RAG_execute"></block>
-            <block type="bianconiglio_RAG_agent_state_list"></block>
-            <block type="bianconiglio_get_context_state"></block>
-            {# <block type="bianconiglio_get_RAG_agent_state"></block> #}
-            {# <block type="bianconiglio_get_RAG_agents_info"></block> #}
+            <block type="chordsllm_rag"></block>
+            <block type="chordsllm_get_chat_status"></block>
+            <block type="chordsllm_agent_state"></block>
         </category>
     </xml>
 </div>

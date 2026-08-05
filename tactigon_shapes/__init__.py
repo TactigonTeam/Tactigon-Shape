@@ -45,6 +45,7 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.file_manager.extension import FileManager
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
 from tactigon_shapes.modules.bianconiglio.manager import get_bianconiglio_interface
 
@@ -81,6 +82,7 @@ class TactigonShapes:
             ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
             file_manager = FileManager(path.join(BASE_PATH, "config", "file_manager"))
+            chords_llm_interface = ChordsLLMInterface(path.join(BASE_PATH, "config", "chords"))
             bianconiglio_interface = BianconiglioInterface(path.join(BASE_PATH, "config", "bianconiglio"))
 
             flask_app.debug = debug
@@ -91,6 +93,7 @@ class TactigonShapes:
             socket_app.init_app(flask_app)
             ironboy_interface.init_app(flask_app)
             file_manager.init_app(flask_app)
+            chords_llm_interface.init_app(flask_app)
             bianconiglio_interface.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
@@ -98,6 +101,7 @@ class TactigonShapes:
             shapes_app.ros2_interface = ros2_interface
             shapes_app.ironboy_interface = ironboy_interface
             shapes_app.file_manager = file_manager
+            shapes_app.chords_llm = chords_llm_interface
             shapes_app.bianconiglio_interface = bianconiglio_interface
 
             socket_app.shapes_app = shapes_app

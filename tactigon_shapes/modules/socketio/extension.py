@@ -163,7 +163,7 @@ class SocketApp(SocketIO):
 
             self.emit("state", payload)
 
-            if self._shapes_app and self._shapes_app.is_running:
+            if self._shapes_app:
                 msg = self._shapes_app.get_log()
                 if msg:
                     self.emit("logging", msg.toJSON(), callback=self._shapes_app.logging_read)

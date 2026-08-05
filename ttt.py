@@ -1,25 +1,21 @@
 import logging
-import types
 
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import BianconiglioConfig
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface
+from tactigon_shapes.modules.chords.models import ChordsLLMConfig, ChatMessage, Chat
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
 def main():
-    # cfg = BianconiglioConfig(
-    #     url="http://192.168.1.34:8000",
-    #     chord_url="http://192.168.1.222:8080"
-    # )
+    i = ChordsLLMInterface()
+    chat = i.new_chat()
 
-    b = BianconiglioInterface("./config/bianconiglio")
-    # TODO: implementare la gestione del context
+    print(chat)
+    if not chat:
+        return
+    
+    input("Premere per continuare")
 
-    resp = b.stream_chat_with_rag("Ciao Mamma")
-
-    if isinstance(resp, types.GeneratorType):
-        for l in resp:
-            print(l, type(l))
-
+    res = i.stream(chat.chat_id, chat.user_id, "Cosa mi sai dire della pappa?")
 
 
 if __name__ == "__main__":

@@ -459,7 +459,6 @@
         }
 
         if (event.message_type === "prompt"){
-
             return $("<span/>", {class: event.severity, name: event.message_type}).html(`[${event.date}] ${event.severity}: ${event.message.message}`);
         }
 
@@ -499,7 +498,7 @@
         {% if current_config.id == current_running_program %}
             socket.on("logging", (event, callback) => {
                 callback();
-                
+
                 if (terminal.find("span.ERROR").length > 0){
                     return;
                 }
@@ -525,13 +524,13 @@
                     const last_child = terminal.children().first();
                     if (last_child.attr('name') == event.message_type){
                         const html = last_child.html();
-                        last_child.html(html+event.message.message);
+                        last_child.html(html+event.message);
                         return;
                     }
 
                     terminal
                         .prepend($("<span/>", {class: event.severity, name: event.message_type})
-                        .html(`[${event.date}] ${event.severity}: ${event.message.message}`));
+                        .html(`[${event.date}] ${event.severity}: ${event.message}`));
                     return;
                 }
             });
