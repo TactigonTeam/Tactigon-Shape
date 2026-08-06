@@ -71,7 +71,7 @@ class ChordsLLMConfig(BaseModel):
 
 # Chords ML
 
-class ChordsMLModelState(Enum):
+class ChordsMLModelStateEnum(Enum):
     NOT_TRAINED = "NOT_TRAINED"
     TRAINING = "TRAINING"
     READY_TO_PREDICT = "READY_TO_PREDICT"
@@ -92,7 +92,7 @@ class ChordsMLModelInfo(BaseModel):
     description: str
     features: list[str]
     targets: list[str]
-    state: ChordsMLModelState
+    state: ChordsMLModelStateEnum
 
     @classmethod
     def FromJSON(cls, json: dict):
@@ -103,7 +103,7 @@ class ChordsMLModelInfo(BaseModel):
            description=json.get("description", ""),
            features=json.get("features", []),
            targets=json.get("targets", []),
-           state=ChordsMLModelState(json.get("state", "NOT_TRAINED")),
+           state=ChordsMLModelStateEnum(json.get("state", "NOT_TRAINED")),
        )
 
 class ChordsMLConfig(BaseModel):

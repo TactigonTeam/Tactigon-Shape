@@ -1,0 +1,319 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "Fub3@{9neTY4vh0$_t9y",
+        "x": 86,
+        "y": -1,
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "variables_set",
+              "id": ".m|R;4.^Kn.Xe;{0#bXL",
+              "fields": {
+                "VAR": {
+                  "id": "y0I:2Q`EUe%g^.~Gq0*8"
+                }
+              },
+              "inputs": {
+                "VALUE": {
+                  "block": {
+                    "type": "lists_split",
+                    "id": "Qx~#iIq#K!fb88B^f#s{",
+                    "fields": {
+                      "MODE": "SPLIT"
+                    },
+                    "inputs": {
+                      "INPUT": {
+                        "block": {
+                          "type": "text",
+                          "id": "G,kb/^gto/4Z3C,CZD|I",
+                          "fields": {
+                            "TEXT": "gesture, zone, object_detected, object, object_class, gesture_confidence, robot_state, gripper_state, target_zone"
+                          }
+                        }
+                      },
+                      "DELIM": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "DI(2!P7G4RlAQU5qg9YW",
+                          "fields": {
+                            "TEXT": ", "
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "variables_set",
+                  "id": "/Z]MJ(7AW$?mCsGsf{cb",
+                  "fields": {
+                    "VAR": {
+                      "id": "tehiAh-.v8iX0{+%7^2u"
+                    }
+                  },
+                  "inputs": {
+                    "VALUE": {
+                      "block": {
+                        "type": "lists_split",
+                        "id": "U*EyC#b9spfZ$tVfZj|?",
+                        "fields": {
+                          "MODE": "SPLIT"
+                        },
+                        "inputs": {
+                          "INPUT": {
+                            "block": {
+                              "type": "text",
+                              "id": "N(Z?t:H,x*WplfXs[h$l",
+                              "fields": {
+                                "TEXT": "action, priority, risk_level"
+                              }
+                            }
+                          },
+                          "DELIM": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "-xS=IGj/QJTt!GO{CMDP",
+                              "fields": {
+                                "TEXT": ", "
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "chords_ml_train",
+                      "id": "@.6D%._icSHDzsiy*0~:",
+                      "inputs": {
+                        "data": {
+                          "block": {
+                            "type": "chords_ml_load_dataframe",
+                            "id": "#gYI8V-OKs{b@=u/uv*e",
+                            "fields": {
+                              "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes",
+                              "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes/train_data.json"
+                            }
+                          }
+                        },
+                        "features": {
+                          "block": {
+                            "type": "variables_get",
+                            "id": "-nfSa+`|VbW-V9#d!X9D",
+                            "fields": {
+                              "VAR": {
+                                "id": "y0I:2Q`EUe%g^.~Gq0*8"
+                              }
+                            }
+                          }
+                        },
+                        "targets": {
+                          "block": {
+                            "type": "variables_get",
+                            "id": "R1iQ-o29dW,G{mKiD3{K",
+                            "fields": {
+                              "VAR": {
+                                "id": "tehiAh-.v8iX0{+%7^2u"
+                              }
+                            }
+                          }
+                        },
+                        "model_description": {
+                          "block": {
+                            "type": "text",
+                            "id": "c)SFhWb6xx}*z?TLFJYY",
+                            "fields": {
+                              "TEXT": "Sensor 1 - Line 1"
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "tactigon_shape_debug",
+                          "id": "N9t28F,)@b}.Z(y9+huf",
+                          "inputs": {
+                            "TEXT": {
+                              "shadow": {
+                                "type": "text",
+                                "id": ":K3UfzC,CRow#a%9jj}Q",
+                                "fields": {
+                                  "TEXT": "Training in progress..."
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "variables_set",
+                              "id": "z^AkgEKR5G55(hbvdRPX",
+                              "fields": {
+                                "VAR": {
+                                  "id": "s(/TFC)4KB,gdzpgUXq."
+                                }
+                              },
+                              "inputs": {
+                                "VALUE": {
+                                  "block": {
+                                    "type": "logic_boolean",
+                                    "id": "H;498yWy%QF`zzf8(omz",
+                                    "fields": {
+                                      "BOOL": "TRUE"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "khUv0XMp7YYDYi~9l](o",
+        "x": 90,
+        "y": 330,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "c4hm8|wn*naCqVS+Bpv.",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "logic_compare",
+                    "id": "G.4;@,g}+pVV-t@NGW=N",
+                    "fields": {
+                      "OP": "EQ"
+                    },
+                    "inputs": {
+                      "A": {
+                        "block": {
+                          "type": "chords_ml_get_model_state",
+                          "id": "7B!uC2ynMr`?D,_2r,8]",
+                          "fields": {
+                            "model": "9bf974a3-4f2c-4a3d-ae6a-38595cd88aa5"
+                          }
+                        }
+                      },
+                      "B": {
+                        "block": {
+                          "type": "chords_ml_model_state",
+                          "id": "?($K8$X))KKXMh7P45R]",
+                          "fields": {
+                            "state": "READY_TO_PREDICT"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "tactigon_shape_debug",
+                    "id": "Lfd5RmM_a#k}dm0GQn/D",
+                    "inputs": {
+                      "TEXT": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "C}4E`V=?z%tA;3YQU,@#",
+                          "fields": {
+                            "TEXT": "loop"
+                          }
+                        },
+                        "block": {
+                          "type": "chords_ml_predict",
+                          "id": "6k0MoMtF/ckvz}8k9zcR",
+                          "fields": {
+                            "model": "9bf974a3-4f2c-4a3d-ae6a-38595cd88aa5"
+                          },
+                          "inputs": {
+                            "data": {
+                              "block": {
+                                "type": "chords_ml_load_dataframe",
+                                "id": "gW=HGhs/c)5)q*X1VDSc",
+                                "fields": {
+                                  "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes",
+                                  "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes/predict_data.json"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "variables_set",
+                        "id": "RiCa0-s,Dyxg?|hhr$}g",
+                        "fields": {
+                          "VAR": {
+                            "id": "s(/TFC)4KB,gdzpgUXq."
+                          }
+                        },
+                        "inputs": {
+                          "VALUE": {
+                            "block": {
+                              "type": "logic_boolean",
+                              "id": "bEj9Lmv2JAhwES`.+CTC",
+                              "fields": {
+                                "BOOL": "FALSE"
+                              }
+                            }
+                          }
+                        },
+                        "next": {
+                          "block": {
+                            "type": "shapes_stop",
+                            "id": "zgD#Ev})b?}n^7..x)u?"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": ";,9M0O%imw6u3DS@K?}*",
+        "x": 90,
+        "y": 550,
+        "deletable": false
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "features",
+      "id": "y0I:2Q`EUe%g^.~Gq0*8"
+    },
+    {
+      "name": "targets",
+      "id": "tehiAh-.v8iX0{+%7^2u"
+    },
+    {
+      "name": "predict_flag",
+      "id": "s(/TFC)4KB,gdzpgUXq."
+    }
+  ]
+}

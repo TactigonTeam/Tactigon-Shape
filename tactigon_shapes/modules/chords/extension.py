@@ -19,7 +19,7 @@ from tactigon_shapes.modules.chords.models import (
     ChordsMLConfig,
     ChordsMLDFFileExtension,
     ChordsMLModelInfo,
-    ChordsMLModelState,
+    ChordsMLModelStateEnum,
 
 
 )
@@ -197,7 +197,7 @@ class ChordsMLInterface:
     config: ChordsMLConfig
 
     def __init__(self, config_file_path: str | None = None, app: Flask | None = None):
-        self._logger = logging.getLogger(ChordsLLMInterface.__name__)
+        self._logger = logging.getLogger(ChordsMLInterface.__name__)
         self.config_file_path = config_file_path
 
         if config_file_path:
@@ -215,7 +215,7 @@ class ChordsMLInterface:
     @staticmethod
     def load_config(config_file_path: str):
         if os.path.exists(ChordsMLInterface.config_file(config_file_path)):
-            with open(ChordsLLMInterface.config_file(config_file_path), "r") as f:
+            with open(ChordsMLInterface.config_file(config_file_path), "r") as f:
                 config_data = json.load(f)
                 return ChordsMLConfig.FromJSON(config_data)
         else:
@@ -241,7 +241,7 @@ class ChordsMLInterface:
     
     def get_shape_blocks(self):
         return {
-            "model_states": [(state.name, state.value) for state in ChordsMLModelState],
+            "model_states": [(state.name, state.value) for state in ChordsMLModelStateEnum],
             "valid_extensions": [ext.value for ext in ChordsMLDFFileExtension],
             "models": [(m.description, m.model_id) for m in self.models] 
                 if self.models else [("No model available yet", "---")]
@@ -251,15 +251,16 @@ class ChordsMLInterface:
         res = self._do_get("/models")
 
         if res:
+            self._logger.info(f"Got models {res.json()}")
             self.models = [ChordsMLModelInfo.FromJSON(m) for m in res.json().get("models_infos", [])]
             self._logger.info(f"Loaded {len(self.models)} models from Chords")
         else:
             self.models = []
     
-    def get_model_state(self, model_id: str) -> ChordsMLModelState | None:   
+    def get_model_state(self, model_id: str) -> ChordsMLModelStateEnum | None:   
         res = self._do_get(f"/models/{model_id}/status")
         
-        return ChordsMLModelState(res.json().get("state", "ERROR")) if res else None
+        return ChordsMLModelStateEnum(res.json().get("state", "ERROR")) if res else None
 
     def get_log(self, model_id: str):
         res = self._do_get(f"/models/{model_id}/logs", timeout=5)       
@@ -350,18 +351,25 @@ class ChordsMLInterface:
         if df is None:
             self._logger.error(f"Cannot get dataframe from file {file_path}")
 
-        return None
+        return df
 
     def _do_post(self, url: str, payload: dict | None = None, files: dict | None = None, timeout: int = 10) -> requests.Response | None:       
         self._logger.info(f"POST: {url}, {payload}")
 
         try:
-            res = requests.post(
-                f"{self.config.url}{url}",
-                data=payload,
-                files=files,
-                timeout=timeout
-            )
+            if files is not None:
+                res = requests.post(
+                    f"{self.config.url}{url}",
+                    data=payload,
+                    files=files,
+                    timeout=timeout
+                )
+            else:
+                res = requests.post(
+                    f"{self.config.url}{url}",
+                    json=payload,
+                    timeout=timeout
+                )
             res.raise_for_status()
             
             self._logger.debug("POST %s payload: %s response: %s", url, payload, res.status_code)

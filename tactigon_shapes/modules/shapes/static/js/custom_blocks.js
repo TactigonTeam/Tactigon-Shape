@@ -1722,7 +1722,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
-from tactigon_shapes.modules.chords.models import ChordsLLMAgentStateEnum
+from tactigon_shapes.modules.chords.models import ChordsLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 
@@ -2000,20 +2000,29 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def chords_ml_train(chords_ml: ChordsMLInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+def chords_ml_train(chords_ml: ChordsMLInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
     if not chords_ml:
+        return {}
+
+    if data is None:
         return {}
 
     return chords_ml.train(description, data, features, targets)
 
-def chords_ml_retrain(chords_ml: ChordsMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
+def chords_ml_retrain(chords_ml: ChordsMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame | None, features: list, targets: list):
     if not chords_ml:
+        return {}
+
+    if data is None:
         return {}
 
     return chords_ml.retrain(model_desc, new_description, data, features, targets)
 
-def chords_ml_predict(chords_ml: ChordsMLInterface | None, model_desc: str, data: pd.DataFrame) -> dict:
+def chords_ml_predict(chords_ml: ChordsMLInterface | None, model_desc: str, data: pd.DataFrame | None) -> dict:
     if not chords_ml:
+        return {}
+
+    if data is None:
         return {}
 
     return chords_ml.predict(model_desc, data)
@@ -2688,7 +2697,7 @@ function defineChordsGenerators() {
     };
 
     python.pythonGenerator.forBlock["chords_ml_log"] = function (block, generator) {
-        const model_id = block.getFieldValue('xgb_models_id');
+        const model_id = block.getFieldValue('model_id');
 
         const code = `chords_ml_log(chords_ml, "${model_id}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
@@ -2696,7 +2705,7 @@ function defineChordsGenerators() {
 
     python.pythonGenerator.forBlock["chords_ml_model_state"] = function (block, generator) {
         const state = block.getFieldValue('state');
-        const code = `XgbModelState(chords_ml, "${state}").value`;
+        const code = `ChordsMLModelStateEnum("${state}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
