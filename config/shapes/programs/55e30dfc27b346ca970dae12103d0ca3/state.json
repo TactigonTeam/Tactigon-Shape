@@ -150,28 +150,6 @@
                                 }
                               }
                             }
-                          },
-                          "next": {
-                            "block": {
-                              "type": "variables_set",
-                              "id": "z^AkgEKR5G55(hbvdRPX",
-                              "fields": {
-                                "VAR": {
-                                  "id": "s(/TFC)4KB,gdzpgUXq."
-                                }
-                              },
-                              "inputs": {
-                                "VALUE": {
-                                  "block": {
-                                    "type": "logic_boolean",
-                                    "id": "H;498yWy%QF`zzf8(omz",
-                                    "fields": {
-                                      "BOOL": "TRUE"
-                                    }
-                                  }
-                                }
-                              }
-                            }
                           }
                         }
                       }
@@ -192,103 +170,8 @@
         "inputs": {
           "BODY": {
             "block": {
-              "type": "controls_if",
-              "id": "c4hm8|wn*naCqVS+Bpv.",
-              "inputs": {
-                "IF0": {
-                  "block": {
-                    "type": "logic_compare",
-                    "id": "G.4;@,g}+pVV-t@NGW=N",
-                    "fields": {
-                      "OP": "EQ"
-                    },
-                    "inputs": {
-                      "A": {
-                        "block": {
-                          "type": "chords_ml_get_model_state",
-                          "id": "7B!uC2ynMr`?D,_2r,8]",
-                          "fields": {
-                            "model": "9bf974a3-4f2c-4a3d-ae6a-38595cd88aa5"
-                          }
-                        }
-                      },
-                      "B": {
-                        "block": {
-                          "type": "chords_ml_model_state",
-                          "id": "?($K8$X))KKXMh7P45R]",
-                          "fields": {
-                            "state": "READY_TO_PREDICT"
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-                "DO0": {
-                  "block": {
-                    "type": "tactigon_shape_debug",
-                    "id": "Lfd5RmM_a#k}dm0GQn/D",
-                    "inputs": {
-                      "TEXT": {
-                        "shadow": {
-                          "type": "text",
-                          "id": "C}4E`V=?z%tA;3YQU,@#",
-                          "fields": {
-                            "TEXT": "loop"
-                          }
-                        },
-                        "block": {
-                          "type": "chords_ml_predict",
-                          "id": "6k0MoMtF/ckvz}8k9zcR",
-                          "fields": {
-                            "model": "9bf974a3-4f2c-4a3d-ae6a-38595cd88aa5"
-                          },
-                          "inputs": {
-                            "data": {
-                              "block": {
-                                "type": "chords_ml_load_dataframe",
-                                "id": "gW=HGhs/c)5)q*X1VDSc",
-                                "fields": {
-                                  "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes",
-                                  "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes/predict_data.json"
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "next": {
-                      "block": {
-                        "type": "variables_set",
-                        "id": "RiCa0-s,Dyxg?|hhr$}g",
-                        "fields": {
-                          "VAR": {
-                            "id": "s(/TFC)4KB,gdzpgUXq."
-                          }
-                        },
-                        "inputs": {
-                          "VALUE": {
-                            "block": {
-                              "type": "logic_boolean",
-                              "id": "bEj9Lmv2JAhwES`.+CTC",
-                              "fields": {
-                                "BOOL": "FALSE"
-                              }
-                            }
-                          }
-                        },
-                        "next": {
-                          "block": {
-                            "type": "shapes_stop",
-                            "id": "zgD#Ev})b?}n^7..x)u?"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              "type": "shapes_stop",
+              "id": "zgD#Ev})b?}n^7..x)u?"
             }
           }
         }

@@ -132,14 +132,40 @@
   },
   {
     "id": "55e30dfc27b346ca970dae12103d0ca3",
-    "name": "test ml",
+    "name": "test ml train",
     "created_on": "2026-08-06T08:38:27.484237",
-    "modified_on": "2026-08-06T10:53:15.560958",
+    "modified_on": "2026-08-06T11:44:16.763879",
     "description": "",
     "readonly": false,
     "ginos_config": null,
     "ros2_config": {
-      "node_name": "test ml",
+      "node_name": "test ml train",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "f9faaf9369c845809e876c026bbf171b",
+    "name": "Test ml predict",
+    "created_on": "2026-08-06T11:43:09.369972",
+    "modified_on": "2026-08-06T11:45:25.266004",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "Test ml predict",
       "publishers": [],
       "subscriptions": []
     },

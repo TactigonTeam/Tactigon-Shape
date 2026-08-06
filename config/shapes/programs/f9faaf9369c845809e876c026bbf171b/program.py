@@ -378,8 +378,7 @@ def chords_llm_get_chat_status(chords_llm: ChordsLLMInterface | None) -> ChordsL
 
 # ---------- Generated code ---------------
 
-features = None
-targets = None
+predict_flag = None
 
 
 def tactigon_shape_setup(
@@ -396,11 +395,7 @@ def tactigon_shape_setup(
         logging_queue: LoggingQueue):
 
     global features, targets, predict_flag
-    features = 'gesture, zone, object_detected, object, object_class, gesture_confidence, robot_state, gripper_state, target_zone'.split(', ')
-    targets = 'action, priority, risk_level'.split(', ')
-    chords_ml_train(chords_ml, 'Sensor 1 - Line 1', chords_ml_load_dataframe(chords_ml, "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes", "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes/train_data.json"), features, targets)
-    debug(logging_queue, 'Training in progress...')
-
+    pass
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -417,7 +412,10 @@ def tactigon_shape_function(
     global features, targets, predict_flag
     gesture = tskin.gesture
     touch = tskin.touch
-    return False
+    if chords_ml_get_model_state(chords_ml, "9106e01c-76ea-4363-9cbe-a7eb8d6f2fb4") == ChordsMLModelStateEnum("READY_TO_PREDICT"):
+        debug(logging_queue, chords_ml_predict(chords_ml, '9106e01c-76ea-4363-9cbe-a7eb8d6f2fb4', chords_ml_load_dataframe(chords_ml, "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes", "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes/predict_data.json")))
+        predict_flag = False
+        return False
 
     return True
 
