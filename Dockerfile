@@ -53,7 +53,7 @@ COPY speech /app/speech
 COPY tactigon_shapes /app/tactigon_shapes
 COPY main.py /app/main.py
 
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --no-cache-dir --ignore-installed -r /app/requirements.txt
 
 EXPOSE 5123
 EXPOSE 50007

@@ -38,6 +38,7 @@ from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
 from tactigon_shapes.modules.ros2.manager import get_ros2_interface
 from tactigon_shapes.modules.file_manager.manager import get_file_manager_extension
+from tactigon_shapes.modules.chords.manager import get_chords_ml_interface, get_chords_llm_interface
 from tactigon_shapes.utils.request_utils import get_from_request
 
 
@@ -90,24 +91,32 @@ def index(program_id: str | None = None):
 
     ros2_interface = get_ros2_interface()
     if ros2_interface:
-        blocks_config["ros2"] = ros2_interface.get_blocks()
+        blocks_config["ros2"] = ros2_interface.get_shape_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
 
     file_manager = get_file_manager_extension()
     if file_manager:
-        blocks_config["file_manager"] = file_manager.get_blocks()
+        blocks_config["file_manager"] = file_manager.get_shape_blocks()
     
+    chords_llm = get_chords_llm_interface()
+    if chords_llm:
+        blocks_config["chords_llm"] = chords_llm.get_shape_blocks()
+
+    chords_ml = get_chords_ml_interface()
+    if chords_ml:
+        blocks_config["chords_ml"] = chords_ml.get_shape_blocks()
+
     state = _shapes.get_state(current_config.id) if current_config else None
 
     return render_template("shapes/index.jinja",
-                           current_config=current_config,
-                           current_running_program=_shapes.current_id,
-                           is_running=_shapes.is_running,
-                           state=json.dumps(state),
-                           shapes_config=_shapes.config,
-                           blocks_config=blocks_config,
-                           )
+        current_config=current_config,
+        current_running_program=_shapes.current_id,
+        is_running=_shapes.is_running,
+        state=json.dumps(state),
+        shapes_config=_shapes.config,
+        blocks_config=blocks_config,
+    )
 
 
 @bp.route("/add", methods=["POST"])
@@ -224,6 +233,8 @@ def edit(program_id: str):
     ros2_interface = get_ros2_interface()
     ironboy = get_ironboy_interface()
     file_manager = get_file_manager_extension()
+    chords_llm = get_chords_llm_interface()
+    chords_ml = get_chords_ml_interface()
 
     if ironboy:
         blocks_config["ironboy"] = ironboy.get_shape_blocks()       
@@ -232,12 +243,18 @@ def edit(program_id: str):
         blocks_config["zion"] = zion.get_shape_blocks()
 
     if ros2_interface:
-        blocks_config["ros2"] = ros2_interface.get_blocks()
+        blocks_config["ros2"] = ros2_interface.get_shape_blocks()
 
     blocks_config["ginos"] = get_ginos_blocks()
 
     if file_manager:
-        blocks_config["file_manager"] = file_manager.get_blocks()
+        blocks_config["file_manager"] = file_manager.get_shape_blocks()
+
+    if chords_llm:
+        blocks_config["chords_llm"] = chords_llm.get_shape_blocks()
+
+    if chords_ml:
+        blocks_config["chords_ml"] = chords_ml.get_shape_blocks()
 
     return render_template(
         "shapes/edit.jinja",

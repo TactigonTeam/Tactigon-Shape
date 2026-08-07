@@ -233,7 +233,6 @@ class FileManager:
             with open(file_item.path, "rb") as f:
                 file_buffer.write(f.read())
             file_buffer.seek(0)
-            _logger.info(f"File '{file_item.name}' retrieved")
             return (file_buffer, mimetypes.guess_extension(file_item.name) or "", file_item.name)
         else:
             _logger.error("Cannot download file %s with path %s", file_item.name, file_item.path)
@@ -277,8 +276,6 @@ class FileManager:
         _logger = FileManager.get_logger()
         item_count = 0
         zip_buffer = io.BytesIO()
-
-        _logger.info("Downloading items %s", len(items))
 
         with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
             for item in items:
@@ -346,10 +343,9 @@ class FileManager:
         self.save_config()
         self._logger.info(f"Directory '{directory.name}' deleted")
 
-    def get_blocks(self):
+    def get_shape_blocks(self):
         blocks = []
         for directory in self.config.directories:
-            self._logger.info(f"blòocks {directory}")
             blocks.append({
                 "directory": directory.toJSON(),
                 "content": [c.toJSON() for c in self.list_contents(directory, recursive=True)]

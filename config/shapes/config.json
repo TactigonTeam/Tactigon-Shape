@@ -3,7 +3,7 @@
     "id": "3bbc7b4a2aeb4cc2a4e7efe7517a78c3",
     "name": "Powerpoint",
     "created_on": "2024-07-23T10:58:08.563701",
-    "modified_on": "2026-02-02T16:57:35.237410",
+    "modified_on": "2026-06-25T14:10:10.994010",
     "description": "",
     "readonly": true,
     "ginos_config": null,
@@ -103,5 +103,83 @@
       "subscriptions": []
     },
     "mqtt_config": null
+  },
+  {
+    "id": "714f231a90c645daa7d5ccf6d676214a",
+    "name": "Test LLM con RAG",
+    "created_on": "2026-08-06T00:14:13.475477",
+    "modified_on": "2026-08-06T00:29:19.167188",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "test",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "55e30dfc27b346ca970dae12103d0ca3",
+    "name": "test ml train",
+    "created_on": "2026-08-06T08:38:27.484237",
+    "modified_on": "2026-08-06T11:44:16.763879",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "test ml train",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
+  },
+  {
+    "id": "f9faaf9369c845809e876c026bbf171b",
+    "name": "Test ml predict",
+    "created_on": "2026-08-06T11:43:09.369972",
+    "modified_on": "2026-08-06T11:45:25.266004",
+    "description": "",
+    "readonly": false,
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "Test ml predict",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
   }
 ]

@@ -1,0 +1,154 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "|S06bnl]gN+M;T@xTDs/",
+        "x": 30,
+        "y": 30,
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "chords_llm_upload",
+              "id": "/5d:#fLXm()fMB17b*+Y",
+              "fields": {
+                "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/2606_NEXT INDUSTRIES - Comunicazione accettazione distacco.pdf"
+              },
+              "next": {
+                "block": {
+                  "type": "chords_llm_rag",
+                  "id": "/x?J6/^5(lRdkn^fh1og"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "y2vNUkTxu6=CxgT~]v^(",
+        "x": 30,
+        "y": 170,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "0GU:Wqs+sIE}Es#Y-=_A",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "logic_compare",
+                    "id": "V[bgboD*HEe1ya)emlc]",
+                    "fields": {
+                      "OP": "EQ"
+                    },
+                    "inputs": {
+                      "A": {
+                        "block": {
+                          "type": "chords_llm_get_chat_status",
+                          "id": "~kj}.+gb$DgK:N7t#I5c"
+                        }
+                      },
+                      "B": {
+                        "block": {
+                          "type": "chords_llm_agent_state",
+                          "id": "KcNkZS^R$WdoGw!G:Pk!",
+                          "fields": {
+                            "state": "IDLE"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "tactigon_shape_debug",
+                    "id": "aC2h{7QQ=ol*o`er;:PG",
+                    "inputs": {
+                      "TEXT": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "Ge!A)El1#~6L),VmSH(N",
+                          "fields": {
+                            "TEXT": "Message"
+                          }
+                        },
+                        "block": {
+                          "type": "chords_llm_stream",
+                          "id": "hT3=*#yYAFnsHB_/]RWk",
+                          "inputs": {
+                            "user_input": {
+                              "block": {
+                                "type": "text",
+                                "id": "^G,1NWJqIQZ48zHQ915c",
+                                "fields": {
+                                  "TEXT": "Dimmi cosa sai del documento di accettazione"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "shapes_stop",
+                        "id": "SO2@P$9+!(F:#B2[{U5D"
+                      }
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "shapes_sleep",
+                  "id": "[ZY^O66.6%)2db{Z.aqo",
+                  "inputs": {
+                    "NUM": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "}u]KF{7HfkTKc]Az}Us#",
+                        "fields": {
+                          "NUM": 1
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "tactigon_shape_debug",
+                      "id": "436HTh!kOKxJL*MhUO?w",
+                      "inputs": {
+                        "TEXT": {
+                          "shadow": {
+                            "type": "text",
+                            "id": "OD|(+(7xcwpxpiLBq{,$",
+                            "fields": {
+                              "TEXT": "Wait until ready..."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "{)g#WkYa0abO/b3E|^8N",
+        "x": 30,
+        "y": 390,
+        "deletable": false
+      }
+    ]
+  }
+}

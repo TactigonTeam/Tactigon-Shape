@@ -45,6 +45,7 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.file_manager.extension import FileManager
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
 
 from tactigon_shapes.utils.extensions import force_stop_apps
 
@@ -79,6 +80,8 @@ class TactigonShapes:
             ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
             file_manager = FileManager(path.join(BASE_PATH, "config", "file_manager"))
+            chords_llm_interface = ChordsLLMInterface(path.join(BASE_PATH, "config", "chords"))
+            chords_ml_interface = ChordsMLInterface(path.join(BASE_PATH, "config", "chords"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -88,12 +91,16 @@ class TactigonShapes:
             socket_app.init_app(flask_app)
             ironboy_interface.init_app(flask_app)
             file_manager.init_app(flask_app)
+            chords_llm_interface.init_app(flask_app)
+            chords_ml_interface.init_app(flask_app)
 
             shapes_app.braccio_interface = braccio_interface
             shapes_app.zion_interface = zion_interface
             shapes_app.ros2_interface = ros2_interface
             shapes_app.ironboy_interface = ironboy_interface
             shapes_app.file_manager = file_manager
+            shapes_app.chords_llm = chords_llm_interface
+            shapes_app.chords_ml = chords_ml_interface
 
             socket_app.shapes_app = shapes_app
             socket_app.braccio_interface = braccio_interface
@@ -130,18 +137,18 @@ class TactigonShapes:
             def favicon():
                 return send_from_directory(path.join(flask_app.root_path, "static", "images"), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-            # @flask_app.errorhandler(Exception)
-            # def handle_exception(e):
-            #     # now you're handling non-HTTP exceptions only
-            #     current_app.logger.error("Exception while loading the page %s %s. Exception %s", request.method, request.url, e)
-            #     return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form), 500
+            @flask_app.errorhandler(Exception)
+            def handle_exception(e):
+                # now you're handling non-HTTP exceptions only
+                current_app.logger.error("Exception while loading the page %s %s. Exception %s", request.method, request.url, e)
+                return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form), 500
 
             @flask_app.context_processor
             def inject_data():
                 braccio_interface = get_braccio_interface()
                 zion_interface = get_zion_interface()
                 ironboy_interface = get_ironboy_interface()
-                
+
                 if braccio_interface:
                     braccio_config = braccio_interface.config
                     braccio_status = braccio_interface.running

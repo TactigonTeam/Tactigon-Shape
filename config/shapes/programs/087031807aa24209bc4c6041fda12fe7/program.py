@@ -6,7 +6,6 @@ import random
 import types
 import json
 import os
-import logging
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -20,7 +19,7 @@ from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import ChordsMLModelState, ChordsMLConfig, RAGAgentState
+from tactigon_shapes.modules.bianconiglio.models import ChordsMLModelState
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 from pathlib import Path
@@ -28,7 +27,6 @@ import rclpy
 from rclpy.node import Node
 import pandas as pd
 
-logger = logging.getLogger(__name__)
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
     if not gesture:
@@ -203,7 +201,7 @@ def zion_send_device_alarm(zion: ZionInterface | None, device_id: str, name: str
     return zion.upsert_device_alarm(device_id, name, name) 
 
 def debug(logging_queue: LoggingQueue, msg: Any):
-    logger.info(f"messaggio da debuggare : {msg}")
+
     if isinstance(msg,(float)):
         rounded=round(msg,4)
         logging_queue.debug(str(rounded))
@@ -302,23 +300,23 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
+def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list, url: str):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.train(description, data, features, targets)
+    return bianconiglio.train(description, data, features, targets, url)
 
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
+def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_id: str, description: str, data: pd.DataFrame, features: list, targets: list):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.retrain(model_desc, new_description, data, features, targets)
+    return bianconiglio.retrain(model_id, description, data, features, targets)
 
-def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame):
+def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_id: str, data: pd.DataFrame):
     if not bianconiglio:
         return {}
 
-    return bianconiglio.predict(model_desc, data)
+    return bianconiglio.predict(model_id, data)
 
 def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
     if not bianconiglio:
@@ -338,64 +336,27 @@ def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: s
 
     return bianconiglio.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
+def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
     if not bianconiglio:
         return None
 
-    return bianconiglio.get_dataframe(file_path)
-
-def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
-    if not bianconiglio:
-        logger.error("mannaggia non c'è bianconiglio")
-        return None
-
-    return bianconiglio.stream_chat_with_rag(user_input)
-
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
-    if not bianconiglio:
-        return None
-
-    return bianconiglio.upload_document(file_path)
-
-def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
-        return None
-    
-    return bianconiglio.RAG_execute()
-
-def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
-        return []
-
-    return bianconiglio.get_context_state()
-
-# def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
-#     if not bianconiglio:
-#         return None
-
-#     return bianconiglio.get_RAG_agent_state(agent_id)
-
-# def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
-#     if not bianconiglio:
-#        return []
-
-#     return bianconiglio.get_RAG_agents_info()
-
-        
+    return bianconiglio.get_dataframe(os.path.join(directory, file_path))
 
 # ---------- Generated code ---------------
 
-from numbers import Number
+def tactigon_shape_setup(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
 
-tap_hold = None
-tap_hold_counter = None
-
-
-tap_hold = False
-tap_hold_counter = 0
-
-# This is the main function that runs your code. Any
-# code blocks you add to this section will be executed.
+    pass
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -408,24 +369,23 @@ def tactigon_shape_function(
         bianconiglio: BianconiglioInterface | None,
         logging_queue: LoggingQueue):
 
-    global tap_hold, tap_hold_counter
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "TAP_AND_HOLD"):
-        if tap_hold == False:
-            tap_hold = True
-            keyboard_press(keyboard, HotKey.parse('<f5>'))
-            debug(logging_queue, 'Toggle presentation')
-    elif check_touch(touch, "SINGLE_TAP"):
-        keyboard_press(keyboard, HotKey.parse('p'))
-        debug(logging_queue, 'Prev slide')
-    else:
-        tap_hold_counter = (tap_hold_counter if isinstance(tap_hold_counter, Number) else 0) + 1
-        if tap_hold_counter >= 5:
-            tap_hold = False
-            tap_hold_counter = 0
-    if check_gesture(gesture, "twist"):
-        keyboard_press(keyboard, HotKey.parse('n'))
-        debug(logging_queue, 'Next slide')
+    for count in range(10):
+        debug(logging_queue, 'Tactigon')
 
     return True
+
+def tactigon_shape_close(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        bianconiglio: BianconiglioInterface | None,
+        logging_queue: LoggingQueue):
+
+    pass

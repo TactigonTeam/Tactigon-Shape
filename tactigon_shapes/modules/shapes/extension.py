@@ -47,6 +47,7 @@ from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
 from tactigon_shapes.modules.file_manager.extension import FileManager
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
 from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 IMPORT_FOLDER_NAME = 'import'
@@ -85,7 +86,9 @@ class ShapeThread(ExtensionThread):
     _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
     _file_manager: FileManager | None = None
-    
+    _chords_llm : ChordsLLMInterface | None = None
+    _chords_ml: ChordsMLInterface | None = None
+
     def __init__(
             self, 
             base_path: str, 
@@ -97,6 +100,8 @@ class ShapeThread(ExtensionThread):
             ros2: Ros2Interface | None,
             ironboy: IronBoyInterface | None,
             file_manager: FileManager | None,
+            chords_llm: ChordsLLMInterface | None,
+            chords_ml: ChordsMLInterface | None, 
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -107,6 +112,8 @@ class ShapeThread(ExtensionThread):
         self._ros2_interface = ros2
         self._ironboy_interface = ironboy
         self._file_manager = file_manager
+        self._chords_llm = chords_llm
+        self._chords_ml = chords_ml
 
         if app.ginos_config:
             self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
@@ -123,39 +130,6 @@ class ShapeThread(ExtensionThread):
         ExtensionThread.__init__(self)
 
         self.load_module(path.join(base_path, "programs", app.id.hex, "program.py"))
-
-
-    @property
-    def braccio_interface(self) -> BraccioInterface | None:
-        return self._braccio_interface
-
-    @braccio_interface.setter
-    def braccio_interface(self, braccio_interface: BraccioInterface | None):
-        self._braccio_interface = braccio_interface
-
-    @property
-    def zion_interface(self) -> ZionInterface | None:
-        return self._zion_interface
-
-    @zion_interface.setter
-    def zion_interface(self, zion_interface: ZionInterface | None):
-        self._zion_interface = zion_interface
-
-    @property
-    def ros2_interface(self) -> Ros2Interface | None:
-        return self._ros2_interface
-
-    @ros2_interface.setter
-    def ros2_interface(self, ros2_interface: Ros2Interface | None):
-        self._ros2_interface = ros2_interface
-
-    @property
-    def ironboy_interface(self) -> IronBoyInterface | None:
-        return self.ironboy_interface
-
-    @ironboy_interface.setter
-    def ironboy_interface(self, ironboy_interface: IronBoyInterface | None):
-        self._ironboy_interface = ironboy_interface
 
     @staticmethod
     def debouce(tskin: TSkin | None) -> bool:
@@ -208,6 +182,7 @@ class ShapeThread(ExtensionThread):
         setattr(self.module, subscription.payload_reference, None)
 
     def run(self):
+
         self.setUp()
 
         should_run = True
@@ -216,6 +191,7 @@ class ShapeThread(ExtensionThread):
             try:
                 should_run = self.main()
             except Exception as e:
+                self._logger.error(e)
                 self._logging_queue.error(str(e.with_traceback))
 
             time.sleep(self.TICK)
@@ -223,19 +199,25 @@ class ShapeThread(ExtensionThread):
         self.close()
 
     def setUp(self):
+
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
+
+        if self._chords_llm:
+            self._chords_llm.init()
 
         if shape_setup_fn:
             try:
                 self.module.tactigon_shape_setup(
                     self._tskin, 
                     self._keyboard, 
-                    self.braccio_interface, 
-                    self.zion_interface, 
+                    self._braccio_interface, 
+                    self._zion_interface, 
                     self._ros2_interface,
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
+                    self._chords_llm,
+                    self._chords_ml,
                     self._logging_queue
                 )
             except Exception as e:
@@ -246,16 +228,19 @@ class ShapeThread(ExtensionThread):
         return self.module.tactigon_shape_function(
             self._tskin, 
             self._keyboard, 
-            self.braccio_interface, 
-            self.zion_interface, 
+            self._braccio_interface, 
+            self._zion_interface, 
             self._ros2_interface,
             self._ironboy_interface, 
             self._ginos_interface,
             self._mqtt_interface,
+            self._chords_llm,
+            self._chords_ml,
             self._logging_queue
         )
     
     def close(self):
+        
         shape_close_fn = getattr(self.module, "tactigon_shape_close", None)
 
         if shape_close_fn:
@@ -263,12 +248,14 @@ class ShapeThread(ExtensionThread):
                 self.module.tactigon_shape_close(
                     self._tskin, 
                     self._keyboard, 
-                    self.braccio_interface, 
-                    self.zion_interface, 
+                    self._braccio_interface, 
+                    self._zion_interface, 
                     self._ros2_interface,
                     self._ironboy_interface, 
                     self._ginos_interface,
                     self._mqtt_interface,
+                    self._chords_llm,
+                    self._chords_ml,
                     self._logging_queue
                 )
             except Exception as e:
@@ -283,6 +270,10 @@ class ShapeThread(ExtensionThread):
         if self._mqtt_interface:
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
+        
+        if self._chords_llm:
+            self._chords_llm.deinit()
+
 
     def load_module(self, source: str):
         """
@@ -313,6 +304,8 @@ class ShapesApp(ExtensionApp):
     _zion_interface: ZionInterface | None = None
     _ros2_interface: Ros2Interface | None = None
     _file_manager: FileManager | None = None
+    _chords_llm :  ChordsLLMInterface | None = None
+    _chords_ml: ChordsMLInterface | None = None
 
     def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
@@ -339,7 +332,6 @@ class ShapesApp(ExtensionApp):
     def braccio_interface(self, braccio_interface: BraccioInterface | None):
         self._braccio_interface = braccio_interface
     
-
     @property
     def zion_interface(self) -> ZionInterface | None:
         return self._zion_interface
@@ -371,6 +363,22 @@ class ShapesApp(ExtensionApp):
     @file_manager.setter
     def file_manager(self, file_manager: FileManager):
         self._file_manager = file_manager
+
+    @property
+    def chords_ml(self) -> ChordsMLInterface | None:
+        return self._chords_ml
+
+    @chords_ml.setter
+    def chords_ml(self, chords_ml: ChordsMLInterface | None):
+        self._chords_ml = chords_ml
+
+    @property
+    def chords_llm(self) -> ChordsLLMInterface | None:
+        return self._chords_llm
+
+    @chords_llm.setter
+    def chords_llm(self, chords_llm: ChordsLLMInterface | None):
+        self._chords_llm = chords_llm
 
     def get_log(self) -> DebugMessage | None:
         if self.in_flight_log:
@@ -585,8 +593,6 @@ class ShapesApp(ExtensionApp):
                 state = json.load(state_json_file)
 
         return Program(state, code)
-    
-    
 
     def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
         if self.is_running:
@@ -612,6 +618,8 @@ class ShapesApp(ExtensionApp):
                         ros2=self.ros2_interface,
                         ironboy=self.ironboy_interface, 
                         file_manager=self.file_manager,
+                        chords_llm=self.chords_llm,
+                        chords_ml=self.chords_ml,
                         logging_queue=self.logging_queue,
                     ) 
                     self.thread.start()
@@ -632,6 +640,7 @@ class ShapesApp(ExtensionApp):
     def stop(self):
         ExtensionApp.stop(self)
         self.in_flight_log = None
+
         while True:
             try:
                 _ = self.logging_queue.get_nowait()
@@ -654,3 +663,4 @@ class ShapesApp(ExtensionApp):
             json.dump(program.state, state_json_file, indent=2)
         
         return True
+        

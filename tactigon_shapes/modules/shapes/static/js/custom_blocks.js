@@ -31,6 +31,8 @@ function loadCustomBlocks(response) {
     const ironboy = response ? response.ironboy : [];
     const ginos = response ? response.ginos : {};
     const file_manager = response ? response.file_manager : {};
+    const chords_ml = response ? response.chords_ml : {};
+    const chords_llm = response ? response.chords_llm : {};
 
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
@@ -44,6 +46,7 @@ function loadCustomBlocks(response) {
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
+    loadChordsBlocks(chords_ml, chords_llm, file_manager);
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -107,17 +110,28 @@ function loadShapesBlocks() {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "shapes_stop",
+            "message0": "Stop shape",
+            "args0": [],
+            "previousStatement": null,
+            "colour": "#EB6152",
             "tooltip": "Stop shape execution",
             "helpUrl": "",
-            "message0": "Stop shape %1",
+        },
+        {
+            "type": "shapes_sleep",
+            "message0": "Sleep for %1 seconds",
             "args0": [
                 {
-                    "type": "input_dummy",
-                    "name": "NAME"
+                    "type": "input_value",
+                    "name": "NUM",
+                    "check": "Number",
                 }
             ],
             "previousStatement": null,
+            "nextStatement": null,
             "colour": "#EB6152",
+            "tooltip": "Sleep for given seconds",
+            "helpUrl": "",
         },
         {
             "type": "tactigon_shape_debug",
@@ -1159,8 +1173,8 @@ function loadRos2Blocks(ros2blocks) {
             "output": null,
             "colour": 225,
             "inputsInline": false
-        }                                     
-                    
+        }
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1314,7 +1328,8 @@ function loadGinosAIBlocks(ginos, file_manager) {
             "colour": "#EB6152",
             "tooltip": "",
             "helpUrl": ""
-        },
+        }        
+
     ]);
 
     Blockly.common.defineBlocks(blocksDefinitions);
@@ -1417,6 +1432,272 @@ function loadCameraBlocks() {
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
+function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
+    console.log(chords_llm, chords_ml)
+    let directory = [];            
+    let df_options = {};
+    let rag_options = {};
+
+    file_manager.forEach(el => {
+        const basePath = el['directory']['base_path'];
+        directory.push([el['directory']['name'], el['directory']['base_path']]);
+
+        df_options[el['directory']['base_path']] = [['---', '']];
+        rag_options[el['directory']['base_path']] = [['---', '']];
+
+        el['content'].forEach(f => {
+            const extension = f['path'].split('.').pop().toLowerCase();
+            const f_path = f['path'].replace(basePath, '').replace(/^\//, '');
+
+            if (chords_ml.valid_extensions.includes(extension)){
+                df_options[basePath].push([f_path, f['path']]);
+            }
+            
+            if (chords_llm.valid_extensions.includes(extension)){
+                rag_options[basePath].push([f_path, f['path']]);
+            }
+        });
+    });
+    
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "chords_ml_train",
+            "tooltip": "Sends training data to a new ML model through API call, returns training results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Train a model with dataset %1 Features %2 Targets %3 Description %4",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "model_description",
+                    "check": "String"
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_ml_retrain",
+            "tooltip": "Sends training data to an existing ML model through API call, returns training results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Retrain %1 Model ",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chords_ml.models
+                }
+            ],
+            "message1": "with dataset %1 Features %2 Targets %3",
+            "args1": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "input_value",
+                    "name": "features",
+                    "check": "Array"
+                },
+                {
+                    "type": "input_value",
+                    "name": "targets",
+                    "check": "Array"
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_ml_predict",
+            "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
+            "helpUrl": "",
+            "message0": "Predict result from %1 using %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "data",
+                    "check": "DataFrame"
+                },
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chords_ml.models
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_ml_get_model_state",
+            "tooltip": "Returns the model state through API call as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get state of %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chords_ml.models
+                }
+            ],
+            "output": "String",
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_ml_get_models_info",
+            "tooltip": "refresh the list of models",
+            "helpUrl": "",
+            "message0": "Refresh models ",
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_ml_log",
+            "tooltip": "Returns the training log of the specific model selected as a dictionary.",
+            "helpUrl": "",
+            "message0": "Get logs of %1 ",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "model",
+                    "options": chords_ml.models
+                }
+            ],
+            "output": "Dictionary",
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_ml_model_state",
+            "tooltip": "Attribute state from ML model",
+            "helpUrl": "",
+            "message0": "%1 state",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": chords_ml.model_states
+                }
+            ],
+            "output": "String",
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_ml_load_dataframe",
+            "message0": "From dir: %1 create a dataframe with file: %2",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "directory",
+                    "options": directory
+                },
+                {
+                    "type": "field_dependent_dropdown",
+                    "name": "filepath",
+                    "parentName": "directory",
+                    "optionMapping": df_options,
+                    "defaultOptions": [['---', '']],
+                }
+            ],
+            "output": "DataFrame",
+            "colour": "#8f6329",
+            "tooltip": "Load dataframe locally",
+            "helpUrl": ""
+        },
+
+
+        {
+            "type": "chords_llm_stream",
+            "message0": "Send message %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "user_input",
+                    "check": "String"
+                }
+            ],
+            "output": "String",
+            "colour": "#8f6329",
+            "tooltip": "Invia il testo digitato a chords e restituisce la risposta.",
+            "helpUrl": ""
+        },
+        {
+            "type": "chords_llm_upload",
+            "message0": "Upload %1 %2 to chat documents",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "directory",
+                    "options": directory
+                },
+                {
+                    "type": "field_dependent_dropdown",
+                    "name": "filepath",
+                    "parentName": "directory",
+                    "optionMapping": rag_options,
+                    "defaultOptions": [['---', '']],
+                }
+            ],
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": "#8f6329",
+            "tooltip": "Upload files to chords chat",
+            "helpUrl": ""
+        },
+        {
+            "type": "chords_llm_rag",
+            "message0": "Execute RAG",
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": "#8f6329",
+            "tooltip": "Execute the rag in chords",
+            "helpUrl": ""
+        },
+        {
+            "type": "chords_llm_agent_state",
+            "tooltip": "Attribute state from ML model",
+            "helpUrl": "",
+            "message0": "%1 state",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "state",
+                    "options": chords_llm.agent_states
+                }
+            ],
+            "output": "String",
+            "colour": "#8f6329"
+        },
+        {
+            "type": "chords_llm_get_chat_status",
+            "tooltip": "Returns the state of the current context",
+            "helpUrl": "",
+            "message0": "Get RAG Agent state",
+            "output": "String",
+            "colour": "#8f6329"
+        }
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
 function defineImportsAndLibraries() {
     return `
 # Shapes by Next Industries
@@ -1426,6 +1707,8 @@ import random
 import types
 import json
 import os
+import logging
+import pandas as pd
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -1438,12 +1721,12 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
+from tactigon_shapes.modules.chords.models import ChordsLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
-from pathlib import Path
-import rclpy
-from rclpy.node import Node
 
+logger = logging.getLogger(__name__)
 
 def check_gesture(gesture: Gesture | None, gesture_to_find: str) -> bool:
     if not gesture:
@@ -1618,7 +1901,7 @@ def zion_send_device_alarm(zion: ZionInterface | None, device_id: str, name: str
     return zion.upsert_device_alarm(device_id, name, name) 
 
 def debug(logging_queue: LoggingQueue, msg: Any):
-
+    logger.info(f"messaggio da debuggare : {msg}")
     if isinstance(msg,(float)):
         rounded=round(msg,4)
         logging_queue.debug(str(rounded))
@@ -1717,6 +2000,83 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
+def chords_ml_train(chords_ml: ChordsMLInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
+    if not chords_ml:
+        return {}
+
+    if data is None:
+        return {}
+
+    return chords_ml.train(description, data, features, targets)
+
+def chords_ml_retrain(chords_ml: ChordsMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame | None, features: list, targets: list):
+    if not chords_ml:
+        return {}
+
+    if data is None:
+        return {}
+
+    return chords_ml.retrain(model_desc, new_description, data, features, targets)
+
+def chords_ml_predict(chords_ml: ChordsMLInterface | None, model_desc: str, data: pd.DataFrame | None) -> dict:
+    if not chords_ml:
+        return {}
+
+    if data is None:
+        return {}
+
+    return chords_ml.predict(model_desc, data)
+
+def chords_ml_get_model_state(chords_ml: ChordsMLInterface | None, model_id: str):
+    if not chords_ml:
+        return None
+
+    return chords_ml.get_model_state(model_id)
+
+def chords_ml_get_models_info(chords_ml: ChordsMLInterface | None):
+    if not chords_ml:
+        return []
+
+    return chords_ml.get_models_info()
+
+def chords_ml_log(chords_ml: ChordsMLInterface | None, model_id: str):
+    if not chords_ml:
+        return None
+
+    return chords_ml.get_log(model_id)
+
+def chords_ml_load_dataframe(chords_ml: ChordsMLInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chords_ml:
+        return None
+
+    return chords_ml.get_dataframe(os.path.join(directory, file_path))
+
+def chords_llm_stream(chords_llm: ChordsLLMInterface | None, user_input: str):
+    if not chords_llm:
+        return None
+
+    return chords_llm.stream(user_input)
+
+def chords_llm_upload(chords_llm: ChordsLLMInterface | None, file_path: str) -> bool:
+    if not chords_llm:
+        return False
+    
+    return chords_llm.upload(file_path)
+
+def chords_llm_rag(chords_llm: ChordsLLMInterface | None) -> bool:
+    if not chords_llm:
+        return False
+    
+    return chords_llm.rag()
+
+def chords_llm_get_chat_status(chords_llm: ChordsLLMInterface | None) -> ChordsLLMAgentStateEnum | None:
+    if not chords_llm:
+        return None
+
+    status = chords_llm.chat_status()
+
+    return status.status if status else None 
+
 # ---------- Generated code ---------------
 
 `;
@@ -1749,6 +2109,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordsLLMInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordsMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1779,6 +2141,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordsLLMInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordsMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -1809,6 +2173,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordsLLMInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordsMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
@@ -1817,8 +2183,6 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + "return True\n";
         return code;
     };
-
-
 
     defineShapesGenerators();
     defineTSkinGenerators();
@@ -1832,6 +2196,7 @@ function defineCustomGenerators() {
     defineGinosAIGenerators();
     defineMQTTGenerators();
     defineCameraGenerators();
+    defineChordsGenerators();
 }
 
 function defineShapesGenerators() {
@@ -1841,8 +2206,14 @@ function defineShapesGenerators() {
         return code;
     };
 
+    python.pythonGenerator.forBlock['shapes_sleep'] = function (block, generator) {
+        var seconds = generator.valueToCode(block, 'NUM', python.Order.ATOMIC);
+        var code = `time.sleep(${seconds})\n`;
+        return code;
+    };
+    
     python.pythonGenerator.forBlock['shapes_stop'] = function () {
-        return "return False";
+        return "return False\n";
     };
 }
 
@@ -2173,19 +2544,19 @@ function defineRos2Generators() {
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_topic_list'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_topic_list'] = function (block, generator) {
         const code = `ros2_get_topics(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_node_list'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_node_list'] = function (block, generator) {
         const code = `ros2_get_nodes(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 
-    python.pythonGenerator.forBlock['ros2_node_ready'] = function(block, generator) {
+    python.pythonGenerator.forBlock['ros2_node_ready'] = function (block, generator) {
         const code = `ros2_is_ready(ros2)`;
-        return[code, python.Order.ATOMIC];
+        return [code, python.Order.ATOMIC];
     };
 }
 
@@ -2278,6 +2649,105 @@ function defineMQTTGenerators() {
         const code = `mqtt_unregister(mqtt)\n`
         return code;
     }
+}
+
+function defineChordsGenerators() {
+
+    python.pythonGenerator.forBlock["chords_ml_train"] = function (block, generator) {
+        const description = generator.valueToCode(block, 'model_description', python.Order.ATOMIC);
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
+
+        const code = `chords_ml_train(chords_ml, ${description}, ${data}, ${features}, ${targets})\n`;
+
+        return code
+    };
+
+    python.pythonGenerator.forBlock["chords_ml_retrain"] = function (block, generator) {
+        const model_desc = block.getFieldValue('model');
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+        const features = generator.valueToCode(block, 'features', python.Order.ATOMIC);
+        const targets = generator.valueToCode(block, 'targets', python.Order.ATOMIC);
+
+        const code = `chords_ml_retrain(chords_ml, '${model_desc}', ${data}, ${features}, ${targets})\n`;
+
+        return code
+    };
+
+    python.pythonGenerator.forBlock["chords_ml_predict"] = function (block, generator) {
+        const model_desc = block.getFieldValue('model');
+        const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
+
+        const code = `chords_ml_predict(chords_ml, '${model_desc}', ${data})`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chords_ml_get_model_state"] = function (block, generator) {
+        const model_id = block.getFieldValue('model');
+        
+        const code = `chords_ml_get_model_state(chords_ml, "${model_id}")`;
+        return [code, python.Order.ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chords_ml_get_models_info"] = function (block, generator) {
+
+        const code = `chords_ml_get_models_info(chords_ml)\n`;
+        return code
+    };
+
+    python.pythonGenerator.forBlock["chords_ml_log"] = function (block, generator) {
+        const model_id = block.getFieldValue('model_id');
+
+        const code = `chords_ml_log(chords_ml, "${model_id}")`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chords_ml_model_state"] = function (block, generator) {
+        const state = block.getFieldValue('state');
+        const code = `ChordsMLModelStateEnum("${state}")`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chords_ml_load_dataframe"] = function (block, generator) {
+        const dir = block.getFieldValue('directory');
+        const fpath = block.getFieldValue('filepath');
+        return [`chords_ml_load_dataframe(chords_ml, "${dir}", "${fpath}")`, python.Order.ATOMIC];
+    };
+    
+    python.pythonGenerator.forBlock['chords_llm_stream'] = function(block, generator) {
+        const userInput = generator.valueToCode(block, 'user_input', python.Order.ATOMIC);
+
+        const code = `chords_llm_stream(chords_llm, ${userInput})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock["chords_llm_upload"] = function (block, generator) {
+        const path = block.getFieldValue('filepath');
+        const code = `chords_llm_upload(chords_llm, "${path}")\n`;
+
+        return code
+    };
+
+    python.pythonGenerator.forBlock["chords_llm_rag"] = function (block, generator) {
+
+        const code = `chords_llm_rag(chords_llm)\n`;
+
+        return code
+    };
+
+    python.pythonGenerator.forBlock["chords_llm_get_chat_status"] = function (block, generator) {
+
+        const code = `chords_llm_get_chat_status(chords_llm)`;
+        return [code, python.Order.ATOMIC];
+    };
+    
+    python.pythonGenerator.forBlock["chords_llm_agent_state"] = function (block, generator) {
+        const state = block.getFieldValue('state');
+        const code = `ChordsLLMAgentStateEnum("${state}")`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
 }
 
 function defineCameraGenerators() {
