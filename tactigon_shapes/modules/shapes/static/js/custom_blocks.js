@@ -1464,7 +1464,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             "type": "chords_ml_train",
             "tooltip": "Sends training data to a new ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Train a ML model with dataset %1 Features %2 Targets %3 Model Description %4",
+            "message0": "Train a model with dataset %1 Features %2 Targets %3 Description %4",
             "args0": [
                 {
                     "type": "input_value",
@@ -1495,7 +1495,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             "type": "chords_ml_retrain",
             "tooltip": "Sends training data to an existing ML model through API call, returns training results as a dictionary.",
             "helpUrl": "",
-            "message0": "Retrain %1 ML Model ",
+            "message0": "Retrain %1 Model ",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1529,7 +1529,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             "type": "chords_ml_predict",
             "tooltip": "Sends inference data to an ML model through API call, returns inference results as a dictionary.",
             "helpUrl": "",
-            "message0": "Predict result from %1 using %2 ML Model",
+            "message0": "Predict result from %1 using %2",
             "args0": [
                 {
                     "type": "input_value",
@@ -1549,7 +1549,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             "type": "chords_ml_get_model_state",
             "tooltip": "Returns the model state through API call as a dictionary.",
             "helpUrl": "",
-            "message0": "Get state of %1 ML Model",
+            "message0": "Get state of %1",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1573,7 +1573,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             "type": "chords_ml_log",
             "tooltip": "Returns the training log of the specific model selected as a dictionary.",
             "helpUrl": "",
-            "message0": "Get logs of %1 ML model ",
+            "message0": "Get logs of %1 ",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1588,7 +1588,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             "type": "chords_ml_model_state",
             "tooltip": "Attribute state from ML model",
             "helpUrl": "",
-            "message0": "ML Models states: %1",
+            "message0": "%1 state",
             "args0": [
                 {
                     "type": "field_dropdown",
@@ -1625,7 +1625,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
 
         {
             "type": "chords_llm_stream",
-            "message0": "Send message: %1 to RAG Agent",
+            "message0": "Send message %1",
             "args0": [
                 {
                     "type": "input_value",
@@ -1635,7 +1635,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             ],
             "output": "String",
             "colour": "#8f6329",
-            "tooltip": "Invia il testo digitato al chord_b-RAG_Agent e restituisce la risposta.",
+            "tooltip": "Invia il testo digitato a chords e restituisce la risposta.",
             "helpUrl": ""
         },
         {
@@ -1674,7 +1674,7 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
             "type": "chords_llm_agent_state",
             "tooltip": "Attribute state from ML model",
             "helpUrl": "",
-            "message0": "RAG Agent states: %1",
+            "message0": "%1 state",
             "args0": [
                 {
                     "type": "field_dropdown",

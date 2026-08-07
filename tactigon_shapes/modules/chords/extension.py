@@ -165,7 +165,8 @@ class ChordsLLMInterface:
                 f"{self.config.url}{url}",
                 data=payload,
                 files=files,
-                timeout=timeout
+                timeout=timeout,
+                verify=False
             )
             res.raise_for_status()
             
@@ -180,7 +181,7 @@ class ChordsLLMInterface:
 
     def _do_get(self, url: str, timeout: int = 5) -> requests.Response | None:
         try:
-            res = requests.get(f"{self.config.url}{url}", timeout=timeout)
+            res = requests.get(f"{self.config.url}{url}", timeout=timeout, verify=False)
             res.raise_for_status()
 
             self._logger.info(f"GET %s response: %s", url, res.status_code)
@@ -191,7 +192,7 @@ class ChordsLLMInterface:
             return None
 
     def _stream(self, url: str, payload: dict):
-        return httpx.stream("POST", url=f"{self.config.url}{url}", json=payload)
+        return httpx.stream("POST", url=f"{self.config.url}{url}", json=payload, verify=False, follow_redirects=True)
 
 class ChordsMLInterface:
     config: ChordsMLConfig
