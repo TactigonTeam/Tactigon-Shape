@@ -3,115 +3,194 @@ import os
 import json
 import httpx
 import requests
+import urllib3
 import pandas as pd
 from flask import Flask
 from typing import Generator, Any
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 from tactigon_shapes.modules.chords.models import (
-    ChordsLLMAPIResponseStatusEnum, 
-    ChordsLLMChatStatus, 
-    ChordsLLMAgentStateEnum, 
-    ChordsLLMConfig, 
-    ChordsLLMChat, 
-    ChordsLLMChatMessage, 
-    ChordsLLMFileExtensionEnum,
+    ChordLLMApiResponseStatusEnum, 
+    ChordLLMChatStatus, 
+    ChordLLMAgentStateEnum, 
+    ChordLLMConfig, 
+    ChordLLMChat, 
+    ChordLLMChatStream, 
+    ChordLLMFileExtensionEnum,
+    ChordLLMPromptSchema,
 
     ChordsMLConfig,
     ChordsMLDFFileExtension,
     ChordsMLModelInfo,
     ChordsMLModelStateEnum,
 
-
+    
 )
 from tactigon_shapes.modules.file_manager.extension import FileManager
 
+APPLICATION_JSON = 'application/json'
 
-class ChordsLLMInterface:
-    config_file_path: str | None
-    config: ChordsLLMConfig
-    chat: ChordsLLMChat | None
+class ChordLLMInterface:
+    config_file_path: str
+    config: ChordLLMConfig
+    prompts: list[ChordLLMPromptSchema]
+    chat: ChordLLMChat | None
+    access_token: str | None
+    refresh_token: str | None
 
-    def __init__(self, config_file_path: str | None = None, app: Flask | None = None):
-        self._logger = logging.getLogger(ChordsLLMInterface.__name__)
+    def __init__(self, config_file_path: str, app: Flask | None = None):
+        self._logger = logging.getLogger(ChordLLMInterface.__name__)
         self.config_file_path = config_file_path
 
-        if config_file_path:
-            self.config = self.load_config(config_file_path)
-        else:
-            self.config = self.default_config()
         self.chat = None
+        self.access_token = None
+        self.refresh_token = None
+        self.prompts = []
+
+        self.load_config()
+
+        self._logger.info("Created!")
     
         if app:
             self.init_app(app)
 
-    @staticmethod
-    def config_file(config_file_path: str) -> str:
-        return os.path.join(config_file_path, "llm_config.json")
-
-    @staticmethod
-    def load_config(config_file_path: str):
-        if os.path.exists(ChordsLLMInterface.config_file(config_file_path)):
-            with open(ChordsLLMInterface.config_file(config_file_path), "r") as f:
-                config_data = json.load(f)
-                return ChordsLLMConfig.FromJSON(config_data)
-        else:
-            return ChordsLLMInterface.default_config()
-
-    @staticmethod
-    def default_config() -> ChordsLLMConfig:
-        return ChordsLLMConfig(
-            url="http://localhost:8080",
-        )
-
-    @staticmethod
-    def get_shape_blocks():
-        return {
-            "agent_states": [(state.name, state.value) for state in ChordsLLMAgentStateEnum],
-            "valid_extensions": [ext.value for ext in ChordsLLMFileExtensionEnum]
-        }
+    @property
+    def config_file(self) -> str:
+        return os.path.join(self.config_file_path, "llm_config.json")
 
     @property
     def rag_extensions(self) -> list[str]:
-        return [f".{e.value}" for e in ChordsLLMFileExtensionEnum]
+        return [f".{e.value}" for e in ChordLLMFileExtensionEnum]
 
-    def save_config(self):
-        if self.config_file_path:
-            with open(self.config_file(self.config_file_path), "w") as f:
-                json.dump(self.config.model_dump_json(), f)
+    @property
+    def configured(self) -> bool:
+        return False if self.config is None else True
+   
+
+    @property
+    def token(self) -> str:
+        return self.access_token if self.access_token else ""
+    
+    def load_config(self):
+        if os.path.exists(self.config_file):
+            with open(self.config_file, "r") as f:
+                config_data = json.load(f)
+                self.config = ChordLLMConfig.FromJSON(config_data)
+                if self.config.is_valid():
+                    self.prompts = self.get_prompts()
+        else:
+            self.config = ChordLLMConfig()
+
+    def get_shape_blocks(self):
+        return {
+            "agent_states": [(state.name, state.value) for state in ChordLLMAgentStateEnum],
+            "valid_extensions": [ext.value for ext in ChordLLMFileExtensionEnum],
+            "prompts": [(p.name, p.id) for p in self.prompts]
+        }
+    
+    def save_config(self, config: ChordLLMConfig):
+        """save config to remain configurated
+
+        Args:
+            config (ZionConfig): the Zion Configuration
+        """
+        if not os.path.exists(self.config_file_path):
+            os.makedirs(self.config_file_path)
+
+        with open(self.config_file, "w") as f:
+            json.dump(config.toJSON(), f, indent=2)
+
+        self._logger.info("Zion configuration saved.")
+        self.load_config()
+
+    def reset_config(self):
+        """ remove config file and reloads it
+        """
+        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
+            os.remove(self.config_file)
+
+        self.load_config()
 
     def init_app(self, app: Flask):
-        app.extensions[ChordsLLMInterface.__name__] = self
+        app.extensions[ChordLLMInterface.__name__] = self
 
-    def init(self):
-        self.chat = self.new_chat()
-        self._logger.info(f"Got new chat context {self.chat}")
+    def init(self, prompt: str | None):
+        self.chat = self.new_chat(prompt)
 
     def deinit(self):
         self.chat = None
         self._logger.info(f"Removed chat context ({self.chat})")
 
-    def new_chat(self) -> ChordsLLMChat | None:
-        res = self._do_get("/api/chat")
+    def login(self, username: str, password: str) -> bool:
+        resp = self._do_post(
+            "/api/auth/local", 
+            payload={
+                "username": username,
+                "password": password,
+            },
+            auth=False
+        )
+
+        if not resp:
+            return False
+
+        if self._get_status(resp) != ChordLLMApiResponseStatusEnum.OK:
+            return False
+
+        data = self._get_data(resp)
+        self.access_token = data.get("access_token", None)
+        self.refresh_token = data.get("refresh_token", None)
+
+        return True
+
+    def logout(self):
+        resp = self._do_post("/api/auth/logout")
+
+        if resp and self._get_status(resp) == ChordLLMApiResponseStatusEnum.OK:
+            self._logger.info("User logged out!")
+            return
+
+        self._logger.warning(f"Could not log out. Error: {self._get_error(resp) if resp else "No response"}")
+        
+    def new_chat(self, prompt: str | None = None) -> ChordLLMChat | None:
+        res = self._do_post(
+            "/api/chat/",
+            payload={
+                "prompt": prompt
+            }
+        )
 
         if not res:
             return None
 
-        return ChordsLLMChat(**self._get_data(res))
+        return ChordLLMChat(**self._get_data(res))
 
     def stream(self, content: str) -> Generator[str, Any, None]:
         if not self.chat:
-            return None
+            return
 
-        req = ChordsLLMChatMessage(
-            chat_id=self.chat.chat_id,
-            user_id=self.chat.user_id,
+        req = ChordLLMChatStream(
             content=content
         )
 
-        with self._stream(f"/api/chat/{self.chat.chat_id}/stream", req.model_dump()) as response:
-            for line in response.iter_lines():
-                self._logger.info(f"Got stream: {line}")
-                yield line
+        url = f"/api/chat/{self.chat.chat_id}/stream"
+        payload = req.model_dump()
+
+        for attempt in range(2):
+            with self._stream(url, payload) as response:
+                if response.status_code == 401 and attempt == 0:
+                    self._logger.info("Stream got 401, trying to re-login")
+                    if not self.login(self.config.username, self.config.password):
+                        return
+                    continue
+
+                response.raise_for_status()
+
+                for line in response.iter_lines():
+                    self._logger.info(f"Got stream: {line}")
+                    yield line
+            return
 
     def upload(self, file_path: str) -> bool:
         if FileManager.get_file_extension(file_path) not in self.rag_extensions:
@@ -121,17 +200,13 @@ class ChordsLLMInterface:
         if not self.chat:
             return False
 
-        data = {
-            "user_id": self.chat.user_id,
-        }
-
         with open(file_path, 'rb') as f:
             files = {
                 "file": ( os.path.basename(file_path), f, "application/octet-stream" )
             }
 
-            res = self._do_post(f"/api/chat/{self.chat.chat_id}/upload", data, files)
-        return self._get_status(res) == ChordsLLMAPIResponseStatusEnum.OK if res else False
+            res = self._do_post(f"/api/chat/{self.chat.chat_id}/upload", files=files)
+        return self._get_status(res) == ChordLLMApiResponseStatusEnum.OK if res else False
 
     def rag(self) -> bool:
         if not self.chat:
@@ -139,35 +214,74 @@ class ChordsLLMInterface:
         
         res = self._do_post(f"/api/chat/{self.chat.chat_id}/rag")
 
-        return self._get_status(res) == ChordsLLMAPIResponseStatusEnum.OK if res else False
+        return self._get_status(res) == ChordLLMApiResponseStatusEnum.OK if res else False
 
-    def chat_status(self) -> ChordsLLMChatStatus | None:
+    def chat_status(self) -> ChordLLMChatStatus | None:
         if not self.chat:
             return None
         
         res = self._do_get(f"/api/chat/{self.chat.chat_id}/status", timeout=5)
 
-        return ChordsLLMChatStatus(**self._get_data(res)) if res else None
+        return ChordLLMChatStatus(**self._get_data(res)) if res else None
+
+    def get_prompts(self):
+        res = self._do_get("/api/prompt")
+
+        prompts = []
+        if res:
+            prompts = [ChordLLMPromptSchema.model_validate(p) for p in self._get_data(res).get("prompts", [])]
+
+        self._logger.info(f"Loaded {len(prompts)} prompts")
+
+        return prompts
 
     @staticmethod
     def _get_data(res: requests.Response) -> dict:
         return res.json().get("data", {})
 
     @staticmethod
-    def _get_status(res: requests.Response) -> ChordsLLMAPIResponseStatusEnum:
-        return ChordsLLMAPIResponseStatusEnum(res.json().get("status"))
+    def _get_status(res: requests.Response) -> ChordLLMApiResponseStatusEnum:
+        return ChordLLMApiResponseStatusEnum(res.json().get("status"))
 
-    def _do_post(self, url: str, payload: dict | None = None, files: dict | None = None, timeout: int = 10) -> requests.Response | None:       
-        self._logger.info(f"POST: {url}, {payload}")
+    @staticmethod
+    def _get_error(res: requests.Response) -> str:
+        return res.json().get("error", "")
+
+    def _do_post(self, url: str, payload: dict | None = None, files: dict | None = None, auth: bool = True, timeout: int = 10) -> requests.Response | None:       
+        headers = {
+            "accept": APPLICATION_JSON,
+        }
+
+        if auth and self.access_token:
+            headers["Authorization"] = f"Bearer {self.access_token}"
 
         try:
-            res = requests.post(
-                f"{self.config.url}{url}",
-                data=payload,
-                files=files,
-                timeout=timeout,
-                verify=False
-            )
+            if files is not None:
+                res = requests.post(
+                    f"{self.config.url}{url}",
+                    data=payload,
+                    files=files,
+                    timeout=timeout,
+                    verify=False,
+                    headers=headers
+                )
+            else:
+                res = requests.post(
+                    f"{self.config.url}{url}",
+                    json=payload,
+                    timeout=timeout,
+                    verify=False,
+                    headers=headers
+                )
+
+            self._logger.info(f"POST: {url}, payload: {payload}. Response {res.status_code}")
+
+            if res.status_code == 401:
+                if not self.login(self.config.username, self.config.password):
+                    return None
+                
+                return self._do_post(url, payload, files, auth, timeout)
+
             res.raise_for_status()
             
             self._logger.debug("POST %s payload: %s response: %s", url, payload, res.status_code)
@@ -179,9 +293,27 @@ class ChordsLLMInterface:
                 
         return None
 
-    def _do_get(self, url: str, timeout: int = 5) -> requests.Response | None:
+    def _do_get(self, url: str, auth: bool = True, timeout: int = 5) -> requests.Response | None:
+
+        headers = {}
+
+        if auth and self.access_token:
+            headers["Authorization"] = f"Bearer {self.access_token}"
+
         try:
-            res = requests.get(f"{self.config.url}{url}", timeout=timeout, verify=False)
+            res = requests.get(
+                f"{self.config.url}{url}", 
+                headers=headers,
+                timeout=timeout, 
+                verify=False
+            )
+
+            if res.status_code == 401:
+                if not self.login(self.config.username, self.config.password):
+                    return None
+                
+                return self._do_get(url, auth, timeout)
+            
             res.raise_for_status()
 
             self._logger.info(f"GET %s response: %s", url, res.status_code)
@@ -192,13 +324,22 @@ class ChordsLLMInterface:
             return None
 
     def _stream(self, url: str, payload: dict):
-        return httpx.stream("POST", url=f"{self.config.url}{url}", json=payload, verify=False, follow_redirects=True)
+        return httpx.stream(
+            "POST", 
+            url=f"{self.config.url}{url}", 
+            json=payload, 
+            verify=False, 
+            follow_redirects=True,
+            headers={
+                "Authorization": f"Bearer {self.access_token}"
+            }
+        )
 
-class ChordsMLInterface:
+class ChordMLInterface:
     config: ChordsMLConfig
 
     def __init__(self, config_file_path: str | None = None, app: Flask | None = None):
-        self._logger = logging.getLogger(ChordsMLInterface.__name__)
+        self._logger = logging.getLogger(ChordMLInterface.__name__)
         self.config_file_path = config_file_path
 
         if config_file_path:
@@ -215,12 +356,12 @@ class ChordsMLInterface:
 
     @staticmethod
     def load_config(config_file_path: str):
-        if os.path.exists(ChordsMLInterface.config_file(config_file_path)):
-            with open(ChordsMLInterface.config_file(config_file_path), "r") as f:
+        if os.path.exists(ChordMLInterface.config_file(config_file_path)):
+            with open(ChordMLInterface.config_file(config_file_path), "r") as f:
                 config_data = json.load(f)
                 return ChordsMLConfig.FromJSON(config_data)
         else:
-            return ChordsMLInterface.default_config()
+            return ChordMLInterface.default_config()
 
     @staticmethod
     def default_config() -> ChordsMLConfig:
@@ -236,7 +377,7 @@ class ChordsMLInterface:
                 json.dump(self.config.model_dump_json(), f)
 
     def init_app(self, app: Flask):
-        app.extensions[ChordsMLInterface.__name__] = self
+        app.extensions[ChordMLInterface.__name__] = self
 
         self.get_models_info()
     

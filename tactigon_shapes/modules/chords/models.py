@@ -1,11 +1,12 @@
 from datetime import datetime
 from enum import Enum
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 # Chords LLM
 
-class ChordsLLMFileExtensionEnum(str, Enum):
+class ChordLLMFileExtensionEnum(str, Enum):
     PDF = "pdf"
     JSON = "json"
     MD = "md"
@@ -13,7 +14,7 @@ class ChordsLLMFileExtensionEnum(str, Enum):
     XLS = "xls"
 
 
-class ChordsLLMAgentStateEnum(Enum):
+class ChordLLMAgentStateEnum(Enum):
     IDLE = "IDLE"
     SEARCHING = "SEARCHING"
     ANSWERING = "ANSWERING"
@@ -21,23 +22,44 @@ class ChordsLLMAgentStateEnum(Enum):
     ERROR = "ERROR"
 
 
-class ChordsLLMAPIResponseStatusEnum(str, Enum):
+class ChordLLMApiResponseStatusEnum(str, Enum):
     OK = "ok"
     ERROR = "error"
 
 
-class ChordsLLMChat(BaseModel):
+class MessageSchema(BaseModel):
+    role: str
+    content: str
+    step: str | None
+    created_on: datetime
+
+
+class FileSchema(BaseModel):
+    id: int
+    file_name: str
+
+
+class ChordLLMChat(BaseModel):
+    chat_id: UUID
+    username: str
+    prompt: str | None
+    title: str | None
+    created_on: datetime
+    modified_on: datetime
+    messages: list[MessageSchema] = []
+    files: list[FileSchema] = []
+
+
+class ChordLLMChatStatus(BaseModel):
     chat_id: str
-    user_id: str
-    is_new: bool
+    status: ChordLLMAgentStateEnum
 
 
-class ChordsLLMChatStatus(BaseModel):
-    chat_id: str
-    status: ChordsLLMAgentStateEnum
+class ChordLLMChatStream(BaseModel):
+    content: str
 
 
-class ChordsLLMChatMessage(BaseModel):
+class ChordLLMChatMessage(BaseModel):
     chat_id: str
     user_id: str
     content: str
@@ -57,16 +79,40 @@ class ChordsLLMChatMessage(BaseModel):
         )
 
 
-class ChordsLLMConfig(BaseModel):
-    url: str
-    user: str = "default_user"
+class ChordLLMPromptSchema(BaseModel):
+    id: int
+    name: str
+    prompt: str
+    created_on: datetime
+    modified_on: datetime
+
+
+class ChordLLMPromptList(BaseModel):
+    prompts: list[ChordLLMPromptSchema] = []
+
+
+class ChordLLMConfig(BaseModel):
+    url: str = "https://localhost/"
+    username: str = ""
+    password: str = ""
+
+    @classmethod
+    def Default(cls):
+        return cls()
 
     @classmethod
     def FromJSON(cls, json: dict):
-        return cls(
-            url=json["url"],
-            user=json.get("user", "default_user")
-        )
+        return cls(**{k: json[k] for k in ("url", "username", "password") if k in json})
+    
+    def toJSON(self) -> dict:
+        return {
+            "url": self.url,
+            "username": self.username,
+            "password": self.password,
+        }
+
+    def is_valid(self) -> bool:
+        return self.username != "" and self.password != "" and self.url != ""
 
 
 # Chords ML
