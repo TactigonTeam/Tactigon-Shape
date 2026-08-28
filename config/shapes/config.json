@@ -6,6 +6,7 @@
     "modified_on": "2026-06-25T14:10:10.994010",
     "description": "",
     "readonly": true,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Powerpoint",
@@ -21,6 +22,7 @@
     "modified_on": "2026-02-02T16:57:38.318114",
     "description": "",
     "readonly": true,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Braccio Gesture&Touch",
@@ -36,6 +38,7 @@
     "modified_on": "2026-02-02T16:57:41.033099",
     "description": "",
     "readonly": true,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Braccio movement",
@@ -51,6 +54,7 @@
     "modified_on": "2026-02-02T16:57:44.230131",
     "description": "",
     "readonly": true,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Braccio drive",
@@ -66,6 +70,7 @@
     "modified_on": "2026-02-02T16:57:46.904720",
     "description": "",
     "readonly": true,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Braccio voice",
@@ -81,6 +86,7 @@
     "modified_on": "2026-02-02T16:57:49.353040",
     "description": "",
     "readonly": true,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Black jack",
@@ -96,6 +102,7 @@
     "modified_on": "2026-02-02T16:58:30.017708",
     "description": "",
     "readonly": true,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Zion",
@@ -108,12 +115,13 @@
     "id": "714f231a90c645daa7d5ccf6d676214a",
     "name": "Test LLM con RAG",
     "created_on": "2026-08-06T00:14:13.475477",
-    "modified_on": "2026-08-06T00:29:19.167188",
+    "modified_on": "2026-08-28T15:26:04.023046",
     "description": "",
     "readonly": false,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
-      "node_name": "test",
+      "node_name": "Test LLM con RAG",
       "publishers": [],
       "subscriptions": []
     },
@@ -137,6 +145,7 @@
     "modified_on": "2026-08-06T11:44:16.763879",
     "description": "",
     "readonly": false,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "test ml train",
@@ -160,9 +169,10 @@
     "id": "f9faaf9369c845809e876c026bbf171b",
     "name": "Test ml predict",
     "created_on": "2026-08-06T11:43:09.369972",
-    "modified_on": "2026-08-06T11:45:25.266004",
+    "modified_on": "2026-08-28T15:28:15.195900",
     "description": "",
     "readonly": false,
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "Test ml predict",
@@ -181,5 +191,21 @@
       "callback_api_version": 2,
       "subscriptions": []
     }
+  },
+  {
+    "id": "e61b388e5c7e468f9b4f7f9e1a15016a",
+    "name": "test prompt - bridge",
+    "created_on": "2026-08-28T10:44:47.546095",
+    "modified_on": "2026-08-28T15:28:41.372341",
+    "description": "",
+    "readonly": false,
+    "prompt": "bridge",
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "test prompt - bridge",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": null
   }
 ]

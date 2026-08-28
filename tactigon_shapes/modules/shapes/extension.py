@@ -47,7 +47,7 @@ from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
 from tactigon_shapes.modules.file_manager.extension import FileManager
-from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
+from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
 
 IMPORT_FOLDER_NAME = 'import'
@@ -86,8 +86,8 @@ class ShapeThread(ExtensionThread):
     _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
     _file_manager: FileManager | None = None
-    _chords_llm : ChordsLLMInterface | None = None
-    _chords_ml: ChordsMLInterface | None = None
+    _chords_llm : ChordLLMInterface | None = None
+    _chords_ml: ChordMLInterface | None = None
 
     def __init__(
             self, 
@@ -100,8 +100,8 @@ class ShapeThread(ExtensionThread):
             ros2: Ros2Interface | None,
             ironboy: IronBoyInterface | None,
             file_manager: FileManager | None,
-            chords_llm: ChordsLLMInterface | None,
-            chords_ml: ChordsMLInterface | None, 
+            chords_llm: ChordLLMInterface | None,
+            chords_ml: ChordMLInterface | None, 
             logging_queue: LoggingQueue,
         ):
         self._keyboard = keyboard
@@ -124,6 +124,9 @@ class ShapeThread(ExtensionThread):
         if self._ros2_interface and app.ros2_config:
             self._ros2_subscription = app.ros2_config.subscriptions
             self._ros2_interface.start(app.ros2_config, self.on_ros2_message)
+
+        if self._chords_llm:
+            self._chords_llm.init(app.prompt)
 
         self._logger = logging.getLogger(ShapeThread.__name__)
 
@@ -201,9 +204,6 @@ class ShapeThread(ExtensionThread):
     def setUp(self):
 
         shape_setup_fn = getattr(self.module, "tactigon_shape_setup", None)
-
-        if self._chords_llm:
-            self._chords_llm.init()
 
         if shape_setup_fn:
             try:
@@ -304,8 +304,8 @@ class ShapesApp(ExtensionApp):
     _zion_interface: ZionInterface | None = None
     _ros2_interface: Ros2Interface | None = None
     _file_manager: FileManager | None = None
-    _chords_llm :  ChordsLLMInterface | None = None
-    _chords_ml: ChordsMLInterface | None = None
+    _chords_llm :  ChordLLMInterface | None = None
+    _chords_ml: ChordMLInterface | None = None
 
     def __init__(self, config_path: str, flask_app: Flask | None = None):
         self.config_file_path = path.join(config_path, "config.json")
@@ -365,19 +365,19 @@ class ShapesApp(ExtensionApp):
         self._file_manager = file_manager
 
     @property
-    def chords_ml(self) -> ChordsMLInterface | None:
+    def chords_ml(self) -> ChordMLInterface | None:
         return self._chords_ml
 
     @chords_ml.setter
-    def chords_ml(self, chords_ml: ChordsMLInterface | None):
+    def chords_ml(self, chords_ml: ChordMLInterface | None):
         self._chords_ml = chords_ml
 
     @property
-    def chords_llm(self) -> ChordsLLMInterface | None:
+    def chords_llm(self) -> ChordLLMInterface | None:
         return self._chords_llm
 
     @chords_llm.setter
-    def chords_llm(self, chords_llm: ChordsLLMInterface | None):
+    def chords_llm(self, chords_llm: ChordLLMInterface | None):
         self._chords_llm = chords_llm
 
     def get_log(self) -> DebugMessage | None:
