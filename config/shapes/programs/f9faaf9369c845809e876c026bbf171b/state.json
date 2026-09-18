@@ -34,7 +34,7 @@
                           "type": "chords_ml_get_model_state",
                           "id": "7B!uC2ynMr`?D,_2r,8]",
                           "fields": {
-                            "model": "9106e01c-76ea-4363-9cbe-a7eb8d6f2fb4"
+                            "model": "ec9cbd4b-883e-4ca4-beb3-a4affb29981d"
                           }
                         }
                       },
@@ -67,7 +67,7 @@
                           "type": "chords_ml_predict",
                           "id": "6k0MoMtF/ckvz}8k9zcR",
                           "fields": {
-                            "model": "9106e01c-76ea-4363-9cbe-a7eb8d6f2fb4"
+                            "model": "ec9cbd4b-883e-4ca4-beb3-a4affb29981d"
                           },
                           "inputs": {
                             "data": {

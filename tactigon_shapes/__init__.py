@@ -45,7 +45,8 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.file_manager.extension import FileManager
-from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
+from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
+from tactigon_shapes.modules.chords.manager import get_chord_llm_interface
 
 from tactigon_shapes.utils.extensions import force_stop_apps
 
@@ -80,8 +81,8 @@ class TactigonShapes:
             ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"))
             ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"))
             file_manager = FileManager(path.join(BASE_PATH, "config", "file_manager"))
-            chords_llm_interface = ChordsLLMInterface(path.join(BASE_PATH, "config", "chords"))
-            chords_ml_interface = ChordsMLInterface(path.join(BASE_PATH, "config", "chords"))
+            chords_llm_interface = ChordLLMInterface(path.join(BASE_PATH, "config", "chords"))
+            chords_ml_interface = ChordMLInterface(path.join(BASE_PATH, "config", "chords"))
 
             flask_app.debug = debug
             braccio_interface.init_app(flask_app)
@@ -122,6 +123,7 @@ class TactigonShapes:
             from tactigon_shapes.modules.zion.blueprint import bp as zion_bp
             from tactigon_shapes.modules.ros2.blueprint import bp as ros2_bp
             from tactigon_shapes.modules.ironboy.blueprint import bp as ironboy_bp
+            from tactigon_shapes.modules.chords.blueprints.chord_llm import bp as chords_bp
             from tactigon_shapes.modules.file_manager.blueprint import bp as file_manager_bp
 
             flask_app.register_blueprint(main.bp)
@@ -131,6 +133,7 @@ class TactigonShapes:
             flask_app.register_blueprint(zion_bp)
             flask_app.register_blueprint(ros2_bp)
             flask_app.register_blueprint(ironboy_bp)
+            flask_app.register_blueprint(chords_bp)
             flask_app.register_blueprint(file_manager_bp)
 
             @flask_app.route('/favicon.ico')
@@ -148,6 +151,7 @@ class TactigonShapes:
                 braccio_interface = get_braccio_interface()
                 zion_interface = get_zion_interface()
                 ironboy_interface = get_ironboy_interface()
+                chord_llm_interface = get_chord_llm_interface()
 
                 if braccio_interface:
                     braccio_config = braccio_interface.config
@@ -171,6 +175,11 @@ class TactigonShapes:
                     zion_config = zion_interface.config
                 else:
                     zion_config = None
+
+                if chord_llm_interface:
+                    chord_llm_config = chord_llm_interface.config
+                else:
+                    chord_llm_config = None
 
                 return dict(
                     DEBUG=app_config.DEBUG,

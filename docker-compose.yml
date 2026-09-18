@@ -29,27 +29,27 @@ volumes:
   open-webui:
 
 services:
-  ollama:
-    image: ollama/ollama:0.12.10
-    container_name: ollama
-    restart: unless-stopped
-    networks:
-      - tactigon-net
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    entrypoint: 
-      [
-        "/bin/bash",
-        "-c",
-        "ollama serve & sleep 5 && ollama pull mistral && wait",
-      ]
-    healthcheck:
-      test: ["CMD-SHELL", "ollama list | grep -q mistral"]
-      interval: 10s
-      timeout: 10s
-      retries: 180
+  # ollama:
+  #   image: ollama/ollama:0.12.10
+  #   container_name: ollama
+  #   restart: unless-stopped
+  #   networks:
+  #     - tactigon-net
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   entrypoint: 
+  #     [
+  #       "/bin/bash",
+  #       "-c",
+  #       "ollama serve & sleep 5 && ollama pull mistral && wait",
+  #     ]
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "ollama list | grep -q mistral"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 180
 
   tactigon-shapes:
     # image: nextdeveloper/tactigon-shapes
@@ -59,9 +59,9 @@ services:
     container_name: tactigon-shapes
     restart: unless-stopped
     privileged: true
-    depends_on:
-      ollama:
-        condition: service_healthy
+    # depends_on:
+    #   ollama:
+    #     condition: service_healthy
     networks:
       - tactigon-net
     ports:
@@ -88,18 +88,18 @@ services:
       TSS_PORT: 50007
       TSS_CONFIG: config.json
 
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
-    restart: always
-    networks:
-      - tactigon-net
-    ports:
-      - "3000:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - open-webui:/app/backend/data
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:main
+  #   container_name: open-webui
+  #   restart: always
+  #   networks:
+  #     - tactigon-net
+  #   ports:
+  #     - "3000:8080"
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   volumes:
+  #     - open-webui:/app/backend/data
 
   ros-camera-tracking:
       build:
