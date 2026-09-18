@@ -78,6 +78,8 @@ class ChordLLMInterface:
                 config_data = json.load(f)
                 self.config = ChordLLMConfig.FromJSON(config_data)
                 if self.config.is_valid():
+                    if self.config.username and self.config.password:
+                        self.login(self.config.username, self.config.password)
                     self.prompts = self.get_prompts()
         else:
             self.config = ChordLLMConfig()
