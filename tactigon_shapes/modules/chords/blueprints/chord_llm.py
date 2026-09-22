@@ -75,7 +75,7 @@ def save():
         return redirect(url_for("chord_llm.index"))
     
     _url = url if url else ChordLLMConfig.url
-
+    #flash(f"_url = {_url}, username = {username}, password = {password}")
     token = app.login(username, password)
 
     if not token:

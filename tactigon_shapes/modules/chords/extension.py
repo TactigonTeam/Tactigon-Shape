@@ -95,7 +95,7 @@ class ChordLLMInterface:
         """save config to remain configurated
 
         Args:
-            config (ZionConfig): the Zion Configuration
+            config (ChordLLMConfig): the Chords Configuration
         """
         if not os.path.exists(self.config_file_path):
             os.makedirs(self.config_file_path)
@@ -103,7 +103,7 @@ class ChordLLMInterface:
         with open(self.config_file, "w") as f:
             json.dump(config.toJSON(), f, indent=2)
 
-        self._logger.info("Zion configuration saved.")
+        self._logger.info("ChordsLLM configuration saved.")
         self.load_config()
 
     def reset_config(self):
@@ -136,7 +136,7 @@ class ChordLLMInterface:
 
         if not resp:
             return False
-
+        self._logger.info(self._get_status(resp))
         if self._get_status(resp) != ChordLLMApiResponseStatusEnum.OK:
             return False
 
