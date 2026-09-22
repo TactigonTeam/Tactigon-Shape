@@ -103,10 +103,6 @@ class ChordLLMConfig(BaseModel):
     @classmethod
     def FromJSON(cls, json: dict):
         kwargs = {k: json[k] for k in ("url", "username", "password") if k in json}
-
-        if "url" in kwargs and isinstance(kwargs["url"], str):
-            kwargs["url"] = kwargs["url"].rstrip('/')
-
         return cls(**kwargs)
     
     def toJSON(self) -> dict:

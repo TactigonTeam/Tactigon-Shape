@@ -71,6 +71,10 @@ class ChordLLMInterface:
     @property
     def token(self) -> str:
         return self.access_token if self.access_token else ""
+
+    @property
+    def base_url(self) -> str:
+        return self._get_base_url(self.config.url)
     
     def load_config(self):
         if os.path.exists(self.config_file):
@@ -78,8 +82,7 @@ class ChordLLMInterface:
                 config_data = json.load(f)
                 self.config = ChordLLMConfig.FromJSON(config_data)
                 if self.config.is_valid():
-                    if self.config.username and self.config.password:
-                        self.login(self.config.username, self.config.password)
+                    self.login(self.base_url, self.config.username, self.config.password)
                     self.prompts = self.get_prompts()
         else:
             self.config = ChordLLMConfig()
@@ -124,20 +127,24 @@ class ChordLLMInterface:
         self.chat = None
         self._logger.info(f"Removed chat context ({self.chat})")
 
-    def login(self, username: str, password: str) -> bool:
-        resp = self._do_post(
-            "/api/auth/local", 
-            payload={
-                "username": username,
-                "password": password,
-            },
-            auth=False
+    def login(self, url: str, username: str, password: str) -> bool:
+        payload = {
+            "username": username,
+            "password": password,
+        }
+        url = f"{self._get_base_url(url)}/api/auth/local"
+
+        self._logger.info(f"Login with {payload} on {url}")
+        resp = requests.post(
+            url,
+            json=payload,
+            timeout=10,
+            verify=False,
         )
 
-        if not resp:
-            return False
-        self._logger.info(self._get_status(resp))
         if self._get_status(resp) != ChordLLMApiResponseStatusEnum.OK:
+            message = self._get_error(resp)        
+            self._logger.error(f"Cannot login: {message}. {resp.json()}")
             return False
 
         data = self._get_data(resp)
@@ -183,7 +190,7 @@ class ChordLLMInterface:
             with self._stream(url, payload) as response:
                 if response.status_code == 401 and attempt == 0:
                     self._logger.info("Stream got 401, trying to re-login")
-                    if not self.login(self.config.username, self.config.password):
+                    if not self.login(self.base_url, self.config.username, self.config.password):
                         return
                     continue
 
@@ -260,7 +267,7 @@ class ChordLLMInterface:
         try:
             if files is not None:
                 res = requests.post(
-                    f"{self.config.url}{url}",
+                    f"{self.base_url}{url}",
                     data=payload,
                     files=files,
                     timeout=timeout,
@@ -269,7 +276,7 @@ class ChordLLMInterface:
                 )
             else:
                 res = requests.post(
-                    f"{self.config.url}{url}",
+                    f"{self.base_url}{url}",
                     json=payload,
                     timeout=timeout,
                     verify=False,
@@ -279,7 +286,7 @@ class ChordLLMInterface:
             self._logger.info(f"POST: {url}, payload: {payload}. Response {res.status_code}")
 
             if res.status_code == 401:
-                if not self.login(self.config.username, self.config.password):
+                if not self.login(self.base_url, self.config.username, self.config.password):
                     return None
                 
                 return self._do_post(url, payload, files, auth, timeout)
@@ -304,14 +311,14 @@ class ChordLLMInterface:
 
         try:
             res = requests.get(
-                f"{self.config.url}{url}", 
+                f"{self.base_url}{url}", 
                 headers=headers,
                 timeout=timeout, 
                 verify=False
             )
 
             if res.status_code == 401:
-                if not self.login(self.config.username, self.config.password):
+                if not self.login(self.base_url, self.config.username, self.config.password):
                     return None
                 
                 return self._do_get(url, auth, timeout)
@@ -328,7 +335,7 @@ class ChordLLMInterface:
     def _stream(self, url: str, payload: dict):
         return httpx.stream(
             "POST", 
-            url=f"{self.config.url}{url}", 
+            url=f"{self.base_url}{url}", 
             json=payload, 
             verify=False, 
             follow_redirects=True,
@@ -336,6 +343,9 @@ class ChordLLMInterface:
                 "Authorization": f"Bearer {self.access_token}"
             }
         )
+
+    def _get_base_url(self, url: str) -> str:
+        return url.rstrip("/")
 
 class ChordMLInterface:
     config: ChordsMLConfig
@@ -372,6 +382,10 @@ class ChordMLInterface:
     @property
     def dataframe_extensions(self) -> list[str]:
         return [f".{e.value}" for e in ChordsMLDFFileExtension]
+
+    @property
+    def base_url(self) -> str:
+        return self.config.url.rstrip("/")
 
     def save_config(self):
         if self.config_file_path:
@@ -503,14 +517,14 @@ class ChordMLInterface:
         try:
             if files is not None:
                 res = requests.post(
-                    f"{self.config.url}{url}",
+                    f"{self.base_url}{url}",
                     data=payload,
                     files=files,
                     timeout=timeout
                 )
             else:
                 res = requests.post(
-                    f"{self.config.url}{url}",
+                    f"{self.base_url}{url}",
                     json=payload,
                     timeout=timeout
                 )
@@ -527,7 +541,7 @@ class ChordMLInterface:
 
     def _do_get(self, url: str, timeout: int = 5) -> requests.Response | None:
         try:
-            res = requests.get(f"{self.config.url}{url}", timeout=timeout)
+            res = requests.get(f"{self.base_url}{url}", timeout=timeout)
             res.raise_for_status()
 
             self._logger.info(f"GET %s response: %s", url, res.status_code)

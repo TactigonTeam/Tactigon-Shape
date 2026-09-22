@@ -76,7 +76,7 @@ def save():
     
     _url = url if url else ChordLLMConfig.url
     #flash(f"_url = {_url}, username = {username}, password = {password}")
-    token = app.login(username, password)
+    token = app.login(_url, username, password)
 
     if not token:
         flash("Cannot save Chords configurations. Username or password or url are incorrect", category="danger")
