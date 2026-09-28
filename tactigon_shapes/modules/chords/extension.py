@@ -246,15 +246,29 @@ class ChordLLMInterface:
 
     @staticmethod
     def _get_data(res: requests.Response) -> dict:
-        return res.json().get("data", {})
+        try:
+            body =res.json()
+        except requests.exceptions.JSONDecodeError:
+            return {}
+        return body.get("data", {})
 
     @staticmethod
     def _get_status(res: requests.Response) -> ChordLLMApiResponseStatusEnum:
-        return ChordLLMApiResponseStatusEnum(res.json().get("status"))
+        try:
+            body =res.json()
+        except requests.exceptions.JSONDecodeError:
+            return ChordLLMApiResponseStatusEnum.ERROR
+        
+        return ChordLLMApiResponseStatusEnum(body.get("status", "error"))
 
     @staticmethod
     def _get_error(res: requests.Response) -> str:
-        return res.json().get("error", "")
+        try:
+            body =res.json()
+        except requests.exceptions.JSONDecodeError:
+            return "Cannot parse response into JSON"
+        
+        return body.get("error", "")
 
     def _do_post(self, url: str, payload: dict | None = None, files: dict | None = None, auth: bool = True, timeout: int = 10) -> requests.Response | None:       
         headers = {
