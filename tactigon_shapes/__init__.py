@@ -198,6 +198,7 @@ class TactigonShapes:
                     has_ironboy=has_ironboy,
                     ironboy_status=ironboy_status,
                     ironboy_connected=ironboy_connected,
+                    chord_llm_config=chord_llm_config
                 )
 
         return flask_app
