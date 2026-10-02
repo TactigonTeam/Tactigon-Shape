@@ -43,8 +43,7 @@ def index(edit: bool = False):
     else:
         config = ZionConfig.Default()
         edit = True
-        
-    
+
     return render_template("zion/index.jinja", configured=app.configured, config=config, edit=edit, devices=app.devices)
 
 @bp.route("/edit")
@@ -113,7 +112,7 @@ def refresh_devices():
         flash("Zion interface not running", category="danger")
         return redirect(url_for("main.index"))
     
-    app.get_devices()
+    app.devices = app.get_devices()
 
     flash(F"Zion device list refreshed ({len(app.devices)} loaded)", category="success")
     return redirect(url_for("zion.index"))

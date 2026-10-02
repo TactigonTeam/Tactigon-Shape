@@ -1,0 +1,333 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "~J?S7$7dNZI=QqJ0+9dY",
+        "x": 30,
+        "y": 10,
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "variables_set",
+              "id": "F=i+*|RnaBL0a64L3{W-",
+              "fields": {
+                "VAR": {
+                  "id": "gZa${TqMTht$fm/)Yl4B"
+                }
+              },
+              "inputs": {
+                "VALUE": {
+                  "block": {
+                    "type": "logic_boolean",
+                    "id": "t?}Zed?yS*]oqI^3HoZ:",
+                    "fields": {
+                      "BOOL": "TRUE"
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "chords_llm_upload",
+                  "id": "[Wi/=VRr9S*HR@n5+_53",
+                  "fields": {
+                    "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                    "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Displacement-transducers copy.pdf"
+                  },
+                  "next": {
+                    "block": {
+                      "type": "chords_llm_upload",
+                      "id": "L!sfjiKd)Z7x:vTd/opF",
+                      "fields": {
+                        "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                        "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Displacement transducers VW.pdf"
+                      },
+                      "next": {
+                        "block": {
+                          "type": "chords_llm_upload",
+                          "id": "wFie5P{x:$0{`D]*MS(;",
+                          "fields": {
+                            "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                            "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI freatimetro.pdf"
+                          },
+                          "next": {
+                            "block": {
+                              "type": "chords_llm_upload",
+                              "id": "7;i-qS.|TWmKT2.X*4Ys",
+                              "fields": {
+                                "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                                "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Electric-anchor-load-cell.pdf"
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "chords_llm_upload",
+                                  "id": "L/-*#P#t?p2gO:3fiunU",
+                                  "fields": {
+                                    "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                                    "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Compression-load-cell.pdf"
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "chords_llm_upload",
+                                      "id": "@h!PKn$A=chndJgg@^;4",
+                                      "fields": {
+                                        "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
+                                        "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Digital inclinometer probe.pdf"
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "chords_llm_rag",
+                                          "id": "}WjQm9qBMdCc3%3[4n.o"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "u^yfjAEt2@m4Wr0GlrUA",
+        "x": 90,
+        "y": 310,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "%OE3k`6j|-:Q)G!MJBON",
+              "extraState": {
+                "elseIfCount": 1
+              },
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "logic_operation",
+                    "id": "haa(h=@`3lQZK_3759L#",
+                    "fields": {
+                      "OP": "AND"
+                    },
+                    "inputs": {
+                      "A": {
+                        "block": {
+                          "type": "logic_compare",
+                          "id": "]XHl{/Hk/viHTxa}FK2M",
+                          "fields": {
+                            "OP": "EQ"
+                          },
+                          "inputs": {
+                            "A": {
+                              "block": {
+                                "type": "chords_llm_get_chat_status",
+                                "id": "PS=C~Led~%;]~wqlAvfH"
+                              }
+                            },
+                            "B": {
+                              "block": {
+                                "type": "chords_llm_agent_state",
+                                "id": "h5iZGaTLEXZmBal02Lf_",
+                                "fields": {
+                                  "state": "IDLE"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "B": {
+                        "block": {
+                          "type": "variables_get",
+                          "id": "9]NAXj~FP)G}](n:c:sQ",
+                          "fields": {
+                            "VAR": {
+                              "id": "gZa${TqMTht$fm/)Yl4B"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "tactigon_shape_debug",
+                    "id": "zUSwr+AU{}}eg%m(|7Iw",
+                    "inputs": {
+                      "TEXT": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "8A/Kl%Ek2`ocZ!%jiR{2",
+                          "fields": {
+                            "TEXT": "Tactigon"
+                          }
+                        },
+                        "block": {
+                          "type": "chords_llm_stream",
+                          "id": "aFztGBxQ5iw/`:H$yf$Z",
+                          "inputs": {
+                            "user_input": {
+                              "block": {
+                                "type": "text",
+                                "id": ",Z(zYylW!l:{OW%ckFId",
+                                "fields": {
+                                  "TEXT": "cosa mi sai dire dei sensori che ti ho caricato"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "variables_set",
+                        "id": "%fPq%oNwm.0|X,D+VfBO",
+                        "fields": {
+                          "VAR": {
+                            "id": "gZa${TqMTht$fm/)Yl4B"
+                          }
+                        },
+                        "inputs": {
+                          "VALUE": {
+                            "block": {
+                              "type": "logic_boolean",
+                              "id": "nF?xlvOU8i|G=+ld.rw^",
+                              "fields": {
+                                "BOOL": "FALSE"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "IF1": {
+                  "block": {
+                    "type": "logic_compare",
+                    "id": "k~}zaB~4zP|I|{w(Xn?Z",
+                    "fields": {
+                      "OP": "EQ"
+                    },
+                    "inputs": {
+                      "A": {
+                        "block": {
+                          "type": "chords_llm_get_chat_status",
+                          "id": "i0Ku09s=Vosz_1H1cY~["
+                        }
+                      },
+                      "B": {
+                        "block": {
+                          "type": "chords_llm_agent_state",
+                          "id": "#srx`e67#Pou%{[Cupy`",
+                          "fields": {
+                            "state": "INDEXING"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "DO1": {
+                  "block": {
+                    "type": "tactigon_shape_debug",
+                    "id": "D2-RK-ao.#VO;rj`7FV$",
+                    "inputs": {
+                      "TEXT": {
+                        "shadow": {
+                          "type": "text",
+                          "id": "8A/Kl%Ek2`ocZ!%jiR{2",
+                          "fields": {
+                            "TEXT": "indexing..."
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "shapes_sleep",
+                        "id": "#+]mFzb*fZ:4,y(!g?x1",
+                        "inputs": {
+                          "NUM": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "lYGCe7B2+rhVKXz.Qqbi",
+                              "fields": {
+                                "NUM": 5
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "tactigon_shape_debug",
+                  "id": "wY[H@gsz$uI;)b?TJNjJ",
+                  "inputs": {
+                    "TEXT": {
+                      "shadow": {
+                        "type": "text",
+                        "id": "=m,w5s8Yd6v45jVh#C)W",
+                        "fields": {
+                          "TEXT": "cariocamenti"
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "shapes_sleep",
+                      "id": "_|xWVsd[!]JFNrD6y+x9",
+                      "inputs": {
+                        "NUM": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "A]vtWR+VCsr1my;iq%9]",
+                            "fields": {
+                              "NUM": 5
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "YupvC;h1QN5x[ra],5@p",
+        "x": 30,
+        "y": 490,
+        "deletable": false
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "sx",
+      "id": "gZa${TqMTht$fm/)Yl4B"
+    }
+  ]
+}

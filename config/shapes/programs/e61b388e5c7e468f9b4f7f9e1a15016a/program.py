@@ -378,7 +378,7 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
 # ---------- Generated code ---------------
 
-predict_flag = None
+ask = None
 
 
 def tactigon_shape_setup(
@@ -394,8 +394,9 @@ def tactigon_shape_setup(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    global features, targets, predict_flag
-    pass
+    global ask
+    ask = True
+
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -409,13 +410,12 @@ def tactigon_shape_function(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    global features, targets, predict_flag
+    global ask
     gesture = tskin.gesture
     touch = tskin.touch
-    if chords_ml_get_model_state(chords_ml, "ec9cbd4b-883e-4ca4-beb3-a4affb29981d") == ChordsMLModelStateEnum("READY_TO_PREDICT"):
-        debug(logging_queue, chords_ml_predict(chords_ml, 'ec9cbd4b-883e-4ca4-beb3-a4affb29981d', chords_ml_load_dataframe(chords_ml, "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes", "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes/predict_data.json")))
-        predict_flag = False
-        return False
+    if ask:
+        ask = False
+        debug(logging_queue, chords_llm_stream(chords_llm, 'Di cosa stiamo parlando?'))
 
     return True
 
@@ -432,5 +432,5 @@ def tactigon_shape_close(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    global features, targets, predict_flag
+    global ask
     pass

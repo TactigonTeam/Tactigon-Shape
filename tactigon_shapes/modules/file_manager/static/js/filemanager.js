@@ -835,16 +835,16 @@ class FileManager {
     }
 
     _getFileSize(size) {
+        if (size > 1000000000) {
+            return `${round(size / 1000000000, 2)} GB`
+        }
+
         if (size > 1000000) {
-            return `${round(size / 1000000, 2)} GB`
+            return `${round(size / 1000000, 2)} MB`
         }
 
         if (size > 1000) {
-            return `${round(size / 1000, 2)} MB`
-        }
-
-        if (size > 100) {
-            return `${round(size / 100, 2)} kB`
+            return `${round(size / 1000, 2)} kB`
         }
 
         return `${round(size, 2)} bytes`

@@ -1,0 +1,133 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "tactigon_shape_setup",
+        "id": "58F=S)cC=A%RW/?CK;b~",
+        "x": 30,
+        "y": 30,
+        "deletable": false,
+        "inputs": {
+          "setup_code": {
+            "block": {
+              "type": "variables_set",
+              "id": "v|aO4o*m*=FXQN5Jb6Gv",
+              "fields": {
+                "VAR": {
+                  "id": "rUgc0vN-Y%b99$u9L3|Z"
+                }
+              },
+              "inputs": {
+                "VALUE": {
+                  "block": {
+                    "type": "logic_boolean",
+                    "id": "jqy01yn?g~ezpE#i3g!w",
+                    "fields": {
+                      "BOOL": "TRUE"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_function",
+        "id": "94nP4VFd%Uva=(0H[=Al",
+        "x": 30,
+        "y": 150,
+        "deletable": false,
+        "inputs": {
+          "BODY": {
+            "block": {
+              "type": "controls_if",
+              "id": "jNlVfA2_Uyeona4JN##3",
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "variables_get",
+                    "id": "UzFz{B}qT-cxpusZ7)EM",
+                    "fields": {
+                      "VAR": {
+                        "id": "rUgc0vN-Y%b99$u9L3|Z"
+                      }
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "variables_set",
+                    "id": "/$+GPg(=UR]m;MzO`@$i",
+                    "fields": {
+                      "VAR": {
+                        "id": "rUgc0vN-Y%b99$u9L3|Z"
+                      }
+                    },
+                    "inputs": {
+                      "VALUE": {
+                        "block": {
+                          "type": "logic_boolean",
+                          "id": "(b*WIT^UNR9FILfE8bU)",
+                          "fields": {
+                            "BOOL": "FALSE"
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "tactigon_shape_debug",
+                        "id": "i=CFVp#+fF,CnYzzCOd0",
+                        "inputs": {
+                          "TEXT": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "O$$xq*QKXR_S$P%?k6{b",
+                              "fields": {
+                                "TEXT": "Tactigon"
+                              }
+                            },
+                            "block": {
+                              "type": "chords_llm_stream",
+                              "id": "pJQ]eN)sGEtsfjR7{l~B",
+                              "inputs": {
+                                "user_input": {
+                                  "block": {
+                                    "type": "text",
+                                    "id": "_C#gpYHUf?YK]3;WH716",
+                                    "fields": {
+                                      "TEXT": "Di cosa stiamo parlando?"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tactigon_shape_close",
+        "id": "G7x/PL4~I?4HVIV8^$Z1",
+        "x": 30,
+        "y": 300,
+        "deletable": false
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "ask",
+      "id": "rUgc0vN-Y%b99$u9L3|Z"
+    }
+  ]
+}
