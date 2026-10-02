@@ -391,7 +391,7 @@ def tactigon_shape_setup(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/2606_NEXT INDUSTRIES - Comunicazione accettazione distacco.pdf")
+    chords_llm_upload(chords_llm, "")
     chords_llm_rag(chords_llm)
 
 def tactigon_shape_function(
