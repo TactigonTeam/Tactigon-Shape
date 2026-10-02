@@ -92,6 +92,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
     debug(logging_queue, "Cannot listen...")
     return []
 
+
 def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
     for k in commands:
         _k = k.char if isinstance(k, KeyCode) and k.char else k
