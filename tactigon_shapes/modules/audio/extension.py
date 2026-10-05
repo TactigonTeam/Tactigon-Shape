@@ -1,23 +1,20 @@
 import os
 import time
+import logging
 from werkzeug.datastructures import FileStorage
 
 from tactigon_shapes.modules.tskin.models import TSkin
-from tactigon_shapes.modules.file_manager.extension import FileManager
+from tactigon_shapes.modules.file_manager.extension import FileManager, ItemAlreadyExists
+# adatta il percorso all'ubicazione reale di SocketCommand nella tua libreria
+from tactigon_skin.models.socket import SocketCommand
+
+logger = logging.getLogger(__name__)
+
+
 class AudioRecorder:
     DIRECTORY = "Audio_Recordings"
     EXTENSION = ".wav"
-    SHARED_DIR = "/app/audio" # volume condiviso con il container speech
-    
-    def __init__(self, tskin: TSkin):
-        self.tskin = tskin
-        
-    @property
-    def full_filename(self, filename: str) -> str:
-        name = os.path.basename(filename)
-        return (name if not name.lower().endswith(self.EXTENSION) 
-                else name + self.EXTENSION
-                )
+    SHARED_DIR = "/app/audio"  # volume condiviso con il container speech
 
     def __init__(self, tskin: TSkin):
         self.tskin = tskin
@@ -29,7 +26,6 @@ class AudioRecorder:
         return name
 
     def record(self, filename: str, duration: float) -> bool:
-        from tactigon_shapes.modules.file_manager.extension import FileManager, ItemAlreadyExists
         if not self.tskin.can_listen:
             return False
 
@@ -39,10 +35,18 @@ class AudioRecorder:
         if not self.tskin.record(name, duration):
             return False
 
-        while self.tskin.is_recording:
+        deadline = time.monotonic() + duration
+        while self.tskin.is_recording and time.monotonic() < deadline:
             time.sleep(self.tskin.TICK)
-            
+
+        if self.tskin.is_recording:
+            self.tskin.stop()
+            self.tskin.on_response(SocketCommand.STOP, {})
+
+        logger.info("Recording finished: %s", full_path)
+
         if not os.path.exists(full_path):
+            logger.error("Recorded file not found: %s", full_path)
             return False
 
         try:

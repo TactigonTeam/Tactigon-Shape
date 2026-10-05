@@ -2082,11 +2082,12 @@ def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, durat
     debug(logging_queue, f"Recording audio for {duration} seconds...")
     result = AudioRecorder(tskin).record(filename, duration)
 
-    if not result:
-        debug(logging_queue, "Cannot record audio...")
+    if result:
+        debug(logging_queue, "Recording finished, file saved")
+    else:
+        debug(logging_queue, "Recording failed")
 
     return result
-
 # ---------- Generated code ---------------
 
 `;
