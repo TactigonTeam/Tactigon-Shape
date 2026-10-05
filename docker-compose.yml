@@ -27,6 +27,7 @@ volumes:
   ollama_data:
   tactigon-config:
   open-webui:
+  tactigon-audio:
 
 services:
   # ollama:
@@ -74,6 +75,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
       - ./config/bianconiglio:/app/config/bianconiglio
+      - tactigon-audio:/app/audio
 
   speech:
     build:
@@ -87,6 +89,10 @@ services:
       TSS_ADDRESS: tactigon-shapes
       TSS_PORT: 50007
       TSS_CONFIG: config.json
+    volumes:
+      - tactigon-audio:/app/audio
+
+    # NB il codice di speech deve puntare alla cartella giusta nella scrittura/lettura file
 
   # open-webui:
   #   image: ghcr.io/open-webui/open-webui:main

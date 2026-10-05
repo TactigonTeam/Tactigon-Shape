@@ -2077,6 +2077,16 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin.can_listen:
+        debug(logging_queue, f"Recording audio for {duration} seconds...")
+        if tskin.record_audio(filename, duration):
+            while tskin.is_recording:
+                time.sleep(tskin.TICK)
+            return True
+
+    return False
+
 # ---------- Generated code ---------------
 
 `;
