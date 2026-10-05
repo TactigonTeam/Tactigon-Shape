@@ -1721,6 +1721,7 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+from tactigon_shapes.modules.audio.extension import AudioRecorder
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
@@ -2077,9 +2078,14 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
-def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float) -> bool:
     debug(logging_queue, f"Recording audio for {duration} seconds...")
-    return AudioRecorder(tskin).record(filename, duration)
+    result = AudioRecorder(tskin).record(filename, duration)
+
+    if not result:
+        debug(logging_queue, "Cannot record audio...")
+
+    return result
 
 # ---------- Generated code ---------------
 
