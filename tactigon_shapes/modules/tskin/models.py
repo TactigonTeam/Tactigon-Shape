@@ -28,9 +28,7 @@ from dataclasses import dataclass, field
 from tactigon_gear import TSkinSocket as TSkin, TSkinConfig, GestureConfig, SocketConfig
 from tactigon_gear.models.tskin import Gesture, Hand, Angle, Touch, OneFingerGesture, TwoFingerGesture
 from tactigon_gear.models.audio import TSpeechObject, TSpeech, HotWord
-from tactigon_shapes.modules.file_manager.extension import FileManager, FileItem
-from tactigon_shapes.modules.file_manager.models import DirectoryItem, ItemAlreadyExists
-from tactigon_shapes.modules.file_manager.models import DirectoryItem
+
 
 @dataclass
 class ModelGesture:
@@ -145,6 +143,7 @@ class AudioRecorder:
         return name
 
     def record(self, filename: str, duration: float) -> bool:
+        from tactigon_shapes.modules.file_manager.extension import FileManager, ItemAlreadyExists
         if not self.tskin.can_listen:
             return False
 
