@@ -1936,7 +1936,7 @@ def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path
     if not ginos:
         return False
 
-    return ginos.add_file_to_context(os.path.join(directory, file_path))
+    return ginos.add_file_to_context(file_path)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -2050,7 +2050,7 @@ def chords_ml_load_dataframe(chords_ml: ChordMLInterface | None, directory: str,
     if not chords_ml:
         return None
 
-    return chords_ml.get_dataframe(os.path.join(directory, file_path))
+    return chords_ml.get_dataframe(file_path)
 
 def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
     if not chords_llm:

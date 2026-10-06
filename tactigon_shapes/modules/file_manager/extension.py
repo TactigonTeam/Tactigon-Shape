@@ -352,5 +352,3 @@ class FileManager:
             })
 
         return blocks
-            
-    
