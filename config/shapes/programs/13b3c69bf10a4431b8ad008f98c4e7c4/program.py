@@ -234,7 +234,7 @@ def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path
     if not ginos:
         return False
 
-    return ginos.add_file_to_context(file_path)
+    return ginos.add_file_to_context(os.path.join(directory, file_path))
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -348,7 +348,7 @@ def chords_ml_load_dataframe(chords_ml: ChordMLInterface | None, directory: str,
     if not chords_ml:
         return None
 
-    return chords_ml.get_dataframe(file_path)
+    return chords_ml.get_dataframe(os.path.join(directory, file_path))
 
 def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
     if not chords_llm:
@@ -377,29 +377,34 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
     return status.status if status else None 
 
 def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
-    if tskin.can_listen:
-        debug(logging_queue, f"Recording audio for {duration} seconds...")
-        if tskin.record(filename, duration):
-            while tskin.is_recording:
-                time.sleep(tskin.TICK)
-            debug(logging_queue, f"Recording finished. Audio saved to {filename}.")
-            return True
-
-    return False
+    debug(logging_queue, f"Recording audio for {duration} seconds...")
+    return AudioRecorder(tskin).record(filename, duration)
 
 # ---------- Generated code ---------------
 
-from numbers import Number
-
-tap_hold = None
-tap_hold_counter = None
+features = None
+targets = None
 
 
-tap_hold = False
-tap_hold_counter = 0
+def tactigon_shape_setup(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        chords_llm: ChordLLMInterface | None,
+        chords_ml: ChordMLInterface | None,
+        logging_queue: LoggingQueue):
 
-# This is the main function that runs your code. Any
-# code blocks you add to this section will be executed.
+    global features, targets, predict_flag
+    features = 'metri_quadri, piani, affidabilita, fascia prezzo'.split(', ')
+    targets = 'alto, medio, basso'.split(', ')
+    chords_ml_train(chords_ml, 'Line 1 - Line 1', chords_ml_load_dataframe(chords_ml, "./Dataframes", "./Dataframes/train2_case.csv"), features, targets)
+    debug(logging_queue, 'Training in progress...')
+
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -413,24 +418,24 @@ def tactigon_shape_function(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    global tap_hold, tap_hold_counter
+    global features, targets, predict_flag
     gesture = tskin.gesture
     touch = tskin.touch
-    if check_touch(touch, "TAP_AND_HOLD"):
-        if tap_hold == False:
-            tap_hold = True
-            keyboard_press(keyboard, HotKey.parse('<f5>'))
-            debug(logging_queue, 'Toggle presentation')
-    elif check_touch(touch, "SINGLE_TAP"):
-        keyboard_press(keyboard, HotKey.parse('p'))
-        debug(logging_queue, 'Prev slide')
-    else:
-        tap_hold_counter = (tap_hold_counter if isinstance(tap_hold_counter, Number) else 0) + 1
-        if tap_hold_counter >= 5:
-            tap_hold = False
-            tap_hold_counter = 0
-    if check_gesture(gesture, "twist"):
-        keyboard_press(keyboard, HotKey.parse('n'))
-        debug(logging_queue, 'Next slide')
-
+    pass
     return True
+
+def tactigon_shape_close(
+        tskin: TSkin,
+        keyboard: KeyboardController,
+        braccio: BraccioInterface | None,
+        zion: ZionInterface | None,
+        ros2: Ros2Interface | None,
+        ironboy: IronBoyInterface | None,
+        ginos: GinosInterface | None,
+        mqtt: MQTTClient | None,
+        chords_llm: ChordLLMInterface | None,
+        chords_ml: ChordMLInterface | None,
+        logging_queue: LoggingQueue):
+
+    global features, targets, predict_flag
+    pass

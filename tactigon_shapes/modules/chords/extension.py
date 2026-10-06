@@ -141,12 +141,16 @@ class ChordLLMInterface:
             timeout=10,
             verify=False,
         )
+        
 
         if self._get_status(resp) != ChordLLMApiResponseStatusEnum.OK:
-            message = self._get_error(resp)        
-            self._logger.error(f"Cannot login: {message}. {resp.json()}")
+            if resp:
+                message = self._get_error(resp)        
+                self._logger.error(f"Cannot login: {message}. {resp.json()}")
+            else:
+                self._logger.error("Cannot login: No response, is Chords active?")
+                
             return False
-
         data = self._get_data(resp)
         self.access_token = data.get("access_token", None)
         self.refresh_token = data.get("refresh_token", None)

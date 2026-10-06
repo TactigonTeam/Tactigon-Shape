@@ -17,7 +17,7 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
+var recordingBasePath = "./Recordings";
 function loadCustomBlocks(response) {
     const gestures = response ? response.gestures : [];
     const modKeys = response ? response.modKeys : [];
@@ -34,6 +34,7 @@ function loadCustomBlocks(response) {
     const chords_ml = response ? response.chords_ml : {};
     const chords_llm = response ? response.chords_llm : {};
 
+
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
     loadSpeechBlocks(speechs,file_manager);
@@ -48,7 +49,7 @@ function loadCustomBlocks(response) {
     loadCameraBlocks();
     loadChordsBlocks(chords_ml, chords_llm, file_manager);
 
-    let recordingBasePath = "./Recordings";
+
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -387,7 +388,7 @@ function loadSpeechBlocks(speechs, file_manager) {
     const recFolder = Array.isArray(file_manager) 
         ? file_manager.find(el => el.directory && el.directory.name === "Recordings")
         : null;
-    const recordingBasePath = recFolder ? recFolder.directory.base_path : "./Recordings";
+    recordingBasePath  = recFolder ? recFolder.directory.base_path : "./Recordings";
 
     Blockly.Blocks['tskin_listen'] = {
         init: function () {
@@ -2084,16 +2085,17 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
-def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float) -> bool:
-    debug(logging_queue, f"Recording audio for {duration} seconds...")
-    result = tskin.record(filename, duration)
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin.can_listen:
+        debug(logging_queue, f"Recording audio for {duration} seconds...")
+        if tskin.record(filename, duration):
+            while tskin.is_recording:
+                time.sleep(tskin.TICK)
+            debug(logging_queue, f"Recording finished. Audio saved to {filename}.")
+            return True
 
-    if result:
-        debug(logging_queue, "Recording finished, file saved")
-    else:
-        debug(logging_queue, "Recording failed")
+    return False
 
-    return result
 # ---------- Generated code ---------------
 
 `;
