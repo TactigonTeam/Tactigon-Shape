@@ -6,7 +6,7 @@ from werkzeug.datastructures import FileStorage
 from tactigon_shapes.modules.tskin.models import TSkin
 from tactigon_shapes.modules.file_manager.extension import FileManager, ItemAlreadyExists
 # adatta il percorso all'ubicazione reale di SocketCommand nella tua libreria
-from tactigon_skin.models.socket import SocketCommand
+from tactigon_gear.models.socket import SocketCommand
 
 logger = logging.getLogger(__name__)
 

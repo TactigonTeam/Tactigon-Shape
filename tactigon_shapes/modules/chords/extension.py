@@ -508,12 +508,13 @@ class ChordMLInterface:
 
         try:
             if file_path.endswith('.csv'):
+
                 df = pd.read_csv(file_path)
             elif file_path.endswith('.json'):
                 df = pd.read_json(file_path)
             
         except Exception as e:
-            self._logger.error("Cannot read file into dataframe. %s", e.with_traceback)
+            self._logger.error("Cannot read file %s into dataframe. %s", file_path, e.with_traceback)
             
         return df
     
