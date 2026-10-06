@@ -36,7 +36,7 @@ function loadCustomBlocks(response) {
 
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
-    loadSpeechBlocks(speechs);
+    loadSpeechBlocks(speechs,file_manager);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
@@ -47,6 +47,8 @@ function loadCustomBlocks(response) {
     loadDictionaryBlocks();
     loadCameraBlocks();
     loadChordsBlocks(chords_ml, chords_llm, file_manager);
+
+    let recordingBasePath = "./Recordings";
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -350,7 +352,7 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
     };
 }
 
-function loadSpeechBlocks(speechs) {
+function loadSpeechBlocks(speechs, file_manager) {
     args = []
     message = "Voice command:"
 
@@ -381,6 +383,11 @@ function loadSpeechBlocks(speechs) {
             });
         }
     }
+    console.log("Recording folder:", file_manager.map(el => el.directory.name));
+    const recFolder = Array.isArray(file_manager) 
+        ? file_manager.find(el => el.directory && el.directory.name === "Recordings")
+        : null;
+    const recordingBasePath = recFolder ? recFolder.directory.base_path : "./Recordings";
 
     Blockly.Blocks['tskin_listen'] = {
         init: function () {
@@ -1721,7 +1728,6 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.audio.extension import AudioRecorder
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
@@ -2080,7 +2086,7 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
 def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float) -> bool:
     debug(logging_queue, f"Recording audio for {duration} seconds...")
-    result = AudioRecorder(tskin).record(filename, duration)
+    result = tskin.record(filename, duration)
 
     if result:
         debug(logging_queue, "Recording finished, file saved")
@@ -2276,7 +2282,7 @@ function defineSpeechGenerators() {
         let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
         let seconds = generator.valueToCode(block, 'seconds', python.Order.ATOMIC);
 
-        return `record_audio(tskin,logging_queue, ${filename}, ${seconds})\n`
+        return `record_audio(tskin,logging_queue,os.path.join("${recordingBasePath}", ${filename}), ${seconds})\n`
     };
 
     // python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {

@@ -75,7 +75,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
       - ./config/bianconiglio:/app/config/bianconiglio
-      - tactigon-audio:/app/audio
+      - tactigon-audio:/app/Recordings
 
   speech:
     build:
@@ -90,10 +90,8 @@ services:
       TSS_PORT: 50007
       TSS_CONFIG: config.json
     volumes:
-      - tactigon-audio:/app/audio
-
-    # NB il codice di speech deve puntare alla cartella giusta nella scrittura/lettura file
-
+      - tactigon-audio:/app/Recordings
+      
   # open-webui:
   #   image: ghcr.io/open-webui/open-webui:main
   #   container_name: open-webui
