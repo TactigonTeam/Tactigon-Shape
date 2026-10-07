@@ -1,3 +1,0 @@
-{
-    "connection_string": "sqlite:///./db/catalogo_completo.db?mode=ro"
-}
