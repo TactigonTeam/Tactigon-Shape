@@ -1,0 +1,5 @@
+{
+    "debug": true,
+    "subscription_topic": "example_subscription",
+    "publish_topic": "example_publish"
+}
