@@ -376,7 +376,21 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float) -> bool:
+    debug(logging_queue, f"Recording audio for {duration} seconds...")
+    result = AudioRecorder(tskin).record(filename, duration)
+
+    if result:
+        debug(logging_queue, "Recording finished, file saved")
+    else:
+        debug(logging_queue, "Recording failed")
+
+    return result
 # ---------- Generated code ---------------
+
+features = None
+targets = None
+
 
 def tactigon_shape_setup(
         tskin: TSkin,
@@ -391,8 +405,11 @@ def tactigon_shape_setup(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    chords_llm_upload(chords_llm, "")
-    chords_llm_rag(chords_llm)
+    global features, targets, predict_flag
+    features = 'gesture, zone, object_detected, object, object_class, gesture_confidence, robot_state, gripper_state, target_zone'.split(', ')
+    targets = 'action, priority, risk_level'.split(', ')
+    chords_ml_train(chords_ml, 'LIne 1 - Line 1', chords_ml_load_dataframe(chords_ml, "./Dataframes", "./Dataframes/predict_data.json"), features, targets)
+    debug(logging_queue, 'Training in progress...')
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -407,13 +424,12 @@ def tactigon_shape_function(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global features, targets, predict_flag
     gesture = tskin.gesture
     touch = tskin.touch
-    if chords_llm_get_chat_status(chords_llm) == ChordLLMAgentStateEnum("IDLE"):
-        debug(logging_queue, chords_llm_stream(chords_llm, 'Dimmi cosa sai del documento di 2606_NEXT INDUSTRIES'))
-        return False
-    time.sleep(1)
-    debug(logging_queue, 'Wait until ready...')
+    if chords_ml_get_model_state(chords_ml, "---") == ChordsMLModelStateEnum("TRAINING"):
+        debug(logging_queue, chords_ml_predict(chords_ml, '---', chords_ml_load_dataframe(chords_ml, "./Dataframes", "./Dataframes/predict_data.json")))
+    return False
 
     return True
 
@@ -430,4 +446,5 @@ def tactigon_shape_close(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global features, targets, predict_flag
     pass

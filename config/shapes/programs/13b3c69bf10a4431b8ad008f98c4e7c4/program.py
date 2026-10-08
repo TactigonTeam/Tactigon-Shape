@@ -376,7 +376,15 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
+    debug(logging_queue, f"Recording audio for {duration} seconds...")
+    return AudioRecorder(tskin).record(filename, duration)
+
 # ---------- Generated code ---------------
+
+features = None
+targets = None
+
 
 def tactigon_shape_setup(
         tskin: TSkin,
@@ -391,8 +399,11 @@ def tactigon_shape_setup(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    chords_llm_upload(chords_llm, "")
-    chords_llm_rag(chords_llm)
+    global features, targets, predict_flag
+    features = 'metri_quadri, piani, affidabilita, fascia prezzo'.split(', ')
+    targets = 'alto, medio, basso'.split(', ')
+    chords_ml_train(chords_ml, 'Line 1 - Line 1', chords_ml_load_dataframe(chords_ml, "./Dataframes", "./Dataframes/train2_case.csv"), features, targets)
+    debug(logging_queue, 'Training in progress...')
 
 def tactigon_shape_function(
         tskin: TSkin,
@@ -407,14 +418,10 @@ def tactigon_shape_function(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global features, targets, predict_flag
     gesture = tskin.gesture
     touch = tskin.touch
-    if chords_llm_get_chat_status(chords_llm) == ChordLLMAgentStateEnum("IDLE"):
-        debug(logging_queue, chords_llm_stream(chords_llm, 'Dimmi cosa sai del documento di 2606_NEXT INDUSTRIES'))
-        return False
-    time.sleep(1)
-    debug(logging_queue, 'Wait until ready...')
-
+    pass
     return True
 
 def tactigon_shape_close(
@@ -430,4 +437,5 @@ def tactigon_shape_close(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global features, targets, predict_flag
     pass

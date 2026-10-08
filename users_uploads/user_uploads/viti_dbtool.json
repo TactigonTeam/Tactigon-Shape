@@ -1,3 +1,0 @@
-{
-    "connection_string": "sqlite:///./db/db_viti.db?mode=ro"
-}

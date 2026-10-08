@@ -20,8 +20,8 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
-from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
+from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
+from tactigon_shapes.modules.chords.models import ChordsLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 
@@ -91,6 +91,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
 
     debug(logging_queue, "Cannot listen...")
     return []
+
 
 def keyboard_press(keyboard: KeyboardController, commands: list[KeyCode]):
     for k in commands:
@@ -200,7 +201,7 @@ def zion_send_device_alarm(zion: ZionInterface | None, device_id: str, name: str
     return zion.upsert_device_alarm(device_id, name, name) 
 
 def debug(logging_queue: LoggingQueue, msg: Any):
-    logger.info(f"messaggio da debuggare : {msg}")
+    
     if isinstance(msg,(float)):
         rounded=round(msg,4)
         logging_queue.debug(str(rounded))
@@ -299,7 +300,7 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def chords_ml_train(chords_ml: ChordMLInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
+def chords_ml_train(chords_ml: ChordsMLInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
     if not chords_ml:
         return {}
 
@@ -308,7 +309,7 @@ def chords_ml_train(chords_ml: ChordMLInterface | None, description: str, data: 
 
     return chords_ml.train(description, data, features, targets)
 
-def chords_ml_retrain(chords_ml: ChordMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame | None, features: list, targets: list):
+def chords_ml_retrain(chords_ml: ChordsMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame | None, features: list, targets: list):
     if not chords_ml:
         return {}
 
@@ -317,7 +318,7 @@ def chords_ml_retrain(chords_ml: ChordMLInterface | None, model_desc: str, new_d
 
     return chords_ml.retrain(model_desc, new_description, data, features, targets)
 
-def chords_ml_predict(chords_ml: ChordMLInterface | None, model_desc: str, data: pd.DataFrame | None) -> dict:
+def chords_ml_predict(chords_ml: ChordsMLInterface | None, model_desc: str, data: pd.DataFrame | None) -> dict:
     if not chords_ml:
         return {}
 
@@ -326,49 +327,49 @@ def chords_ml_predict(chords_ml: ChordMLInterface | None, model_desc: str, data:
 
     return chords_ml.predict(model_desc, data)
 
-def chords_ml_get_model_state(chords_ml: ChordMLInterface | None, model_id: str):
+def chords_ml_get_model_state(chords_ml: ChordsMLInterface | None, model_id: str):
     if not chords_ml:
         return None
 
     return chords_ml.get_model_state(model_id)
 
-def chords_ml_get_models_info(chords_ml: ChordMLInterface | None):
+def chords_ml_get_models_info(chords_ml: ChordsMLInterface | None):
     if not chords_ml:
         return []
 
     return chords_ml.get_models_info()
 
-def chords_ml_log(chords_ml: ChordMLInterface | None, model_id: str):
+def chords_ml_log(chords_ml: ChordsMLInterface | None, model_id: str):
     if not chords_ml:
         return None
 
     return chords_ml.get_log(model_id)
 
-def chords_ml_load_dataframe(chords_ml: ChordMLInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+def chords_ml_load_dataframe(chords_ml: ChordsMLInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
     if not chords_ml:
         return None
 
     return chords_ml.get_dataframe(os.path.join(directory, file_path))
 
-def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
+def chords_llm_stream(chords_llm: ChordsLLMInterface | None, user_input: str):
     if not chords_llm:
         return None
 
     return chords_llm.stream(user_input)
 
-def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
+def chords_llm_upload(chords_llm: ChordsLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
         return False
     
     return chords_llm.upload(file_path)
 
-def chords_llm_rag(chords_llm: ChordLLMInterface | None) -> bool:
+def chords_llm_rag(chords_llm: ChordsLLMInterface | None) -> bool:
     if not chords_llm:
         return False
     
     return chords_llm.rag()
 
-def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLMAgentStateEnum | None:
+def chords_llm_get_chat_status(chords_llm: ChordsLLMInterface | None) -> ChordsLLMAgentStateEnum | None:
     if not chords_llm:
         return None
 
@@ -377,6 +378,9 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
     return status.status if status else None 
 
 # ---------- Generated code ---------------
+
+sx = None
+
 
 def tactigon_shape_setup(
         tskin: TSkin,
@@ -387,11 +391,18 @@ def tactigon_shape_setup(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        chords_llm: ChordLLMInterface | None,
-        chords_ml: ChordMLInterface | None,
+        chords_llm: ChordsLLMInterface | None,
+        chords_ml: ChordsMLInterface | None,
         logging_queue: LoggingQueue):
 
-    chords_llm_upload(chords_llm, "")
+    global sx
+    sx = True
+    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Displacement-transducers copy.pdf")
+    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Displacement transducers VW.pdf")
+    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI freatimetro.pdf")
+    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Electric-anchor-load-cell.pdf")
+    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Compression-load-cell.pdf")
+    chords_llm_upload(chords_llm, "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/DS_NI Digital inclinometer probe.pdf")
     chords_llm_rag(chords_llm)
 
 def tactigon_shape_function(
@@ -403,17 +414,21 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        chords_llm: ChordLLMInterface | None,
-        chords_ml: ChordMLInterface | None,
+        chords_llm: ChordsLLMInterface | None,
+        chords_ml: ChordsMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global sx
     gesture = tskin.gesture
     touch = tskin.touch
-    if chords_llm_get_chat_status(chords_llm) == ChordLLMAgentStateEnum("IDLE"):
-        debug(logging_queue, chords_llm_stream(chords_llm, 'Dimmi cosa sai del documento di 2606_NEXT INDUSTRIES'))
-        return False
-    time.sleep(1)
-    debug(logging_queue, 'Wait until ready...')
+    if chords_llm_get_chat_status(chords_llm) == ChordsLLMAgentStateEnum("IDLE") and sx:
+        debug(logging_queue, chords_llm_stream(chords_llm, 'cosa mi sai dire dei sensori che ti ho caricato'))
+        sx = False
+    elif chords_llm_get_chat_status(chords_llm) == ChordsLLMAgentStateEnum("INDEXING"):
+        debug(logging_queue, 'indexing...')
+        time.sleep(5)
+    debug(logging_queue, 'cariocamenti')
+    time.sleep(5)
 
     return True
 
@@ -426,8 +441,9 @@ def tactigon_shape_close(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        chords_llm: ChordLLMInterface | None,
-        chords_ml: ChordMLInterface | None,
+        chords_llm: ChordsLLMInterface | None,
+        chords_ml: ChordsMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global sx
     pass

@@ -32,6 +32,8 @@ from werkzeug.datastructures import FileStorage
 from tactigon_shapes.modules.file_manager.models import FileManagerConfig, ContentItem, DirectoryItem, FolderItem, FileItem, ItemAlreadyExists
 from tactigon_shapes.models import BASE_PATH
 
+EXCLUDED_FILES = [".gitkeep"]
+
 class FileManager:
     def __init__(self, config_path: str, app: Flask | None = None):
         self._logger = self.get_logger()
@@ -94,7 +96,7 @@ class FileManager:
             file_list = [
                 FileItem(name=entry.name, path=entry.path, size=entry.stat().st_size, modified_time=datetime.now())
                 for entry in os.scandir(full_path)
-                if entry.is_file()
+                if entry.is_file() and entry.name not in EXCLUDED_FILES
             ]
             FileManager.get_logger().info(f"Listed {len(file_list)} files in path '{full_path}'")
             return file_list
@@ -212,7 +214,7 @@ class FileManager:
 
     @staticmethod
     def delete_folder_item(directory: DirectoryItem, item: FolderItem | DirectoryItem):
-        folder_path = os.path.join(directory.base_path, item.base_path)
+        folder_path = os.path.join(directory.base_path, item.name)
         if os.path.exists(folder_path):
             FileManager.get_logger().info(f"Folder '{folder_path}' deleted")
             shutil.rmtree(folder_path)
@@ -352,5 +354,3 @@ class FileManager:
             })
 
         return blocks
-            
-    

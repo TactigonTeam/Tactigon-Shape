@@ -4,12 +4,17 @@
     {
       "item_type": "directory",
       "name": "user_uploads",
-      "base_path": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads"
+      "base_path": "./user_uploads"
     },
     {
       "item_type": "directory",
       "name": "Dataframes",
-      "base_path": "/home/dev01/projects/tactigon/Tactigon-Shape/Dataframes"
+      "base_path": "./Dataframes"
+    },
+    {
+      "item_type": "directory",
+      "name": "Recordings",
+      "base_path": "./Recordings"
     }
   ]
 }

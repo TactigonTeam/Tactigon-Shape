@@ -376,6 +376,16 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float) -> bool:
+    debug(logging_queue, f"Recording audio for {duration} seconds...")
+    result = AudioRecorder(tskin).record(filename, duration)
+
+    if result:
+        debug(logging_queue, "Recording finished, file saved")
+    else:
+        debug(logging_queue, "Recording failed")
+
+    return result
 # ---------- Generated code ---------------
 
 def tactigon_shape_setup(
@@ -391,9 +401,7 @@ def tactigon_shape_setup(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    chords_llm_upload(chords_llm, "")
-    chords_llm_rag(chords_llm)
-
+    pass
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -409,11 +417,9 @@ def tactigon_shape_function(
 
     gesture = tskin.gesture
     touch = tskin.touch
-    if chords_llm_get_chat_status(chords_llm) == ChordLLMAgentStateEnum("IDLE"):
-        debug(logging_queue, chords_llm_stream(chords_llm, 'Dimmi cosa sai del documento di 2606_NEXT INDUSTRIES'))
-        return False
-    time.sleep(1)
-    debug(logging_queue, 'Wait until ready...')
+    if check_touch(touch, "SINGLE_TAP"):
+        record_audio(tskin,logging_queue, 'audio.wav', 5)
+        debug(logging_queue, 'audio registrato')
 
     return True
 

@@ -15,7 +15,7 @@
               "id": "/5d:#fLXm()fMB17b*+Y",
               "fields": {
                 "directory": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads",
-                "filepath": "/home/dev01/projects/tactigon/Tactigon-Shape/users_uploads/user_uploads/2606_NEXT INDUSTRIES - Comunicazione accettazione distacco.pdf"
+                "filepath": ""
               },
               "next": {
                 "block": {
@@ -87,7 +87,7 @@
                                 "type": "text",
                                 "id": "^G,1NWJqIQZ48zHQ915c",
                                 "fields": {
-                                  "TEXT": "Dimmi cosa sai del documento di accettazione"
+                                  "TEXT": "Dimmi cosa sai del documento di 2606_NEXT INDUSTRIES"
                                 }
                               }
                             }

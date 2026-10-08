@@ -20,6 +20,7 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
+
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
@@ -375,6 +376,15 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
     status = chords_llm.chat_status()
 
     return status.status if status else None 
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin.can_listen:
+        debug(logging_queue, f"Recording audio for {duration} seconds...")
+        if tskin.record(filename, duration):
+            while tskin.is_recording:
+                time.sleep(tskin.TICK)
+            return True
+
+    return False
 
 # ---------- Generated code ---------------
 
@@ -391,9 +401,8 @@ def tactigon_shape_setup(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
-    chords_llm_upload(chords_llm, "")
-    chords_llm_rag(chords_llm)
-
+    global voice_command
+    pass
 def tactigon_shape_function(
         tskin: TSkin,
         keyboard: KeyboardController,
@@ -407,13 +416,11 @@ def tactigon_shape_function(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global voice_command
     gesture = tskin.gesture
     touch = tskin.touch
-    if chords_llm_get_chat_status(chords_llm) == ChordLLMAgentStateEnum("IDLE"):
-        debug(logging_queue, chords_llm_stream(chords_llm, 'Dimmi cosa sai del documento di 2606_NEXT INDUSTRIES'))
-        return False
-    time.sleep(1)
-    debug(logging_queue, 'Wait until ready...')
+    if check_touch(touch, "SINGLE_TAP"):
+        debug(logging_queue, check_speech(tskin, logging_queue, [HotWord("pick"), HotWord("position"), HotWord("circle")]))
 
     return True
 
@@ -430,4 +437,5 @@ def tactigon_shape_close(
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
+    global voice_command
     pass
