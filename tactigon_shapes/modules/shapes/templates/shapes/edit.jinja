@@ -469,8 +469,42 @@
                 </value>
             </block> #}
         </category>
+        <sep></sep>
+        <category name="Chords ML" colour="#8f6329">
+            <block type="chords_ml_load_dataframe">
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+            </block>
+            <block type="chords_ml_train"></block>
+            <block type="chords_ml_retrain"></block>
+            <block type="chords_ml_predict"></block>
+            <block type="chords_ml_model_state"></block>
+            <block type="chords_ml_get_model_state"></block>
+            <block type="chords_ml_get_models_info"></block>
+            <block type="chords_ml_log"></block>
+        </category>
+        {% if chord_llm_config and chord_llm_config.is_valid() %}
+            <category name="Chords LLM" colour="#8f6329">
+                <block type="chords_llm_stream">
+                    <value name="user_input"></value>
+                </block>
+                <block type="chords_llm_upload">
+                        <value name="input_path">
+                            <shadow type="text">
+                            </shadow>
+                        </value>
+                </block>
+                <block type="chords_llm_rag"></block>
+                <block type="chords_llm_get_chat_status"></block>
+                <block type="chords_llm_agent_state"></block>
+            </category>
+        {% endif%}
+        {% if braccio_config or ironboy_config %}
+        <sep></sep>
+        {% endif %}
         {% if braccio_config %}
-            <sep></sep>
             <category name="Braccio" colour="#cb6434">
                 <block type="braccio_move">
                     <value name="x">
@@ -494,7 +528,6 @@
             </category>
         {% endif %}
         {% if ironboy_config %}
-            <sep></sep>
             <category name="IronBoy" colour="80ef80">
                 <block type="ironboy_command">
                     <value name="command">
@@ -510,65 +543,6 @@
                 <block type="command_list"></block>
             </category>
         {% endif %}
-        <sep></sep>
-        <category name="ROS 2" colour="#6665DD">
-            <block type="ros2_command">
-            </block>
-            <block type="ros2_subscribe">
-                <value name="topic">
-                    <shadow type="text"></shadow>
-                </value>
-                <value name="message_type">
-                    <shadow type="ros2_message_type">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_type"></block>
-            <block type="ros2_publish">
-                <value name="message_type">
-                    <shadow type="ros2_message_String">
-                        <value name="data">
-                            <shadow type="text">
-                            </shadow>
-                        </value>
-                    </shadow>
-                </value>
-                <value name="topic">
-                    <shadow type="text">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_node_ready"></block>
-            <block type="ros2_topic_list"></block>
-            <block type="ros2_node_list"></block>
-            <block type="ros2_message_String">
-                <value name="data">
-                    <shadow type="text">
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_Bool">
-                <value name="data">
-                    <shadow type="logic_boolean">
-                        <field name="BOOL">TRUE</field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_Int64">
-                <value name="data">
-                    <shadow type="math_number">
-                        <field name="NUM">1</field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="ros2_message_Float64">
-                <value name="data">
-                    <shadow type="math_number">
-                        <field name="NUM">1.5</field>
-                    </shadow>
-                </value>
-            </block>
-        </category>
         {% if zion_config and zion_config.is_valid() %}
             <sep></sep>
             <category name="Zion API" colour="#6665DD">
@@ -696,7 +670,7 @@
                 </block>
             </category>
         {% endif %}
-        {% if current_config.ginos_config %}
+        {# {% if current_config.ginos_config %}
             <sep></sep>
             <category name="Ginos AI" colour="#EB6152">
                 <block type="ginos_ai_prompt">
@@ -711,7 +685,6 @@
                         </shadow>
                     </value>
                 </block>
-                {#
                 <block type="ginos_ai_chat">
                     <value name="messages">
                         <shadow type="ginos_ai_chat_message">
@@ -738,12 +711,78 @@
                 </block>
                 <block type="ginos_ai_chat_message_role">
                 </block>
-                #}
             </category>
-        {% endif %}
+        {% endif %} #}
+        <sep></sep>
+        <category name="ROS 2" colour="#5b6da5">
+            <block type="ros2_command">
+            </block>
+            <block type="ros2_subscribe">
+                <value name="topic">
+                    <shadow type="text"></shadow>
+                </value>
+                <value name="message_type">
+                    <shadow type="ros2_message_type">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_type"></block>
+            <block type="ros2_publish">
+                <value name="message_type">
+                    <shadow type="ros2_message_String">
+                        <value name="data">
+                            <shadow type="text">
+                            </shadow>
+                        </value>
+                    </shadow>
+                </value>
+                <value name="topic">
+                    <shadow type="text">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_node_ready"></block>
+            <block type="ros2_topic_list"></block>
+            <block type="ros2_node_list"></block>
+            <block type="ros2_message_String">
+                <value name="data">
+                    <shadow type="text">
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_Bool">
+                <value name="data">
+                    <shadow type="logic_boolean">
+                        <field name="BOOL">TRUE</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_Int64">
+                <value name="data">
+                    <shadow type="math_number">
+                        <field name="NUM">1</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="ros2_message_Float64">
+                <value name="data">
+                    <shadow type="math_number">
+                        <field name="NUM">1.5</field>
+                    </shadow>
+                </value>
+            </block>
+        </category>
+        <category name="Camera" colour="#5b6da5">
+            <block type="get_marker_id">
+                <value name="PAYLOAD_IN">
+                    <block type="variables_get">
+                        <field name="VAR">payload</field>
+                    </block>
+                </value>
+            </block>
+        </category>
         {% if current_config.mqtt_config %}
-            <sep></sep>
-            <category name="Ginos MQTT" colour="#6665DD">
+            <category name="MQTT" colour="#5b6da5">
                 <block type="mqtt_subscribe">
                     <value name="topic">
                         <shadow type="text">
@@ -780,44 +819,6 @@
             <block type="keyboard_funckey"></block>
             <block type="keyboard_mod_plus_funckey"></block>
             <block type="keyboard_mod_plus_mod_plus_funckey"></block>
-        </category>
-        <category name="Camera" colour="#ff5050">
-            <block type="get_marker_id">
-                <value name="PAYLOAD_IN">
-                    <block type="variables_get">
-                        <field name="VAR">payload</field>
-                    </block>
-                </value>
-            </block>
-        </category>
-        <category name="Chords ML" colour="#8f6329">
-            <block type="chords_ml_load_dataframe">
-                    <value name="input_path">
-                        <shadow type="text">
-                        </shadow>
-                    </value>
-            </block>
-            <block type="chords_ml_train"></block>
-            <block type="chords_ml_retrain"></block>
-            <block type="chords_ml_predict"></block>
-            <block type="chords_ml_model_state"></block>
-            <block type="chords_ml_get_model_state"></block>
-            <block type="chords_ml_get_models_info"></block>
-            <block type="chords_ml_log"></block>
-        </category>
-        <category name="Chords LLM" colour="#8f6329">
-            <block type="chords_llm_stream">
-                <value name="user_input"></value>
-            </block>
-            <block type="chords_llm_upload">
-                    <value name="input_path">
-                        <shadow type="text">
-                        </shadow>
-                    </value>
-            </block>
-            <block type="chords_llm_rag"></block>
-            <block type="chords_llm_get_chat_status"></block>
-            <block type="chords_llm_agent_state"></block>
         </category>
     </xml>
 </div>

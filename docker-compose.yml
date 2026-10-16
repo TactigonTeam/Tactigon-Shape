@@ -27,29 +27,30 @@ volumes:
   ollama_data:
   tactigon-config:
   open-webui:
+  tactigon-audio:
 
 services:
-  ollama:
-    image: ollama/ollama:0.12.10
-    container_name: ollama
-    restart: unless-stopped
-    networks:
-      - tactigon-net
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    entrypoint: 
-      [
-        "/bin/bash",
-        "-c",
-        "ollama serve & sleep 5 && ollama pull mistral && wait",
-      ]
-    healthcheck:
-      test: ["CMD-SHELL", "ollama list | grep -q mistral"]
-      interval: 10s
-      timeout: 10s
-      retries: 180
+  # ollama:
+  #   image: ollama/ollama:0.12.10
+  #   container_name: ollama
+  #   restart: unless-stopped
+  #   networks:
+  #     - tactigon-net
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   entrypoint: 
+  #     [
+  #       "/bin/bash",
+  #       "-c",
+  #       "ollama serve & sleep 5 && ollama pull mistral && wait",
+  #     ]
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "ollama list | grep -q mistral"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 180
 
   tactigon-shapes:
     # image: nextdeveloper/tactigon-shapes
@@ -59,9 +60,9 @@ services:
     container_name: tactigon-shapes
     restart: unless-stopped
     privileged: true
-    depends_on:
-      ollama:
-        condition: service_healthy
+    # depends_on:
+    #   ollama:
+    #     condition: service_healthy
     networks:
       - tactigon-net
     ports:
@@ -74,6 +75,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
       - ./config/bianconiglio:/app/config/bianconiglio
+      - tactigon-audio:/app/Recordings
 
   speech:
     build:
@@ -87,19 +89,21 @@ services:
       TSS_ADDRESS: tactigon-shapes
       TSS_PORT: 50007
       TSS_CONFIG: config.json
-
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
-    restart: always
-    networks:
-      - tactigon-net
-    ports:
-      - "3000:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
-      - open-webui:/app/backend/data
+      - tactigon-audio:/app/Recordings
+      
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:main
+  #   container_name: open-webui
+  #   restart: always
+  #   networks:
+  #     - tactigon-net
+  #   ports:
+  #     - "3000:8080"
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   volumes:
+  #     - open-webui:/app/backend/data
 
   ros-camera-tracking:
       build:

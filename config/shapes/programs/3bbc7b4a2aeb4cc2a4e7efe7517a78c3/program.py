@@ -7,6 +7,7 @@ import types
 import json
 import os
 import logging
+import pandas as pd
 from numbers import Number
 from datetime import datetime
 from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQueue
@@ -19,14 +20,10 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.bianconiglio.extension import BianconiglioInterface
-from tactigon_shapes.modules.bianconiglio.models import ChordsMLModelState, ChordsMLConfig, RAGAgentState
+from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
+from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
-from pathlib import Path
-import rclpy
-from rclpy.node import Node
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -237,7 +234,7 @@ def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path
     if not ginos:
         return False
 
-    return ginos.add_file_to_context(os.path.join(directory, file_path))
+    return ginos.add_file_to_context(file_path)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -302,86 +299,93 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def bianconiglio_train(bianconiglio: BianconiglioInterface | None, description: str, data: pd.DataFrame, features: list, targets: list):
-    if not bianconiglio:
+def chords_ml_train(chords_ml: ChordMLInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
+    if not chords_ml:
         return {}
 
-    return bianconiglio.train(description, data, features, targets)
-
-def bianconiglio_retrain(bianconiglio: BianconiglioInterface | None, model_desc: str, new_description: str, data: pd.DataFrame, features: list, targets: list):
-    if not bianconiglio:
+    if data is None:
         return {}
 
-    return bianconiglio.retrain(model_desc, new_description, data, features, targets)
+    return chords_ml.train(description, data, features, targets)
 
-def bianconiglio_predict(bianconiglio: BianconiglioInterface | None, model_desc: str, data: pd.DataFrame):
-    if not bianconiglio:
+def chords_ml_retrain(chords_ml: ChordMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame | None, features: list, targets: list):
+    if not chords_ml:
         return {}
 
-    return bianconiglio.predict(model_desc, data)
+    if data is None:
+        return {}
 
-def bianconiglio_get_model_state(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+    return chords_ml.retrain(model_desc, new_description, data, features, targets)
+
+def chords_ml_predict(chords_ml: ChordMLInterface | None, model_desc: str, data: pd.DataFrame | None) -> dict:
+    if not chords_ml:
+        return {}
+
+    if data is None:
+        return {}
+
+    return chords_ml.predict(model_desc, data)
+
+def chords_ml_get_model_state(chords_ml: ChordMLInterface | None, model_id: str):
+    if not chords_ml:
         return None
 
-    return bianconiglio.get_model_state(model_id)
+    return chords_ml.get_model_state(model_id)
 
-def bianconiglio_get_xgb_models_info(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
+def chords_ml_get_models_info(chords_ml: ChordMLInterface | None):
+    if not chords_ml:
         return []
 
-    return bianconiglio.get_xgb_models_info()
+    return chords_ml.get_models_info()
 
-def bianconiglio_get_log(bianconiglio: BianconiglioInterface | None, model_id: str):
-    if not bianconiglio:
+def chords_ml_log(chords_ml: ChordMLInterface | None, model_id: str):
+    if not chords_ml:
         return None
 
-    return bianconiglio.get_log(model_id)
+    return chords_ml.get_log(model_id)
 
-def bianconiglio_load_dataframe(bianconiglio: BianconiglioInterface | None, file_path: str) -> pd.DataFrame | None:
-    if not bianconiglio:
+def chords_ml_load_dataframe(chords_ml: ChordMLInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+    if not chords_ml:
         return None
 
-    return bianconiglio.get_dataframe(file_path)
+    return chords_ml.get_dataframe(file_path)
 
-def bianconiglio_stream_chat_with_rag(bianconiglio: BianconiglioInterface | None, user_input: str):
-    if not bianconiglio:
-        logger.error("mannaggia non c'è bianconiglio")
+def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
+    if not chords_llm:
         return None
 
-    return bianconiglio.stream_chat_with_rag(user_input)
+    return chords_llm.stream(user_input)
 
-def bianconiglio_RAG_upload_file(bianconiglio: BianconiglioInterface | None, file_path: str):
-    if not bianconiglio:
-        return None
-
-    return bianconiglio.upload_document(file_path)
-
-def bianconiglio_RAG_execute(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
-        return None
+def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
+    if not chords_llm:
+        return False
     
-    return bianconiglio.RAG_execute()
+    return chords_llm.upload(file_path)
 
-def bianconiglio_get_context_state(bianconiglio: BianconiglioInterface | None):
-    if not bianconiglio:
-        return []
+def chords_llm_rag(chords_llm: ChordLLMInterface | None) -> bool:
+    if not chords_llm:
+        return False
+    
+    return chords_llm.rag()
 
-    return bianconiglio.get_context_state()
+def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLMAgentStateEnum | None:
+    if not chords_llm:
+        return None
 
-# def bianconiglio_get_RAG_agent_state(bianconiglio: BianconiglioInterface | None, agent_id: str):
-#     if not bianconiglio:
-#         return None
+    status = chords_llm.chat_status()
 
-#     return bianconiglio.get_RAG_agent_state(agent_id)
+    return status.status if status else None 
 
-# def bianconiglio_get_RAG_agents_info(bianconiglio: BianconiglioInterface | None):
-#     if not bianconiglio:
-#        return []
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin.can_listen:
+        debug(logging_queue, f"Recording audio for {duration} seconds...")
+        if tskin.record(filename, duration):
+            while tskin.is_recording:
+                time.sleep(tskin.TICK)
+            debug(logging_queue, f"Recording finished. Audio saved to {filename}.")
+            return True
 
-#     return bianconiglio.get_RAG_agents_info()
-
-        
+    return False
 
 # ---------- Generated code ---------------
 
@@ -405,7 +409,8 @@ def tactigon_shape_function(
         ironboy: IronBoyInterface | None,
         ginos: GinosInterface | None,
         mqtt: MQTTClient | None,
-        bianconiglio: BianconiglioInterface | None,
+        chords_llm: ChordLLMInterface | None,
+        chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
     global tap_hold, tap_hold_counter

@@ -18,10 +18,11 @@
 #********************************************************************************/
 
 
+import os
 import sys
 import json
 from os import path
-from datetime import datetime
+from datetime import datetime, time
 from dataclasses import dataclass, field
 
 from tactigon_gear import TSkinSocket as TSkin, TSkinConfig, GestureConfig, SocketConfig

@@ -38,7 +38,7 @@ from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
 from tactigon_shapes.modules.ros2.manager import get_ros2_interface
 from tactigon_shapes.modules.file_manager.manager import get_file_manager_extension
-from tactigon_shapes.modules.chords.manager import get_chords_ml_interface, get_chords_llm_interface
+from tactigon_shapes.modules.chords.manager import get_chord_ml_interface, get_chord_llm_interface
 from tactigon_shapes.utils.request_utils import get_from_request
 
 
@@ -99,11 +99,11 @@ def index(program_id: str | None = None):
     if file_manager:
         blocks_config["file_manager"] = file_manager.get_shape_blocks()
     
-    chords_llm = get_chords_llm_interface()
+    chords_llm = get_chord_llm_interface()
     if chords_llm:
         blocks_config["chords_llm"] = chords_llm.get_shape_blocks()
 
-    chords_ml = get_chords_ml_interface()
+    chords_ml = get_chord_ml_interface()
     if chords_ml:
         blocks_config["chords_ml"] = chords_ml.get_shape_blocks()
 
@@ -180,6 +180,8 @@ def add():
             node_type=mqtt_nodetype,
         )
 
+    chords_llm_prompt = get_from_request("chord_llm_prompt")
+
     new_config = ShapeConfig(
         id=uuid4(),
         name=program_name,
@@ -188,6 +190,7 @@ def add():
         modified_on=datetime.now(),
         ginos_config=ginos_config,
         mqtt_config=mqtt_config,
+        prompt=chords_llm_prompt or ""
     )
 
     _shapes.add(new_config)
@@ -233,8 +236,8 @@ def edit(program_id: str):
     ros2_interface = get_ros2_interface()
     ironboy = get_ironboy_interface()
     file_manager = get_file_manager_extension()
-    chords_llm = get_chords_llm_interface()
-    chords_ml = get_chords_ml_interface()
+    chords_llm = get_chord_llm_interface()
+    chords_ml = get_chord_ml_interface()
 
     if ironboy:
         blocks_config["ironboy"] = ironboy.get_shape_blocks()       
@@ -346,11 +349,14 @@ def save_config(program_id: str):
     #     flash(f"Invalid Ginos MQTT config!", category="danger")
     #     return redirect(url_for("shapes.index"))
 
+    chords_llm_prompt = get_from_request("chord_llm_prompt")
+
     config.name = program_name
     config.description = program_description
     config.modified_on = datetime.now()
     config.ginos_config = ginos_config
     config.mqtt_config = mqtt_config
+    config.prompt = chords_llm_prompt or ""
 
     _shapes.save_config(config=config)
 

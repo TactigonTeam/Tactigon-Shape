@@ -57,6 +57,7 @@ class ShapeConfig:
     description: str | None = None
     readonly: bool = False
     app_file: str = "program.py"
+    prompt: str = ""
     ginos_config: GinosConfig | None = None
     ros2_config: Ros2ShapeConfig | None = None
     mqtt_config: MQTTConfig | None = None
@@ -88,6 +89,7 @@ class ShapeConfig:
             modified_on=self.modified_on.isoformat(),
             description=self.description,
             readonly=self.readonly,
+            prompt=self.prompt,
             ginos_config=self.ginos_config.toJSON() if self.ginos_config else None,
             ros2_config=self.ros2_config.toJSON() if self.ros2_config else None,
             mqtt_config=self.mqtt_config.toJSON() if self.mqtt_config else None

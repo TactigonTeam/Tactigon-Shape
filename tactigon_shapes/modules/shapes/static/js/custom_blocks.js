@@ -17,7 +17,7 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
+var recordingBasePath = "./Recordings";
 function loadCustomBlocks(response) {
     const gestures = response ? response.gestures : [];
     const modKeys = response ? response.modKeys : [];
@@ -34,9 +34,10 @@ function loadCustomBlocks(response) {
     const chords_ml = response ? response.chords_ml : {};
     const chords_llm = response ? response.chords_llm : {};
 
+
     loadShapesBlocks();
     loadTSkinBlocks(gestures, taps);
-    loadSpeechBlocks(speechs);
+    loadSpeechBlocks(speechs,file_manager);
     loadKeyboardBlocks(funcKeys, modKeys);
     loadBraccioBlocks(wristOptions, gripperOptions);
     loadZionBlocks(zion);
@@ -47,6 +48,8 @@ function loadCustomBlocks(response) {
     loadDictionaryBlocks();
     loadCameraBlocks();
     loadChordsBlocks(chords_ml, chords_llm, file_manager);
+
+
 
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -185,7 +188,7 @@ function loadDictionaryBlocks() {
                 }
             ],
             "output": "Dict",
-            "colour": 230,
+            "colour": "#636363",
             "tooltip": "Create a dictionary",
         },
         {
@@ -204,7 +207,7 @@ function loadDictionaryBlocks() {
             ],
             "previousStatement": null,
             "nextStatement": null,
-            "colour": 200,
+            "colour": "#636363",
             "tooltip": "Create a key-value pair for a dictionary",
         },
         {
@@ -218,7 +221,7 @@ function loadDictionaryBlocks() {
                 }
             ],
             "output": "JSONString",
-            "colour": 200,
+            "colour": "#636363",
             "tooltip": "Convert dictionary into json string",
             "inputsInline": true
         },
@@ -233,7 +236,7 @@ function loadDictionaryBlocks() {
                 }
             ],
             "output": "Dict",
-            "colour": 200,
+            "colour": "#636363",
             "tooltip": "Convert json string into dictionary",
             "inputsInline": true
         }
@@ -350,7 +353,7 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
     };
 }
 
-function loadSpeechBlocks(speechs) {
+function loadSpeechBlocks(speechs, file_manager) {
     args = []
     message = "Voice command:"
 
@@ -381,6 +384,11 @@ function loadSpeechBlocks(speechs) {
             });
         }
     }
+    console.log("Recording folder:", file_manager.map(el => el.directory.name));
+    const recFolder = Array.isArray(file_manager) 
+        ? file_manager.find(el => el.directory && el.directory.name === "Recordings")
+        : null;
+    recordingBasePath  = recFolder ? recFolder.directory.base_path : "./Recordings";
 
     Blockly.Blocks['tskin_listen'] = {
         init: function () {
@@ -1423,7 +1431,7 @@ function loadCameraBlocks() {
                     "name": "PAYLOAD"
                 }
             ],
-            "colour": "#ff5050",
+            "colour": 225,
             "inputsInline": true,
             "output": "Number"
         }
@@ -1721,8 +1729,8 @@ from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyC
 from tactigon_shapes.modules.ginos.extension import GinosInterface
 from tactigon_shapes.modules.ginos.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
-from tactigon_shapes.modules.chords.extension import ChordsLLMInterface, ChordsMLInterface
-from tactigon_shapes.modules.chords.models import ChordsLLMAgentStateEnum, ChordsMLModelStateEnum
+from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
+from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
 from pynput.keyboard import Controller as KeyboardController, HotKey, KeyCode
 from typing import Union, Any
 
@@ -1935,7 +1943,7 @@ def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path
     if not ginos:
         return False
 
-    return ginos.add_file_to_context(os.path.join(directory, file_path))
+    return ginos.add_file_to_context(file_path)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -2000,7 +2008,7 @@ def get_marker_id(payload) -> int:
         marker_id = -1
     return marker_id
 
-def chords_ml_train(chords_ml: ChordsMLInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
+def chords_ml_train(chords_ml: ChordMLInterface | None, description: str, data: pd.DataFrame | None, features: list, targets: list):
     if not chords_ml:
         return {}
 
@@ -2009,7 +2017,7 @@ def chords_ml_train(chords_ml: ChordsMLInterface | None, description: str, data:
 
     return chords_ml.train(description, data, features, targets)
 
-def chords_ml_retrain(chords_ml: ChordsMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame | None, features: list, targets: list):
+def chords_ml_retrain(chords_ml: ChordMLInterface | None, model_desc: str, new_description: str, data: pd.DataFrame | None, features: list, targets: list):
     if not chords_ml:
         return {}
 
@@ -2018,7 +2026,7 @@ def chords_ml_retrain(chords_ml: ChordsMLInterface | None, model_desc: str, new_
 
     return chords_ml.retrain(model_desc, new_description, data, features, targets)
 
-def chords_ml_predict(chords_ml: ChordsMLInterface | None, model_desc: str, data: pd.DataFrame | None) -> dict:
+def chords_ml_predict(chords_ml: ChordMLInterface | None, model_desc: str, data: pd.DataFrame | None) -> dict:
     if not chords_ml:
         return {}
 
@@ -2027,55 +2035,66 @@ def chords_ml_predict(chords_ml: ChordsMLInterface | None, model_desc: str, data
 
     return chords_ml.predict(model_desc, data)
 
-def chords_ml_get_model_state(chords_ml: ChordsMLInterface | None, model_id: str):
+def chords_ml_get_model_state(chords_ml: ChordMLInterface | None, model_id: str):
     if not chords_ml:
         return None
 
     return chords_ml.get_model_state(model_id)
 
-def chords_ml_get_models_info(chords_ml: ChordsMLInterface | None):
+def chords_ml_get_models_info(chords_ml: ChordMLInterface | None):
     if not chords_ml:
         return []
 
     return chords_ml.get_models_info()
 
-def chords_ml_log(chords_ml: ChordsMLInterface | None, model_id: str):
+def chords_ml_log(chords_ml: ChordMLInterface | None, model_id: str):
     if not chords_ml:
         return None
 
     return chords_ml.get_log(model_id)
 
-def chords_ml_load_dataframe(chords_ml: ChordsMLInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
+def chords_ml_load_dataframe(chords_ml: ChordMLInterface | None, directory: str, file_path: str) -> pd.DataFrame | None:
     if not chords_ml:
         return None
 
-    return chords_ml.get_dataframe(os.path.join(directory, file_path))
+    return chords_ml.get_dataframe(file_path)
 
-def chords_llm_stream(chords_llm: ChordsLLMInterface | None, user_input: str):
+def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
     if not chords_llm:
         return None
 
     return chords_llm.stream(user_input)
 
-def chords_llm_upload(chords_llm: ChordsLLMInterface | None, file_path: str) -> bool:
+def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
         return False
     
     return chords_llm.upload(file_path)
 
-def chords_llm_rag(chords_llm: ChordsLLMInterface | None) -> bool:
+def chords_llm_rag(chords_llm: ChordLLMInterface | None) -> bool:
     if not chords_llm:
         return False
     
     return chords_llm.rag()
 
-def chords_llm_get_chat_status(chords_llm: ChordsLLMInterface | None) -> ChordsLLMAgentStateEnum | None:
+def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLMAgentStateEnum | None:
     if not chords_llm:
         return None
 
     status = chords_llm.chat_status()
 
     return status.status if status else None 
+
+def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin.can_listen:
+        debug(logging_queue, f"Recording audio for {duration} seconds...")
+        if tskin.record(filename, duration):
+            while tskin.is_recording:
+                time.sleep(tskin.TICK)
+            debug(logging_queue, f"Recording finished. Audio saved to {filename}.")
+            return True
+
+    return False
 
 # ---------- Generated code ---------------
 
@@ -2109,8 +2128,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordsLLMInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordsMLInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -2141,8 +2160,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordsLLMInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordsMLInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             statements_body;
@@ -2173,8 +2192,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordsLLMInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordsMLInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
             Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
@@ -2265,7 +2284,7 @@ function defineSpeechGenerators() {
         let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
         let seconds = generator.valueToCode(block, 'seconds', python.Order.ATOMIC);
 
-        return `record_audio(tskin, ${filename}, ${seconds})\n`
+        return `record_audio(tskin,logging_queue,os.path.join("${recordingBasePath}", ${filename}), ${seconds})\n`
     };
 
     // python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {
@@ -2744,7 +2763,7 @@ function defineChordsGenerators() {
     
     python.pythonGenerator.forBlock["chords_llm_agent_state"] = function (block, generator) {
         const state = block.getFieldValue('state');
-        const code = `ChordsLLMAgentStateEnum("${state}")`;
+        const code = `ChordLLMAgentStateEnum("${state}")`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 

@@ -127,25 +127,34 @@
                                     <label for="program-description" class="form-label">Description</label>
                                     <textarea class="form-control" id="program-description" rows="3" name="description"></textarea>
                                 </div>
-                                <h6>Ginos</h6>
-                                <div class="row">
+                                <h6>Chords AI</h6>
+                                <div class="row mb-3">
                                     <div class="col-md-6 border-end">
+                                        <label class="form-label">Chord LLM</label>
                                         <div class="mb-3">
-                                            <label for="ginos-url" class="form-label">Address</label>
-                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ollama:11434">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="ginos-model" class="form-label">Model name</label>
-                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral">
+                                            <select class="form-select" name="chord_llm_prompt" id="chord_llm_prompt">
+                                                <option value="">No prompt</option>
+                                                {% for (name, id) in blocks_config.chords_llm.prompts %}
+                                                    <option value="{{ name }}">{{ name }}</option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
+                                        <label class="form-label">Chord ML</label>
+                                        <div class="mb-3">
+                                            Not yet implemented
+                                        </div>
+                                    </div>
+                                </div>
+                                <h6>MQTT</h6>
+                                <div class="row mb-3">
+                                    <div class="col">
                                         <div class="row mb-3">
-                                            <label class="form-label">MQTT Broker</label>
-                                            <div class="col-sm-9">
+                                            <div class="col-10">
                                                 <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="broker.emqx.io" value="broker.emqx.io">
                                             </div>
-                                            <div class="col-sm">
+                                            <div class="col">
                                                 <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883" value="1883">
                                             </div>
                                         </div>
@@ -264,35 +273,43 @@
                                     <label for="programDescription" class="form-label">Description</label>
                                     <textarea class="form-control" id="programDescription" name="description">{{current_config.description}}</textarea>
                                 </div>
-                                <h6>Ginos</h6>
-                                <div class="row">
+                                <h6>Chords AI</h6>
+                                <div class="row mb-3">
                                     <div class="col-md-6 border-end">
+                                        <label class="form-label">Chord LLM</label>
                                         <div class="mb-3">
-                                            <label for="ginos-url" class="form-label">Address</label>
-                                            <input type="text" class="form-control" name="ginos_url" id="ginos-url" placeholder="http://ollama:11434" value="{{current_config.ginos_config.url}}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="ginos-model" class="form-label">Model name</label>
-                                            <input type="text" class="form-control" name="ginos_model" id="ginos-model" placeholder="mistral" value="{{current_config.ginos_config.model}}">
+                                            <select class="form-select" name="chord_llm_prompt" id="chord_llm_prompt">
+                                                <option value="">No prompt</option>
+                                                {% for (name, id) in blocks_config.chords_llm.prompts %}
+                                                    <option value="{{ name }}" {% if current_config.prompt == name %}selected{% endif %}>{{ name }}</option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
+                                        <label class="form-label">Chord ML</label>
+                                        <div class="mb-3">
+                                            Not yet implemented
+                                        </div>
+                                    </div>
+                                </div>
+                                <h6>MQTT</h6>
+                                <div class="row mb-3">
+                                    <div class="col">
                                         <div class="row mb-3">
-                                            <label class="form-label">MQTT Broker</label>
-                                            <div class="col-sm-9">
-                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="broker.emqx.io" value="{{current_config.mqtt_config.broker_url}}">
+                                            <div class="col-10">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="broker.emqx.io" value="{{current_config.ginos_config.url}}">
                                             </div>
-                                            <div class="col-sm">
+                                            <div class="col">
                                                 <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883" value="{{current_config.mqtt_config.broker_port}}">
                                             </div>
                                         </div>
-                                        
                                         <div class="mb-3">
-                                            <label for="mqtt-clientid" class="form-label">Node name</label>
+                                            <label for="mqtt-nodename" class="form-label">Node name</label>
                                             <input type="text" class="form-control" name="mqtt_nodename" id="mqtt-nodename" placeholder="" value="{{current_config.mqtt_config.node_name}}" disabled="true">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="mqtt-clientid" class="form-label">Node type</label>
+                                            <label for="mqtt-nodetype" class="form-label">Node type</label>
                                             <input type="text" class="form-control" name="mqtt_nodetype" id="mqtt-nodetype" placeholder="" value="{{current_config.mqtt_config.node_type}}" disabled="true">
                                         </div>
                                     </div>

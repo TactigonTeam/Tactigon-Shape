@@ -10,7 +10,6 @@ ros2 run web_video_server web_video_server --ros-args -p port:=8081 -p address:=
 
 echo "Avvio il nodo della telecamera ROS 2..."
 ros2 run usb_cam usb_cam_node_exe --ros-args \
-  -p video_device:="/dev/video0" \
   -p pixel_format:="mjpeg2rgb" \
   -p image_width:=640 \
   -p image_height:=480 \
