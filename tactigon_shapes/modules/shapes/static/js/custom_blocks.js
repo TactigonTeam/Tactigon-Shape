@@ -19,10 +19,10 @@
 
 var recordingBasePath = "./Recordings";
 function loadCustomBlocks(response) {
-    const gestures = response ? response.gestures : [];
+    const gestures = response?.gestures?.length ? response.gestures : [["---", "none"]];
     const modKeys = response ? response.modKeys : [];
     const funcKeys = response ? response.funckeys : [];
-    const taps = response ? response.taps : [];
+    const taps     = response?.taps?.length ? response.taps : [["---", "none"]];
     const wristOptions = response ? response.wristOptions : [];
     const gripperOptions = response ? response.gripperOptions : [];
     const speechs = response ? response.speechs : [];
@@ -1761,7 +1761,7 @@ def check_touch(touch: Touch | None, finger_gesture: str) -> bool:
         pass
     return False
 
-def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
+def check_speech(tskin: TSkin | None, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
     def build_tspeech(hws: list[Union[HotWord, list[HotWord]]]) -> TSpeechObject | None:
         if not hws:
             return None
@@ -1776,7 +1776,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
 
     tspeech = build_tspeech(hotwords)
 
-    if tspeech and tskin.can_listen:
+    if tskin and tspeech and tskin.can_listen:
         debug(logging_queue, f"Waiting for command...")
         r = tskin.listen(tspeech)
         if r:
@@ -2085,8 +2085,8 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
-def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
-    if tskin.can_listen:
+def record_audio(tskin: TSkin | None, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin and tskin.can_listen:
         debug(logging_queue, f"Recording audio for {duration} seconds...")
         if tskin.record(filename, duration):
             while tskin.is_recording:
@@ -2120,7 +2120,7 @@ function defineCustomGenerators() {
         }
 
         var code = 'def tactigon_shape_setup(\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
@@ -2152,7 +2152,7 @@ function defineCustomGenerators() {
         }
 
         var code = 'def tactigon_shape_close(\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
@@ -2184,7 +2184,7 @@ function defineCustomGenerators() {
         }
 
         var code = 'def tactigon_shape_function(\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
@@ -2196,8 +2196,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
-            Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
-            Blockly.Python.INDENT + "touch = tskin.touch\n" +
+            Blockly.Python.INDENT + "gesture = tskin.gesture if tskin else None\n" +
+            Blockly.Python.INDENT + "touch = tskin.touch if tskin else None\n" +
             statements_body + '\n' +
             Blockly.Python.INDENT + "return True\n";
         return code;

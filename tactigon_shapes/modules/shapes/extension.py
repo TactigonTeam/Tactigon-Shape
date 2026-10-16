@@ -75,7 +75,7 @@ class ShapeThread(ExtensionThread):
     TOUCH_DEBOUNCE_TIMEOUT: float = 0.2
 
     _logger: logging.Logger
-    _tskin: TSkin
+    _tskin: TSkin |None
     _keyboard: KeyboardController
     _logging_queue: LoggingQueue
     _braccio_interface: BraccioInterface | None = None
@@ -93,7 +93,7 @@ class ShapeThread(ExtensionThread):
             self, 
             base_path: str, 
             app: ShapeConfig, 
-            tskin: TSkin,
+            tskin: TSkin | None,
             keyboard: KeyboardController, 
             braccio: BraccioInterface | None, 
             zion: ZionInterface | None, 
@@ -323,6 +323,7 @@ class ShapesApp(ExtensionApp):
             self.config = [ShapeConfig.FromJSON(c) for c in json.load(cfg)]
 
         ExtensionApp.__init__(self, flask_app)
+        
 
     @property
     def braccio_interface(self) -> BraccioInterface | None:
@@ -556,13 +557,12 @@ class ShapesApp(ExtensionApp):
 
     def get_blocks_congfig(self, gestures: list[ModelGesture]) -> dict:
         taps = []
-
-        _finger_gestures = [OneFingerGesture, TwoFingerGesture]
-
-        for fin_gesture in _finger_gestures:
-            taps.extend([[e.name.replace("_", " "), e.name] for e in fin_gesture if "TAP" in e.name])
+        if has_tskin:
+            for fin_gesture in (OneFingerGesture, TwoFingerGesture):
+                taps.extend([[e.name.replace("_", " "), e.name] for e in fin_gesture if "TAP" in e.name])
 
         data = {
+            "has_tskin": has_tskin,
             "modKeys": self.hotkey_list,
             "funckeys": self.function_list,
             "gestures": [(g.label, g.gesture) for g in gestures],
@@ -594,7 +594,7 @@ class ShapesApp(ExtensionApp):
 
         return Program(state, code)
 
-    def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
+    def start(self, config_id: UUID, tskin: TSkin | None = None) -> Tuple[bool, str] | None:
         if self.is_running:
             self.stop()
 
@@ -664,3 +664,4 @@ class ShapesApp(ExtensionApp):
         
         return True
         
+    

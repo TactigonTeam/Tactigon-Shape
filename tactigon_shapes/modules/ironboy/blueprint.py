@@ -27,7 +27,6 @@ from flask import Blueprint, render_template, redirect, url_for, flash
 from tactigon_shapes.modules.ironboy.extension import IronBoyConfig, IronBoyInterface
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 
-from tactigon_shapes.config import check_config
 from tactigon_shapes.utils.extensions import stop_apps
 from tactigon_shapes.utils.request_utils import get_from_request
 
@@ -38,7 +37,6 @@ def manage():
     stop_apps(IronBoyInterface.__name__)
 
 @bp.route("/")
-@check_config
 def index():
     app = get_ironboy_interface()
 
@@ -49,7 +47,6 @@ def index():
     return render_template("ironboy/index.jinja", configured=app.configured, config=app.config)
 
 @bp.route("/scan")
-@check_config
 def scan():
     app = get_ironboy_interface()
 
@@ -66,7 +63,6 @@ def scan():
     return json.dumps(devices)
 
 @bp.route("/save", methods=["POST"])
-@check_config
 def save():
     app = get_ironboy_interface()
 
@@ -92,7 +88,6 @@ def save():
     return redirect(url_for("ironboy.index"))
 
 @bp.route("/remove")
-@check_config
 def remove():
     app = get_ironboy_interface()
 
@@ -106,7 +101,6 @@ def remove():
     return redirect(url_for("ironboy.index"))
 
 @bp.route("/start")
-@check_config
 def start():
     app = get_ironboy_interface()
 

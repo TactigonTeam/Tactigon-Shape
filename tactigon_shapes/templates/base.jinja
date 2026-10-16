@@ -97,13 +97,9 @@
             {% if tskin_config %}
             {{ tskin_panel(tskin_config) }}
             {% endif %}
-
-            {#
-            <a href="{{ url_for('tskin.add') }}" class="btn btn-light gap-3">
-                <i class="bi bi-plus"></i>
-                Add
-            </a>
-            #}
+            {% else %}
+                <a href="{{ url_for('tskin.add') }}" class="btn btn-outline-secondary gap-3"><i class="bi bi-plus"></i> Add Tactigon Skin</a>
+            {% endif %}
         </div>
     </div>
 </div>

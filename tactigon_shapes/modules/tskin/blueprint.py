@@ -165,9 +165,7 @@ def remove():
 
     if tskin is None:
         # TODO: Handle case where TSKIN object does not exists but has somewhat valid configuration
-        
-
-        flash(F"Tactigon skin {hand} not configured!", "danger")
+        flash("No Tactigon Skin configured", "warning")
         return redirect(url_for("main.index"))
 
     if socket_app:

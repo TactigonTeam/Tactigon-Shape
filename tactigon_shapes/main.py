@@ -23,7 +23,6 @@ from flask import Blueprint, render_template, flash, redirect, url_for, current_
 
 from tactigon_shapes import __version__
 
-from tactigon_shapes.config import check_config
 from tactigon_shapes.modules.socketio import get_socket_app
 from tactigon_shapes.utils.extensions import stop_apps
 
@@ -32,7 +31,7 @@ from tactigon_shapes.modules.tskin.manager import stop_tskin
 bp = Blueprint('main', __name__, template_folder="main")
 
 @bp.route("/", methods=["GET"])
-@check_config
+
 def index():
     return redirect(url_for("shapes.index"))
 
