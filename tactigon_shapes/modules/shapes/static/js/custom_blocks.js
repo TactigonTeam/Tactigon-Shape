@@ -353,26 +353,42 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
     };
 }
 
-function loadSpeechBlocks(speechs, file_manager) {
-    args = []
-    message = "Voice command:"
-    if (speechs){
-        for (var i = 0; i < speechs.length; i++) {
 
+function loadSpeechBlocks(speechs, file_manager) {
+    let args = [];
+    let message = "Voice command:";
+    let optionMapping;
+    let recordingBasePath;
+
+    if (Array.isArray(speechs)) {
+        for (let i = 0; i < speechs.length; i++) {
             message += " %" + (i + 1);
 
             if (i == 0) {
+                const initialOptions = speechs[i]?._init_;
+
                 args.push({
                     "type": "field_dropdown",
                     "name": "FIELD_0",
-                    "options": speechs[i]["_init_"].map((k) => [k, k])
+                    "options": Array.isArray(initialOptions)
+                        ? initialOptions.map(k => [k, k])
+                        : [["---", ""]]
                 });
-            }
-            else {
+            } else {
                 optionMapping = {};
 
-                Object.keys(speechs[i]).forEach(element => {
-                    optionMapping[element] = speechs[i][element].map((k) => [k, k]);
+                Object.keys(speechs[i] || {}).forEach(element => {
+                    const values = speechs[i][element];
+
+                    if (Array.isArray(values)) {
+                        optionMapping[element] = values.map(k => [k, k]);
+                    } else {
+                        console.warn(
+                            `Expected an array for speechs[${i}]["${element}"]:`,
+                            values
+                        );
+                        optionMapping[element] = [];
+                    }
                 });
 
                 args.push({
@@ -384,12 +400,23 @@ function loadSpeechBlocks(speechs, file_manager) {
                 });
             }
         }
+    } else {
+        console.warn("speechs is not an array:", speechs);
     }
-    console.log("Recording folder:", file_manager.map(el => el.directory.name));
-    const recFolder = Array.isArray(file_manager) 
-        ? file_manager.find(el => el.directory && el.directory.name === "Recordings")
-        : null;
-    recordingBasePath  = recFolder ? recFolder.directory.base_path : "./Recordings";
+
+    const files = Array.isArray(file_manager) ? file_manager : [];
+
+    console.log(
+        "Recording folder:",
+        files.map(el => el.directory?.name).filter(Boolean)
+    );
+
+    const recFolder = files.find(
+        el => el.directory?.name === "Recordings"
+    );
+
+    recordingBasePath =
+        recFolder?.directory?.base_path ?? "./Recordings";
 
     Blockly.Blocks['tskin_listen'] = {
         init: function () {
