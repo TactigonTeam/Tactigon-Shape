@@ -25,7 +25,7 @@ function loadCustomBlocks(response) {
     const taps     = response?.taps?.length ? response.taps : [["---", "none"]];
     const wristOptions = response ? response.wristOptions : [];
     const gripperOptions = response ? response.gripperOptions : [];
-    const speechs = response ? response.speechs : [];
+    const speechs = response?.speechs?.length ? response.speechs : [["---", "none"]];
     const zion = response ? response.zion : [];
     const ros2 = response ? response.ros2 : {};
     const ironboy = response ? response.ironboy : [];
@@ -356,32 +356,33 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
 function loadSpeechBlocks(speechs, file_manager) {
     args = []
     message = "Voice command:"
+    if (speechs){
+        for (var i = 0; i < speechs.length; i++) {
 
-    for (var i = 0; i < speechs.length; i++) {
+            message += " %" + (i + 1);
 
-        message += " %" + (i + 1);
+            if (i == 0) {
+                args.push({
+                    "type": "field_dropdown",
+                    "name": "FIELD_0",
+                    "options": speechs[i]["_init_"].map((k) => [k, k])
+                });
+            }
+            else {
+                optionMapping = {};
 
-        if (i == 0) {
-            args.push({
-                "type": "field_dropdown",
-                "name": "FIELD_0",
-                "options": speechs[i]["_init_"].map((k) => [k, k])
-            });
-        }
-        else {
-            optionMapping = {};
+                Object.keys(speechs[i]).forEach(element => {
+                    optionMapping[element] = speechs[i][element].map((k) => [k, k]);
+                });
 
-            Object.keys(speechs[i]).forEach(element => {
-                optionMapping[element] = speechs[i][element].map((k) => [k, k]);
-            });
-
-            args.push({
-                "type": "field_dependent_dropdown",
-                "name": "FIELD_" + i,
-                "parentName": "FIELD_" + (i - 1),
-                "optionMapping": optionMapping,
-                'defaultOptions': [['---', '']],
-            });
+                args.push({
+                    "type": "field_dependent_dropdown",
+                    "name": "FIELD_" + i,
+                    "parentName": "FIELD_" + (i - 1),
+                    "optionMapping": optionMapping,
+                    'defaultOptions': [['---', '']],
+                });
+            }
         }
     }
     console.log("Recording folder:", file_manager.map(el => el.directory.name));
