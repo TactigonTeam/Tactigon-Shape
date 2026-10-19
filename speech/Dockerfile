@@ -17,12 +17,14 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-FROM python:3.8-slim
+FROM python:3.7-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
+
+COPY *.whl /app/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -31,7 +33,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir tactigon_speech_socket==5.5.0.2
+RUN ARCH="$(uname -m)" \
+    && WHEEL="$(ls /app/tactigon_speech_socket-*-linux_${ARCH}.whl 2>/dev/null | head -n 1)" \
+    && if [ -z "$WHEEL" ]; then \
+        echo "No wheel found for architecture: ${ARCH}" >&2; \
+        exit 1; \
+    fi \
+    && echo "Installing wheel: ${WHEEL}" \
+    && pip install --no-cache-dir "$WHEEL"
 
 COPY config.json /app/config.json
 COPY deepspeech-0.9.3-models.tflite /app/deepspeech-0.9.3-models.tflite
