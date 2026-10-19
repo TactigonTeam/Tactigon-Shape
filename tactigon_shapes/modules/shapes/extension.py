@@ -555,7 +555,7 @@ class ShapesApp(ExtensionApp):
     def find_shape_by_name_and_not_id(self, name: str, config_id: UUID) -> ShapeConfig | None:
         return next((c for c in self.config if c.id != config_id and c.name.strip().lower() == name.strip().lower()), None)
 
-    def get_blocks_congfig(self, gestures: list[ModelGesture]) -> dict:
+    def get_blocks_config(self, gestures: list[ModelGesture],has_tskin: bool) -> dict:
         taps = []
         if has_tskin:
             for fin_gesture in (OneFingerGesture, TwoFingerGesture):
