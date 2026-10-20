@@ -134,6 +134,7 @@ class SocketApp(SocketIO):
         self._stop_event.set()
         if self.socket_thread:
             self.socket_thread.join()
+            self.socket_thread = None
 
     def socket_emit_function(self):
         logging.info("Starting SocketIO Tactigon Skin thread")
