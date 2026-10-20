@@ -58,6 +58,7 @@ class ShapeConfig:
     readonly: bool = False
     app_file: str = "program.py"
     prompt: str = ""
+    autostart: bool = False
     ginos_config: GinosConfig | None = None
     ros2_config: Ros2ShapeConfig | None = None
     mqtt_config: MQTTConfig | None = None
@@ -76,6 +77,7 @@ class ShapeConfig:
             modified_on=datetime.fromisoformat(json["modified_on"]),
             description=json["description"],
             readonly=json["readonly"],
+            autostart=json.get("autostart", False), 
             ginos_config=GinosConfig.FromJSON(ginos_config) if ginos_config else None,
             ros2_config=Ros2ShapeConfig.FromJSON(ros2_config) if ros2_config else None,
             mqtt_config=MQTTConfig.FromJSON(mqtt_config) if mqtt_config else None,
@@ -89,6 +91,7 @@ class ShapeConfig:
             modified_on=self.modified_on.isoformat(),
             description=self.description,
             readonly=self.readonly,
+            autostart=self.autostart,
             prompt=self.prompt,
             ginos_config=self.ginos_config.toJSON() if self.ginos_config else None,
             ros2_config=self.ros2_config.toJSON() if self.ros2_config else None,

@@ -605,3 +605,37 @@ def export_shape(program_id: str):
         as_attachment=True,
         download_name=f"{config.name}_export.zip"
     )
+    
+    
+@bp.route("/<string:program_id>/autostart/<int:enabled>")
+@check_config
+def autostart(program_id: str, enabled: int):
+    _shapes = get_shapes_app()
+
+    if not _shapes:
+        flash("Shapes app not found!", category="danger")
+        return redirect(url_for("main.index"))
+
+    config = _shapes.find_shape_by_id(UUID(program_id))
+
+    if not config:
+        flash("Shape not found!", category="danger")
+        return redirect(url_for("shapes.index"))
+    if _shapes.get_code(config.id) is None:
+        flash("The selected Shape must be saved first", category="warning")
+        return redirect(url_for("shapes.index"))
+    
+    previous = next((c for c in _shapes.config if c.autostart and c.id != config.id), None)
+
+    config.autostart = bool(enabled)
+    _shapes.save_config(config=config)
+
+    if config.autostart:
+        if previous:
+            flash(f"Autostart enabled for {config.name}. It has been disabled on {previous.name}.", category="info")
+        else:
+            flash(f"{config.name} will start automatically.", category="success")
+    else:
+        flash(f"Autostart disabled for {config.name}.", category="success")
+
+    return redirect(url_for("shapes.index", program_id=program_id))

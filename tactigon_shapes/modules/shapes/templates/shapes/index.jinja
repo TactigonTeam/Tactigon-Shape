@@ -8,7 +8,7 @@
 #
 # Project Name:
 # Tactigon Soul - Shape
-# 
+#
 # Release date: 30/09/2025
 # Release version: 1.0
 #
@@ -24,6 +24,12 @@
 <style>
     .running {
         border-right: 3px solid #198754 !important;
+    }
+    {# .autostart {
+        box-shadow: inset -3px 0 0 #ffc107;
+    } #}
+    .autostart {
+        border-right: 3px solid #ffc107;
     }
 
     .terminal-header {
@@ -87,6 +93,7 @@
             <a href="{{ url_for('shapes.index', program_id=config.id) }}" class="list-group-item list-group-item-action
                 {% if config.id == current_config.id %}active{% endif %}
                 {% if config.id == current_running_program %} running {% endif %}
+                {% if config.autostart %} autostart {% endif %}
                 ">
                 <div class="d-flex justify-content-between align-items-center">
                     <b>{{config.name | capitalize}}</b>
@@ -215,41 +222,48 @@
                     </h5>
                 </label>
             </div>
+            <div class="form-check form-switch align-self-center">
+                <input class="form-check-input" type="checkbox" id="autostart_application"
+                    {% if current_config.autostart %}checked{% endif %}>
+                <label class="form-check-label" for="autostart_application" title="Start this Shape automatically on boot">
+                    <small class="ms-2">Autostart</small>
+                </label>
+            </div>
             <div class="btn-group">
-                <button 
-                    type="button" 
-                    class="btn btn-link" 
-                    data-bs-toggle="modal" 
+                <button
+                    type="button"
+                    class="btn btn-link"
+                    data-bs-toggle="modal"
                     data-bs-target="#clone"
-                    title="Clone Shape" 
+                    title="Clone Shape"
                     {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
                     <i class="bi bi-copy"></i>
                 </button>
             {% if not current_config.readonly %}
-                <button 
-                    type="button" 
-                    class="btn btn-link" 
-                    data-bs-toggle="modal" 
+                <button
+                    type="button"
+                    class="btn btn-link"
+                    data-bs-toggle="modal"
                     data-bs-target="#edit"
-                    title="Edit Shape" 
+                    title="Edit Shape"
                     {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button 
-                    type="button" 
-                    class="btn btn-link" 
-                    data-bs-toggle="modal" 
+                <button
+                    type="button"
+                    class="btn btn-link"
+                    data-bs-toggle="modal"
                     data-bs-target="#delete-shape"
-                    title="Delete Shape" 
+                    title="Delete Shape"
                     {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
                     <i class="bi bi-trash text-danger"></i>
                 </button>
-                <button 
+                <button
                     type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#export-shape"
-                    class="btn btn-link" 
-                    data-bs-toggle="modal" 
+                    class="btn btn-link"
+                    data-bs-toggle="modal"
                     data-bs-target="#export-shape"
-                    title="Export Shape" 
+                    title="Export Shape"
                     {% if is_running and current_config.id==current_running_program %} disabled {% endif %}>
                     <i class="bi bi-box-arrow-down text-success"></i>
                 </button>
@@ -392,7 +406,7 @@
             <p>{{current_config.description | capitalize}}</p>
             {% if not current_config.readonly %}
             <div>
-                <a 
+                <a
                     href="{{ url_for('shapes.edit', program_id=current_config.id) }}"
                     class="btn btn-primary {% if is_running and current_config.id == current_running_program %} disabled {% endif %}">
                     <i class="bi bi-code-slash"></i> Edit code
@@ -403,7 +417,7 @@
         <div class="row h-100">
             {% if current_config.id == current_running_program %}
             <div id="blocklyDiv" class="col h-100"></div>
-            
+
             <div class="col rounded">
                 <div class="d-flex p-1 terminal-header rounded-top justify-content-start">
                     <div class="d-flex mx-1">
@@ -499,11 +513,15 @@
         });
 
         $("#run_application").change(function () {
-            if (this.checked) {
-                window.location.href = "{{ url_for('shapes.start', program_id=current_config.id) }}";
-            } else {
-                window.location.href = "{{ url_for('shapes.stop', program_id=current_config.id) }}";
-            }
+            window.location.href = this.checked
+                    ? "{{ url_for('shapes.start', program_id=current_config.id) }}"
+                    : "{{ url_for('shapes.stop', program_id=current_config.id) }}";
+        });
+
+        $("#autostart_application").change(function () {
+            window.location.href = this.checked
+                ? "{{ url_for('shapes.autostart', program_id=current_config.id, enabled=1) }}"
+                : "{{ url_for('shapes.autostart', program_id=current_config.id, enabled=0) }}";
         });
 
         $("button[data-shape-export]").click(function(){
@@ -553,7 +571,7 @@
             });
 
             resizeTerminal(terminal);
-            
+
             $(window).resize(() => {
                 resizeTerminal(terminal)
             });

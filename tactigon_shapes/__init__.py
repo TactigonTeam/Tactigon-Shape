@@ -115,6 +115,8 @@ class TactigonShapes:
 
             if tskin:
                 socket_app.setTSkin(tskin)
+            
+            shapes_app.autostart(tskin)
 
             from tactigon_shapes import main
             from tactigon_shapes.modules.tskin.blueprint import bp as tskin_bp

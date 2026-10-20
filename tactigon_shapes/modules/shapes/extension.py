@@ -438,16 +438,22 @@ class ShapesApp(ExtensionApp):
             for cfg in self.config:
                 if cfg.id == config.id:
                     cfg.name = config.name
-                    cfg.description = cfg.description
+                    cfg.description = config.description
                     cfg.readonly = config.readonly
                     cfg.app_file = config.app_file
                     cfg.created_on = config.created_on
                     cfg.modified_on = config.modified_on
+                    cfg.autostart = config.autostart
                     found = True
                     break
 
             if not found:
                 self.config.append(config)
+                
+            if config.autostart:
+                for cfg in self.config:
+                    if cfg.id != config.id:
+                        cfg.autostart = False
 
         with open(self.config_file_path, "w") as config_file:
             json.dump([cfg.toJSON() for cfg in self.config], config_file, indent=2)
@@ -532,6 +538,7 @@ class ShapesApp(ExtensionApp):
                     config = ShapeConfig.FromJSON(data)
 
                     config.id = uuid4()
+                    config.autostart = False
                     state_data = json.load(state_file)
                     program = Program(
                         state=state_data,
@@ -664,3 +671,23 @@ class ShapesApp(ExtensionApp):
         
         return True
         
+
+    def autostart(self, tskin: TSkin | None) -> bool:
+        config = next((c for c in self.config if c.autostart), None)
+
+        if not config:
+            return False
+
+        # TODO: da togliere se mergiato con TCT-141 (tskin opzionale)
+        if not tskin:
+            self._logger.warning("Autostart of '%s' skipped: Tactigon Skin not available", config.name)
+            return False
+
+        result, error = self.start(config.id, tskin)
+
+        if result is None or not result:
+            self._logger.error("Autostart of '%s' failed: %s", config.name, error if error else "not found")
+            return False
+
+        self._logger.info("Shape '%s' autostarted", config.name)
+        return True
