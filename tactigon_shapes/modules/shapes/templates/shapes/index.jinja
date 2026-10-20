@@ -25,12 +25,12 @@
     .running {
         border-right: 3px solid #198754 !important;
     }
-    {# .autostart {
-        box-shadow: inset -3px 0 0 #ffc107;
-    } #}
     .autostart {
-        border-right: 3px solid #ffc107;
+        box-shadow: inset -3px 0 0 #ffc107;
     }
+    {# .autostart {
+        border-right: 3px solid #ffc107;
+    } #}
 
     .terminal-header {
         background-color: #2e2e2e;
@@ -212,17 +212,17 @@
     <div class="d-flex flex-column flex-fill m-3 gap-3">
         {% if current_config %}
         <div class="d-flex gap-3">
-            <div class="form-check form-switch">
+            <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" id="run_application" {% if
                     current_config.id==current_running_program %}checked{% endif %} {% if is_running and not
                     current_config.id==current_running_program %} disabled {% endif %}>
                 <label class="form-check-label" for="run_application">
-                    <h5 class="ms-3">
+                    <h5 class="ms-3 mb-0">
                         {{ current_config.name | capitalize }}
                     </h5>
                 </label>
             </div>
-            <div class="form-check form-switch align-self-center">
+            <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" id="autostart_application"
                     {% if current_config.autostart %}checked{% endif %}>
                 <label class="form-check-label" for="autostart_application" title="Start this Shape automatically on boot">

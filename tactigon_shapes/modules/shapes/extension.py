@@ -609,7 +609,7 @@ class ShapesApp(ExtensionApp):
             if _config.id == config_id:
 
                 current_program = self.get_shape(_config.id)
-
+                
                 if current_program.code is None:
                     return (False, "Code not found")
 
@@ -629,6 +629,7 @@ class ShapesApp(ExtensionApp):
                         chords_ml=self.chords_ml,
                         logging_queue=self.logging_queue,
                     ) 
+                    self._logger.warning("Starting Shape %s, Autostart: %s", _config.name, _config.autostart)
                     self.thread.start()
                 except Exception as e:
                     self._logger.error("Cannot start Shape %s", e)
