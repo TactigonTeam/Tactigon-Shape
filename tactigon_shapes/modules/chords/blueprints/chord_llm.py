@@ -24,13 +24,12 @@ from flask import Blueprint, redirect, render_template, flash, url_for
 from tactigon_shapes.modules.chords.manager import get_chord_llm_interface
 from tactigon_shapes.modules.chords.models import ChordLLMConfig
 
-from tactigon_shapes.config import app_config, check_config
+from tactigon_shapes.config import app_config
 from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint("chord_llm", __name__, url_prefix="/chord-llm", template_folder="../templates")
 
 @bp.route("/")
-@check_config
 def index(edit: bool = False):
     app = get_chord_llm_interface()
 
@@ -47,7 +46,6 @@ def index(edit: bool = False):
     return render_template("chord_llm/index.jinja", configured=app.configured, config=config, edit=edit, prompts=app.prompts)
 
 @bp.route("/edit")
-@check_config
 def edit():
     app = get_chord_llm_interface()
 
@@ -58,7 +56,6 @@ def edit():
     return index(True)
 
 @bp.route("/save", methods=["POST"])
-@check_config
 def save():
     app = get_chord_llm_interface()
 
@@ -95,7 +92,6 @@ def save():
 
 
 @bp.route("/remove")
-@check_config
 def remove():
     app = get_chord_llm_interface()
 
@@ -110,7 +106,6 @@ def remove():
 
 
 @bp.route("/prompts/refresh")
-@check_config
 def refresh_prompts():
     app = get_chord_llm_interface()
 
