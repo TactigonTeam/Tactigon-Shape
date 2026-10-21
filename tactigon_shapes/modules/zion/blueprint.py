@@ -18,16 +18,19 @@
 #********************************************************************************/
 
 
-from tabnanny import check
 from flask import Blueprint, redirect, render_template, flash, url_for
 
 from tactigon_shapes.modules.zion.manager import get_zion_interface
 from tactigon_shapes.modules.zion.models import ZionConfig
 
 from tactigon_shapes.config import app_config
-from tactigon_shapes.utils.request_utils import get_from_request
+from tactigon_shapes.utils.request_utils import get_from_request, stop_running_shape, stop_shape
 
 bp = Blueprint("zion", __name__, url_prefix="/zion", template_folder="templates", static_folder="static")
+
+@bp.before_request
+def manage():
+    stop_running_shape()
 
 @bp.route("/")
 def index(edit: bool = False):
@@ -84,7 +87,6 @@ def save():
 
     flash("Zion configured succesfully", category="success")
     return redirect(url_for("zion.index"))
-
 
 @bp.route("/remove")
 def remove():
