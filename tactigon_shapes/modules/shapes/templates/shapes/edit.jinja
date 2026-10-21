@@ -431,6 +431,7 @@
                 </value>
             </block>
         </category>
+        {% if tskin_config %}
         <sep></sep>
         <category name="Gesture" colour="#EB6152">
             <block type="tskin_gesture_list"></block>
@@ -469,6 +470,7 @@
                 </value>
             </block> #}
         </category>
+        {% endif %}
         <sep></sep>
         <category name="Chords ML" colour="#8f6329">
             <block type="chords_ml_load_dataframe">

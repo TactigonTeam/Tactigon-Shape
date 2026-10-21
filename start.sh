@@ -6,4 +6,4 @@ echo "  TACTIGON SHAPES — START             "
 echo "======================================"
 
 xhost +local:docker
-docker compose up -d --build
+docker compose up --build

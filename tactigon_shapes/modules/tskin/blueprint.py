@@ -69,7 +69,7 @@ def socket_settings():
 
         socket_app = get_socket_app()
         if socket_app:
-            socket_app.stop()
+            socket_app.setTSkin(None)
 
         stop_tskin()
 
@@ -165,13 +165,11 @@ def remove():
 
     if tskin is None:
         # TODO: Handle case where TSKIN object does not exists but has somewhat valid configuration
-        
-
-        flash(F"Tactigon skin {hand} not configured!", "danger")
+        flash("No Tactigon Skin configured", "warning")
         return redirect(url_for("main.index"))
 
     if socket_app:
-        socket_app.stop()
+        socket_app.setTSkin(None)
     
     stop_tskin()
 
@@ -224,13 +222,12 @@ def save():
     tskin_config, socket_config, tspeech_object = get_tskin_default_config(tskin_mac, hand, tskin_name, current_model)
 
     if socket_app:
-        socket_app.stop()
+        socket_app.setTSkin(None)
 
     stop_tskin()
     app_config.TSKIN = tskin_config
     app_config.TSKIN_SOCKET = socket_config
     app_config.TSKIN_SPEECH = tspeech_object
-
     app_config.save()
     current_app.config.from_object(app_config)
 

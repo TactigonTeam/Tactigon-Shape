@@ -24,18 +24,18 @@ from datetime import datetime
 
 from flask import Blueprint, render_template, flash, redirect, url_for,request, send_file
 
-from tactigon_shapes.config import app_config, check_config, allowed_extensions
+from tactigon_shapes.config import app_config, allowed_extensions
 from tactigon_shapes.models import ModelGesture
-from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program
+from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program, ShapesApp
 from tactigon_shapes.modules.shapes.manager import get_shapes_app
 from tactigon_shapes.modules.ginos.models import GinosConfig
 from tactigon_shapes.modules.mqtt.models import MQTTConfig, MQTTSubscription
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.tskin.manager import get_tskin
 from tactigon_shapes.modules.zion.manager import get_zion_interface
 from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
-from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
 from tactigon_shapes.modules.ros2.manager import get_ros2_interface
 from tactigon_shapes.modules.file_manager.manager import get_file_manager_extension
 from tactigon_shapes.modules.chords.manager import get_chord_ml_interface, get_chord_llm_interface
@@ -44,9 +44,56 @@ from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")
 
+def get_tskin_gestures() -> list[ModelGesture]:
+    if app_config.TSKIN and app_config.TSKIN.gesture_config:
+        for model in app_config.MODELS:
+            if model.name == app_config.TSKIN.gesture_config.name:
+                gesture_list = model.gestures
+                return gesture_list
+
+    return []
+
+def build_blocks_config(_shapes: ShapesApp) -> dict:
+    tskin = get_tskin()
+    gesture_list: list[ModelGesture] = []
+    if tskin:
+        gesture_list = get_tskin_gestures()
+
+    blocks_config = _shapes.get_blocks_config(gesture_list, has_tskin=tskin is not None)
+
+    if tskin and app_config.TSKIN_SPEECH:
+        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_SPEECH)
+
+    zion = get_zion_interface()
+    if zion and zion.devices:
+        blocks_config["zion"] = zion.get_shape_blocks()
+
+    ironboy = get_ironboy_interface()
+    if ironboy:
+        blocks_config["ironboy"] = ironboy.get_shape_blocks()
+
+    ros2_interface = get_ros2_interface()
+    if ros2_interface:
+        blocks_config["ros2"] = ros2_interface.get_shape_blocks()
+
+    blocks_config["ginos"] = get_ginos_blocks()
+
+    file_manager = get_file_manager_extension()
+    if file_manager:
+        blocks_config["file_manager"] = file_manager.get_shape_blocks()
+
+    chords_llm = get_chord_llm_interface()
+    if chords_llm:
+        blocks_config["chords_llm"] = chords_llm.get_shape_blocks()
+
+    chords_ml = get_chord_ml_interface()
+    if chords_ml:
+        blocks_config["chords_ml"] = chords_ml.get_shape_blocks()
+
+    return blocks_config
+
 @bp.route("/")
 @bp.route("/<string:program_id>")
-@check_config
 def index(program_id: str | None = None):
     _shapes = get_shapes_app()
 
@@ -68,44 +115,7 @@ def index(program_id: str | None = None):
         if any(_shapes.config):
             current_config = _shapes.config[0]
 
-    gesture_list: list[ModelGesture] = []
-
-    if app_config.TSKIN and app_config.TSKIN.gesture_config:
-        for model in app_config.MODELS:
-            if model.name == app_config.TSKIN.gesture_config.name:
-                gesture_list = model.gestures
-                break
-
-    blocks_config = _shapes.get_blocks_congfig(gesture_list)
-
-    if app_config.TSKIN_SPEECH:
-        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_SPEECH)
-
-    zion = get_zion_interface()
-    if zion and zion.devices:
-        blocks_config["zion"] = zion.get_shape_blocks()
-
-    ironboy = get_ironboy_interface()
-    if ironboy:
-        blocks_config["ironboy"] = ironboy.get_shape_blocks()
-
-    ros2_interface = get_ros2_interface()
-    if ros2_interface:
-        blocks_config["ros2"] = ros2_interface.get_shape_blocks()
-
-    blocks_config["ginos"] = get_ginos_blocks()
-
-    file_manager = get_file_manager_extension()
-    if file_manager:
-        blocks_config["file_manager"] = file_manager.get_shape_blocks()
-    
-    chords_llm = get_chord_llm_interface()
-    if chords_llm:
-        blocks_config["chords_llm"] = chords_llm.get_shape_blocks()
-
-    chords_ml = get_chord_ml_interface()
-    if chords_ml:
-        blocks_config["chords_ml"] = chords_ml.get_shape_blocks()
+    blocks_config = build_blocks_config(_shapes)
 
     state = _shapes.get_state(current_config.id) if current_config else None
 
@@ -120,7 +130,6 @@ def index(program_id: str | None = None):
 
 
 @bp.route("/add", methods=["POST"])
-@check_config
 def add():
     _shapes = get_shapes_app()
 
@@ -200,7 +209,6 @@ def add():
 
 
 @bp.route("/<string:program_id>/edit")
-@check_config
 def edit(program_id: str):
     _shapes = get_shapes_app()
 
@@ -219,45 +227,7 @@ def edit(program_id: str):
     if not _shapes.get_code(current_config.id):
         flash("Remember to save before leaving the page!", category="warning")
 
-    gesture_list: list[ModelGesture] = []
-
-    if app_config.TSKIN and app_config.TSKIN.gesture_config:
-        for model in app_config.MODELS:
-            if model.name == app_config.TSKIN.gesture_config.name:
-                gesture_list = model.gestures
-                break
-
-    blocks_config = _shapes.get_blocks_congfig(gesture_list)
-
-    if app_config.TSKIN_SPEECH:
-        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_SPEECH)
-
-    zion = get_zion_interface()
-    ros2_interface = get_ros2_interface()
-    ironboy = get_ironboy_interface()
-    file_manager = get_file_manager_extension()
-    chords_llm = get_chord_llm_interface()
-    chords_ml = get_chord_ml_interface()
-
-    if ironboy:
-        blocks_config["ironboy"] = ironboy.get_shape_blocks()       
-
-    if zion and zion.devices:
-        blocks_config["zion"] = zion.get_shape_blocks()
-
-    if ros2_interface:
-        blocks_config["ros2"] = ros2_interface.get_shape_blocks()
-
-    blocks_config["ginos"] = get_ginos_blocks()
-
-    if file_manager:
-        blocks_config["file_manager"] = file_manager.get_shape_blocks()
-
-    if chords_llm:
-        blocks_config["chords_llm"] = chords_llm.get_shape_blocks()
-
-    if chords_ml:
-        blocks_config["chords_ml"] = chords_ml.get_shape_blocks()
+    blocks_config = build_blocks_config(_shapes)
 
     return render_template(
         "shapes/edit.jinja",
@@ -268,7 +238,6 @@ def edit(program_id: str):
 
 
 @bp.route("/<string:program_id>/save/config", methods=["POST"])
-@check_config
 def save_config(program_id: str):
     _shapes = get_shapes_app()
 
@@ -365,7 +334,6 @@ def save_config(program_id: str):
 
 
 @bp.route("/<string:program_id>/clone/config", methods=["POST"])
-@check_config
 def clone_config(program_id: str):
     _shapes = get_shapes_app()
 
@@ -423,7 +391,6 @@ def clone_config(program_id: str):
 
 
 @bp.route("/<string:program_id>/save/program", methods=["POST"])
-@check_config
 def save_program(program_id: str):
     _shapes = get_shapes_app()
 
@@ -475,7 +442,6 @@ def save_program(program_id: str):
 
 
 @bp.route("/<string:program_id>/start")
-@check_config
 def start(program_id: str):
     _shapes = get_shapes_app()
 
@@ -490,10 +456,6 @@ def start(program_id: str):
         return redirect(url_for("shapes.index"))
     
     tskin = get_tskin()
-    
-    if not tskin:
-        flash(f"Tactigon skin not found!", category="danger")
-        return redirect(url_for("main.index"))
 
     status = _shapes.start(program.id, tskin)
 
@@ -512,7 +474,6 @@ def start(program_id: str):
 
 
 @bp.route("/<string:program_id>/stop")
-@check_config
 def stop(program_id: str):
     _shapes = get_shapes_app()
 
@@ -535,7 +496,6 @@ def stop(program_id: str):
 
 
 @bp.route("/<string:program_id>/delete")
-@check_config
 def delete(program_id: str):
     _shapes = get_shapes_app()
 
@@ -555,7 +515,7 @@ def delete(program_id: str):
     return redirect(url_for("shapes.index"))
 
 @bp.route("/import", methods=["POST"])
-@check_config
+
 def import_shape():
     _shapes = get_shapes_app()
 
@@ -583,7 +543,6 @@ def import_shape():
     return redirect(url_for("shapes.edit", program_id=config.id))
 
 @bp.route("/<string:program_id>/export")
-@check_config
 def export_shape(program_id: str):
     _shapes = get_shapes_app()
 
@@ -605,3 +564,4 @@ def export_shape(program_id: str):
         as_attachment=True,
         download_name=f"{config.name}_export.zip"
     )
+    

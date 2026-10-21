@@ -77,20 +77,20 @@ services:
       - ./config/bianconiglio:/app/config/bianconiglio
       - tactigon-audio:/app/Recordings
 
-  speech:
-    build:
-      context: ./speech
-      dockerfile: Dockerfile
-    container_name: tactigon-speech-socket
-    restart: unless-stopped
-    networks:
-      - tactigon-net
-    environment:
-      TSS_ADDRESS: tactigon-shapes
-      TSS_PORT: 50007
-      TSS_CONFIG: config.json
-    volumes:
-      - tactigon-audio:/app/Recordings
+  # speech:
+  #   build:
+  #     context: ./speech
+  #     dockerfile: Dockerfile
+  #   container_name: tactigon-speech-socket
+  #   restart: unless-stopped
+  #   networks:
+  #     - tactigon-net
+  #   environment:
+  #     TSS_ADDRESS: tactigon-shapes
+  #     TSS_PORT: 50007
+  #     TSS_CONFIG: config.json
+  #   volumes:
+  #     - tactigon-audio:/app/Recordings
       
   # open-webui:
   #   image: ghcr.io/open-webui/open-webui:main

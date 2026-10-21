@@ -95,15 +95,10 @@
         <hr>
         <div class="d-flex flex-column gap-3">
             {% if tskin_config %}
-            {{ tskin_panel(tskin_config) }}
+            	{{ tskin_panel(tskin_config) }}
+            {% else %}
+                <a href="{{ url_for('tskin.add') }}" class="btn btn-outline-secondary gap-3"><i class="bi bi-plus"></i> Add Tactigon Skin</a>
             {% endif %}
-
-            {#
-            <a href="{{ url_for('tskin.add') }}" class="btn btn-light gap-3">
-                <i class="bi bi-plus"></i>
-                Add
-            </a>
-            #}
         </div>
     </div>
 </div>
@@ -136,20 +131,22 @@
 {% endmacro %}
 
 {% macro tskin(config) %}
+    
 <div id="tskin-management" class="d-flex gap-3 m-2">
     <div class="d-flex gap-1">
+    {% if config %}
         <img src="{{ url_for('static', filename='images/' + config.hand.value + '.png') }}" alt="twbs" width="20" height="20">
         <small>{{ config.hand.value[0].upper() }}</small>
-    </div>
-    <div class="d-flex gap-1">
+        </div>
+        <div class="d-flex gap-1">
         <img src="{{ url_for('static', filename='images/tactigon.png') }}" alt="twbs" width="20" height="20">
         <small>{{ config.name.upper() }}</small>
-    </div>
-    <div class="d-flex gap-1">
+        </div>
+        <div class="d-flex gap-1">
         <i class="mi-round mi-bluetooth-connected connected d-none" style="font-size: 20px; color: #fff"></i>
         <i class="mi-round mi-bluetooth disconnected d-none" style="font-size: 20px; color: gray"></i>
-    </div>
-    <div class="d-flex gap-1 battery-container d-none">
+        </div>
+        <div class="d-flex gap-1 battery-container d-none">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="align-self-center"
             viewBox="0 0 16 16">
             <path id="battery-perc" d="M2 6h0v4H2z" />
@@ -157,8 +154,13 @@
                 d="M2 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm10 1a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm4 3a1.5 1.5 0 0 1-1.5 1.5v-3A1.5 1.5 0 0 1 16 8" />
         </svg>
         <small class="align-self-center" id="battery-voltage"></small>
+    {% else %}
+        <img src="{{ url_for('static', filename='images/tactigon.png') }}" alt="twbs" width="20" height="20">
+        <small style="color: gray;">Not configured</small>
+    {% endif %}
     </div>
 </div>
+
 {% endmacro %}
 
 {% macro braccio(config) %}

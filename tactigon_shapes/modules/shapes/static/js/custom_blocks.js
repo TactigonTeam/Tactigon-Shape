@@ -19,13 +19,13 @@
 
 var recordingBasePath = "./Recordings";
 function loadCustomBlocks(response) {
-    const gestures = response ? response.gestures : [];
+    const gestures = response?.gestures?.length ? response.gestures : [["---", "none"]];
     const modKeys = response ? response.modKeys : [];
     const funcKeys = response ? response.funckeys : [];
-    const taps = response ? response.taps : [];
+    const taps     = response?.taps?.length ? response.taps : [["---", "none"]];
     const wristOptions = response ? response.wristOptions : [];
     const gripperOptions = response ? response.gripperOptions : [];
-    const speechs = response ? response.speechs : [];
+    const speechs = response?.speechs?.length ? response.speechs : [["---", "none"]];
     const zion = response ? response.zion : [];
     const ros2 = response ? response.ros2 : {};
     const ironboy = response ? response.ironboy : [];
@@ -353,42 +353,70 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
     };
 }
 
+
 function loadSpeechBlocks(speechs, file_manager) {
-    args = []
-    message = "Voice command:"
+    let args = [];
+    let message = "Voice command:";
+    let optionMapping;
+    let recordingBasePath;
 
-    for (var i = 0; i < speechs.length; i++) {
+    if (Array.isArray(speechs)) {
+        for (let i = 0; i < speechs.length; i++) {
+            message += " %" + (i + 1);
 
-        message += " %" + (i + 1);
+            if (i == 0) {
+                const initialOptions = speechs[i]?._init_;
 
-        if (i == 0) {
-            args.push({
-                "type": "field_dropdown",
-                "name": "FIELD_0",
-                "options": speechs[i]["_init_"].map((k) => [k, k])
-            });
+                args.push({
+                    "type": "field_dropdown",
+                    "name": "FIELD_0",
+                    "options": Array.isArray(initialOptions)
+                        ? initialOptions.map(k => [k, k])
+                        : [["---", ""]]
+                });
+            } else {
+                optionMapping = {};
+
+                Object.keys(speechs[i] || {}).forEach(element => {
+                    const values = speechs[i][element];
+
+                    if (Array.isArray(values)) {
+                        optionMapping[element] = values.map(k => [k, k]);
+                    } else {
+                        console.warn(
+                            `Expected an array for speechs[${i}]["${element}"]:`,
+                            values
+                        );
+                        optionMapping[element] = [];
+                    }
+                });
+
+                args.push({
+                    "type": "field_dependent_dropdown",
+                    "name": "FIELD_" + i,
+                    "parentName": "FIELD_" + (i - 1),
+                    "optionMapping": optionMapping,
+                    'defaultOptions': [['---', '']],
+                });
+            }
         }
-        else {
-            optionMapping = {};
-
-            Object.keys(speechs[i]).forEach(element => {
-                optionMapping[element] = speechs[i][element].map((k) => [k, k]);
-            });
-
-            args.push({
-                "type": "field_dependent_dropdown",
-                "name": "FIELD_" + i,
-                "parentName": "FIELD_" + (i - 1),
-                "optionMapping": optionMapping,
-                'defaultOptions': [['---', '']],
-            });
-        }
+    } else {
+        console.warn("speechs is not an array:", speechs);
     }
-    console.log("Recording folder:", file_manager.map(el => el.directory.name));
-    const recFolder = Array.isArray(file_manager) 
-        ? file_manager.find(el => el.directory && el.directory.name === "Recordings")
-        : null;
-    recordingBasePath  = recFolder ? recFolder.directory.base_path : "./Recordings";
+
+    const files = Array.isArray(file_manager) ? file_manager : [];
+
+    console.log(
+        "Recording folder:",
+        files.map(el => el.directory?.name).filter(Boolean)
+    );
+
+    const recFolder = files.find(
+        el => el.directory?.name === "Recordings"
+    );
+
+    recordingBasePath =
+        recFolder?.directory?.base_path ?? "./Recordings";
 
     Blockly.Blocks['tskin_listen'] = {
         init: function () {
@@ -1761,7 +1789,7 @@ def check_touch(touch: Touch | None, finger_gesture: str) -> bool:
         pass
     return False
 
-def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
+def check_speech(tskin: TSkin | None, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
     def build_tspeech(hws: list[Union[HotWord, list[HotWord]]]) -> TSpeechObject | None:
         if not hws:
             return None
@@ -1776,7 +1804,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
 
     tspeech = build_tspeech(hotwords)
 
-    if tspeech and tskin.can_listen:
+    if tskin and tspeech and tskin.can_listen:
         debug(logging_queue, f"Waiting for command...")
         r = tskin.listen(tspeech)
         if r:
@@ -2085,8 +2113,8 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
-def record_audio(tskin: TSkin, logging_queue: LoggingQueue, filename: str, duration: float):
-    if tskin.can_listen:
+def record_audio(tskin: TSkin | None, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin and tskin.can_listen:
         debug(logging_queue, f"Recording audio for {duration} seconds...")
         if tskin.record(filename, duration):
             while tskin.is_recording:
@@ -2120,7 +2148,7 @@ function defineCustomGenerators() {
         }
 
         var code = 'def tactigon_shape_setup(\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
@@ -2152,7 +2180,7 @@ function defineCustomGenerators() {
         }
 
         var code = 'def tactigon_shape_close(\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
@@ -2184,7 +2212,7 @@ function defineCustomGenerators() {
         }
 
         var code = 'def tactigon_shape_function(\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'tskin: TSkin | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'keyboard: KeyboardController,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'braccio: BraccioInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
@@ -2196,8 +2224,8 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'logging_queue: LoggingQueue):\n\n' +
             variables +
-            Blockly.Python.INDENT + "gesture = tskin.gesture\n" +
-            Blockly.Python.INDENT + "touch = tskin.touch\n" +
+            Blockly.Python.INDENT + "gesture = tskin.gesture if tskin else None\n" +
+            Blockly.Python.INDENT + "touch = tskin.touch if tskin else None\n" +
             statements_body + '\n' +
             Blockly.Python.INDENT + "return True\n";
         return code;
