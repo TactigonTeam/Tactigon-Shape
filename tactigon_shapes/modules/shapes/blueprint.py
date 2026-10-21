@@ -44,7 +44,7 @@ from tactigon_shapes.utils.request_utils import get_from_request
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")
 
-def get_tskin_gestures() -> list[ModelGesture] | None:
+def get_tskin_gestures() -> list[ModelGesture]:
     if app_config.TSKIN and app_config.TSKIN.gesture_config:
         for model in app_config.MODELS:
             if model.name == app_config.TSKIN.gesture_config.name:
