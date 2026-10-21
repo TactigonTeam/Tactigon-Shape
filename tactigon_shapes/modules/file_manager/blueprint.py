@@ -61,7 +61,7 @@ def add_directories():
         return FileManager.build_error_response("Folder name is required")
     
     try:
-        directory = app.add_directory(directory_name)
+        directory = app.add_directory(app.config.base_path, directory_name)
         app.add_directory_to_config(directory)
         app.save_config()
     except ItemAlreadyExists as e:

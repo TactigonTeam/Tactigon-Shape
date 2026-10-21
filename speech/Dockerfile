@@ -52,7 +52,6 @@ RUN ARCH="$(uname -m)" \
 
 COPY config.json /app/config.json
 COPY deepspeech-0.9.3-models.tflite /app/deepspeech-0.9.3-models.tflite
-COPY shapes.scorer /app/shapes.scorer
 
 ENV TSS_ADDRESS=0.0.0.0
 ENV TSS_PORT=50007

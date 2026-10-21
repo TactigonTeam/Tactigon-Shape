@@ -111,7 +111,7 @@
   ],
   "TSKIN": null,
   "TSKIN_SOCKET": {
-    "host": "192.168.1.22",
+    "host": "0.0.0.0",
     "port": 50007,
     "ping": 5
   },
