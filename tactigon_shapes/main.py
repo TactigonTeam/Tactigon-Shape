@@ -27,6 +27,7 @@ from tactigon_shapes.modules.socketio import get_socket_app
 from tactigon_shapes.utils.extensions import stop_apps
 
 from tactigon_shapes.modules.tskin.manager import stop_tskin
+from tactigon_shapes.utils.request_utils import stop_shape
 
 bp = Blueprint('main', __name__, template_folder="main")
 
@@ -36,5 +37,6 @@ def index():
     return redirect(url_for("shapes.index"))
 
 @bp.route("/settings")
+@stop_shape
 def settings():
     return render_template("info.jinja", version=__version__)

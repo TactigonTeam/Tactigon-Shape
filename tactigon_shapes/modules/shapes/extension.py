@@ -647,6 +647,8 @@ class ShapesApp(ExtensionApp):
     
     def stop(self):
         ExtensionApp.stop(self)
+        # resettare il nome qui spegne lo shape, la shapeapp è gia spenta dal before_request
+        self.current_id = None
         self.in_flight_log = None
 
         while True:

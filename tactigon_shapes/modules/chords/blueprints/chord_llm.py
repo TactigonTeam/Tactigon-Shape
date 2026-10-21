@@ -17,17 +17,19 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
-from tabnanny import check
 from flask import Blueprint, redirect, render_template, flash, url_for
 
 from tactigon_shapes.modules.chords.manager import get_chord_llm_interface
 from tactigon_shapes.modules.chords.models import ChordLLMConfig
 
 from tactigon_shapes.config import app_config
-from tactigon_shapes.utils.request_utils import get_from_request
+from tactigon_shapes.utils.request_utils import get_from_request, stop_running_shape
 
 bp = Blueprint("chord_llm", __name__, url_prefix="/chord-llm", template_folder="../templates")
+
+@bp.before_request
+def manage():
+    stop_running_shape()
 
 @bp.route("/")
 def index(edit: bool = False):
