@@ -75,7 +75,7 @@ class ShapeThread(ExtensionThread):
     TOUCH_DEBOUNCE_TIMEOUT: float = 0.2
 
     _logger: logging.Logger
-    _tskin: TSkin
+    _tskin: TSkin |None
     _keyboard: KeyboardController
     _logging_queue: LoggingQueue
     _braccio_interface: BraccioInterface | None = None
@@ -93,7 +93,7 @@ class ShapeThread(ExtensionThread):
             self, 
             base_path: str, 
             app: ShapeConfig, 
-            tskin: TSkin,
+            tskin: TSkin | None,
             keyboard: KeyboardController, 
             braccio: BraccioInterface | None, 
             zion: ZionInterface | None, 
@@ -323,6 +323,7 @@ class ShapesApp(ExtensionApp):
             self.config = [ShapeConfig.FromJSON(c) for c in json.load(cfg)]
 
         ExtensionApp.__init__(self, flask_app)
+        
 
     @property
     def braccio_interface(self) -> BraccioInterface | None:
@@ -561,15 +562,14 @@ class ShapesApp(ExtensionApp):
     def find_shape_by_name_and_not_id(self, name: str, config_id: UUID) -> ShapeConfig | None:
         return next((c for c in self.config if c.id != config_id and c.name.strip().lower() == name.strip().lower()), None)
 
-    def get_blocks_congfig(self, gestures: list[ModelGesture]) -> dict:
+    def get_blocks_config(self, gestures: list[ModelGesture], has_tskin: bool) -> dict:
         taps = []
-
-        _finger_gestures = [OneFingerGesture, TwoFingerGesture]
-
-        for fin_gesture in _finger_gestures:
-            taps.extend([[e.name.replace("_", " "), e.name] for e in fin_gesture if "TAP" in e.name])
+        if has_tskin:
+            for fin_gesture in (OneFingerGesture, TwoFingerGesture):
+                taps.extend([[e.name.replace("_", " "), e.name] for e in fin_gesture if "TAP" in e.name])
 
         data = {
+            "has_tskin": has_tskin,
             "modKeys": self.hotkey_list,
             "funckeys": self.function_list,
             "gestures": [(g.label, g.gesture) for g in gestures],
@@ -601,49 +601,49 @@ class ShapesApp(ExtensionApp):
 
         return Program(state, code)
 
-    def start(self, config_id: UUID, tskin: TSkin) -> Tuple[bool, str] | None:
+    def start(self, config_id: UUID, tskin: TSkin | None = None) -> Tuple[bool, str]:
         if self.is_running:
             self.stop()
 
-        for _config in self.config:
-            if _config.id == config_id:
+        _config = next((c for c in self.config if c.id == config_id), None)
 
-                current_program = self.get_shape(_config.id)
-                
-                if current_program.code is None:
-                    return (False, "Code not found")
+        if not _config:
+            return (False, "Config not found")
 
-                self.current_id = _config.id
+        current_program = self.get_shape(_config.id)
+        
+        if current_program.code is None:
+            return (False, "Code not found")
+
+        self.current_id = _config.id
+        try:
+            self.thread = ShapeThread(
+                base_path=self.shapes_file_path, 
+                app=_config, 
+                tskin=tskin, 
+                keyboard=self.keyboard,
+                braccio=self.braccio_interface, 
+                zion=self.zion_interface, 
+                ros2=self.ros2_interface,
+                ironboy=self.ironboy_interface, 
+                file_manager=self.file_manager,
+                chords_llm=self.chords_llm,
+                chords_ml=self.chords_ml,
+                logging_queue=self.logging_queue,
+            ) 
+            self._logger.warning("Starting Shape %s, Autostart: %s", _config.name, _config.autostart)
+            self.thread.start()
+        except Exception as e:
+            self._logger.error("Cannot start Shape %s", e)
+            self.current_id = None
+            if self.thread:
                 try:
-                    self.thread = ShapeThread(
-                        base_path=self.shapes_file_path, 
-                        app=_config, 
-                        tskin=tskin, 
-                        keyboard=self.keyboard,
-                        braccio=self.braccio_interface, 
-                        zion=self.zion_interface, 
-                        ros2=self.ros2_interface,
-                        ironboy=self.ironboy_interface, 
-                        file_manager=self.file_manager,
-                        chords_llm=self.chords_llm,
-                        chords_ml=self.chords_ml,
-                        logging_queue=self.logging_queue,
-                    ) 
-                    self._logger.warning("Starting Shape %s, Autostart: %s", _config.name, _config.autostart)
-                    self.thread.start()
-                except Exception as e:
-                    self._logger.error("Cannot start Shape %s", e)
-                    self.current_id = None
-                    if self.thread:
-                        try:
-                            self.thread.stop()
-                        except:
-                            pass
-                    self.thread = None
-                    return (False, str(e))
-                return (True, "")
-
-        return None
+                    self.thread.stop()
+                except:
+                    pass
+            self.thread = None
+            return (False, str(e))
+        return (True, "")
     
     def stop(self):
         ExtensionApp.stop(self)
@@ -679,15 +679,10 @@ class ShapesApp(ExtensionApp):
         if not config:
             return False
 
-        # TODO: da togliere se mergiato con TCT-141 (tskin opzionale)
-        if not tskin:
-            self._logger.warning("Autostart of '%s' skipped: Tactigon Skin not available", config.name)
-            return False
+        status, error = self.start(config.id, tskin)
 
-        result, error = self.start(config.id, tskin)
-
-        if result is None or not result:
-            self._logger.error("Autostart of '%s' failed: %s", config.name, error if error else "not found")
+        if not status:
+            self._logger.error("Autostart of '%s' failed: %s", config.name, error)
             return False
 
         self._logger.info("Shape '%s' autostarted", config.name)

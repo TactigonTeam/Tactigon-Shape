@@ -137,8 +137,8 @@ class FileManager:
         return contents
     
     @staticmethod
-    def add_directory(name: str) -> DirectoryItem:
-        new_directory = DirectoryItem(name=name, base_path=os.path.join(BASE_PATH, name))
+    def add_directory(base_path: str,name: str) -> DirectoryItem:
+        new_directory = DirectoryItem(name=name, base_path=os.path.join(base_path, name))
 
         if os.path.exists(new_directory.base_path):
             raise ItemAlreadyExists("Directory already exists")

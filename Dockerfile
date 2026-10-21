@@ -47,9 +47,6 @@ RUN source /opt/vulcanexus/jazzy/setup.bash && \
     colcon build
     
 COPY ./requirements.txt /app/requirements.txt
-COPY config /app/config
-COPY models /app/models
-COPY speech /app/speech
 COPY tactigon_shapes /app/tactigon_shapes
 COPY main.py /app/main.py
 

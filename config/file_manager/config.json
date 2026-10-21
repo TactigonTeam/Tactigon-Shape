@@ -1,20 +1,20 @@
 {
-  "base_path": "",
+  "base_path": "./data/file_manager",
   "directories": [
     {
       "item_type": "directory",
       "name": "user_uploads",
-      "base_path": "./user_uploads"
+      "base_path": "./data/file_manager/user_uploads"
     },
     {
       "item_type": "directory",
       "name": "Dataframes",
-      "base_path": "./Dataframes"
+      "base_path": "./data/file_manager/Dataframes"
     },
     {
       "item_type": "directory",
       "name": "Recordings",
-      "base_path": "./Recordings"
+      "base_path": "./data/file_manager/Recordings"
     }
   ]
 }

@@ -25,9 +25,7 @@ networks:
 
 volumes:
   ollama_data:
-  tactigon-config:
   open-webui:
-  tactigon-audio:
 
 services:
   # ollama:
@@ -71,11 +69,12 @@ services:
       DISPLAY: ${DISPLAY:-:0}
       SDL_AUDIODRIVER: dummy
     volumes:
-      - tactigon-config:/app/config
+      - ./config:/app/config
+      - ./data/models:/app/models
+      - ./data/file_manager:/app/data/file_manager
+      - ./data/scorer:/app/speech
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /var/run/dbus:/var/run/dbus
-      - ./config/bianconiglio:/app/config/bianconiglio
-      - tactigon-audio:/app/Recordings
 
   speech:
     build:
@@ -90,7 +89,8 @@ services:
       TSS_PORT: 50007
       TSS_CONFIG: config.json
     volumes:
-      - tactigon-audio:/app/Recordings
+      - ./data/scorer:/app/scorer
+      - ./data/file_manager/Recordings:/app/Recordings
       
   # open-webui:
   #   image: ghcr.io/open-webui/open-webui:main

@@ -199,7 +199,7 @@
     "modified_on": "2026-08-28T15:28:41.372341",
     "description": "",
     "readonly": false,
-    "prompt": "bridge",
+    "prompt": "",
     "ginos_config": null,
     "ros2_config": {
       "node_name": "test prompt - bridge",
@@ -207,5 +207,32 @@
       "subscriptions": []
     },
     "mqtt_config": null
+  },
+  {
+    "id": "6ce8ce11b5024fa091a6d3c7211f3425",
+    "name": "test",
+    "created_on": "2026-10-21T12:50:26.262101",
+    "modified_on": "2026-10-21T12:51:49.512365",
+    "description": "",
+    "readonly": false,
+    "prompt": "",
+    "ginos_config": null,
+    "ros2_config": {
+      "node_name": "test",
+      "publishers": [],
+      "subscriptions": []
+    },
+    "mqtt_config": {
+      "broker_url": "broker.emqx.io",
+      "broker_port": 1883,
+      "node_name": "",
+      "node_type": "",
+      "max_reconnect_count": 5,
+      "reconnect_delay": 1,
+      "reconnect_rate": 2,
+      "protocol_version": 5,
+      "callback_api_version": 2,
+      "subscriptions": []
+    }
   }
 ]
