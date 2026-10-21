@@ -1,8 +1,6 @@
 .vscode/
 .idea
 
-*.whl
-
 /config/shapes/import
 /config/shapes/export
 install/
