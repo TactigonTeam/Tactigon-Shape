@@ -41,10 +41,15 @@ RUN ARCH="$(uname -m)" \
         exit 1; \
     fi \
     && echo "Installing wheel: ${WHEEL}" \
-    && pip install --no-cache-dir --no-deps "$WHEEL" \
-    && WHEEL="$(ls /app/deepspeech_tflite-0.9.3-*-linux_${ARCH}.whl 2>/dev/null | head -n 1)" \
-    && if [ -z "$WHEEL" ]; then \
-        echo "No wheel found for architecture: ${ARCH}" >&2; \
+    && pip install --no-cache-dir --no-deps "$WHEEL"
+
+RUN ARCH="$(uname -m)" \
+    && if [ "$ARCH" = "aarch64" ]; then \
+        WHEEL="/app/deepspeech-0.9.3-cp37-cp37m-linux_aarch64.whl"; \
+    elif [ "$ARCH" = "x86_64" ]; then \
+        WHEEL="/app/deepspeech_tflite-0.9.3-cp37-cp37m-linux_x86_64.whl"; \
+    else \
+        echo "Unsupported architecture: ${ARCH}" >&2; \
         exit 1; \
     fi \
     && echo "Installing wheel: ${WHEEL}" \
