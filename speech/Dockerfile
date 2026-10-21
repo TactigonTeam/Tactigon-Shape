@@ -33,17 +33,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir --no-deps ./tactigon_speech_socket-5.5.1.0-cp37-cp37m-linux_aarch64.whl
-RUN pip install --no-cache-dir ./deepspeech-0.9.3-cp37-cp37m-linux_aarch64.whl
 
-# RUN ARCH="$(uname -m)" \
-#     && WHEEL="$(ls /app/tactigon_speech_socket-*-linux_${ARCH}.whl 2>/dev/null | head -n 1)" \
-#     && if [ -z "$WHEEL" ]; then \
-#         echo "No wheel found for architecture: ${ARCH}" >&2; \
-#         exit 1; \
-#     fi \
-#     && echo "Installing wheel: ${WHEEL}" \
-#     && pip install --no-cache-dir "$WHEEL"
+RUN ARCH="$(uname -m)" \
+    && WHEEL="$(ls /app/tactigon_speech_socket-*-linux_${ARCH}.whl 2>/dev/null | head -n 1)" \
+    && if [ -z "$WHEEL" ]; then \
+        echo "No wheel found for architecture: ${ARCH}" >&2; \
+        exit 1; \
+    fi \
+    && echo "Installing wheel: ${WHEEL}" \
+    && pip install --no-cache-dir --no-deps "$WHEEL" \
+    && WHEEL="$(ls /app/deepspeech_tflite-0.9.3-*-linux_${ARCH}.whl 2>/dev/null | head -n 1)" \
+    && if [ -z "$WHEEL" ]; then \
+        echo "No wheel found for architecture: ${ARCH}" >&2; \
+        exit 1; \
+    fi \
+    && echo "Installing wheel: ${WHEEL}" \
+    && pip install --no-cache-dir "$WHEEL"
 
 COPY config.json /app/config.json
 COPY deepspeech-0.9.3-models.tflite /app/deepspeech-0.9.3-models.tflite
