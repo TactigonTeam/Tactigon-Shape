@@ -561,7 +561,6 @@ def export_shape(program_id: str):
     
     
 @bp.route("/<string:program_id>/autostart/<int:enabled>")
-@check_config
 def autostart(program_id: str, enabled: int):
     _shapes = get_shapes_app()
 

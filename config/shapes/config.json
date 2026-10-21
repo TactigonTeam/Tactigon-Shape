@@ -6,6 +6,7 @@
     "modified_on": "2026-06-25T14:10:10.994010",
     "description": "",
     "readonly": true,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -22,6 +23,7 @@
     "modified_on": "2026-02-02T16:57:38.318114",
     "description": "",
     "readonly": true,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -38,6 +40,7 @@
     "modified_on": "2026-02-02T16:57:41.033099",
     "description": "",
     "readonly": true,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -54,6 +57,7 @@
     "modified_on": "2026-02-02T16:57:44.230131",
     "description": "",
     "readonly": true,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -70,6 +74,7 @@
     "modified_on": "2026-02-02T16:57:46.904720",
     "description": "",
     "readonly": true,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -86,6 +91,7 @@
     "modified_on": "2026-02-02T16:57:49.353040",
     "description": "",
     "readonly": true,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -102,6 +108,7 @@
     "modified_on": "2026-02-02T16:58:30.017708",
     "description": "",
     "readonly": true,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -118,6 +125,7 @@
     "modified_on": "2026-08-28T15:26:04.023046",
     "description": "",
     "readonly": false,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -145,6 +153,7 @@
     "modified_on": "2026-08-06T11:44:16.763879",
     "description": "",
     "readonly": false,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -172,6 +181,7 @@
     "modified_on": "2026-08-28T15:28:15.195900",
     "description": "",
     "readonly": false,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -199,6 +209,7 @@
     "modified_on": "2026-08-28T15:28:41.372341",
     "description": "",
     "readonly": false,
+    "autostart": false,
     "prompt": "",
     "ginos_config": null,
     "ros2_config": {
@@ -207,32 +218,5 @@
       "subscriptions": []
     },
     "mqtt_config": null
-  },
-  {
-    "id": "6ce8ce11b5024fa091a6d3c7211f3425",
-    "name": "test",
-    "created_on": "2026-10-21T12:50:26.262101",
-    "modified_on": "2026-10-21T12:51:49.512365",
-    "description": "",
-    "readonly": false,
-    "prompt": "",
-    "ginos_config": null,
-    "ros2_config": {
-      "node_name": "test",
-      "publishers": [],
-      "subscriptions": []
-    },
-    "mqtt_config": {
-      "broker_url": "broker.emqx.io",
-      "broker_port": 1883,
-      "node_name": "",
-      "node_type": "",
-      "max_reconnect_count": 5,
-      "reconnect_delay": 1,
-      "reconnect_rate": 2,
-      "protocol_version": 5,
-      "callback_api_version": 2,
-      "subscriptions": []
-    }
   }
 ]

@@ -671,7 +671,6 @@ class ShapesApp(ExtensionApp):
             json.dump(program.state, state_json_file, indent=2)
         
         return True
-        
 
     def autostart(self, tskin: TSkin | None) -> bool:
         config = next((c for c in self.config if c.autostart), None)

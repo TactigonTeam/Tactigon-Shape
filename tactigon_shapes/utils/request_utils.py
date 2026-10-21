@@ -38,3 +38,9 @@ def check_empty_inputs(local_variables: Any) -> bool:
             return True
 
     return False
+
+def stop_shape(func):
+    def wrapper(*args, **kwargs):
+        # TODO: implementare stop di uno shape in esecuzione
+        return func(*args, **kwargs)
+    return wrapper
