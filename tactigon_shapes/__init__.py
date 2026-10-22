@@ -115,6 +115,9 @@ class TactigonShapes:
 
             if tskin:
                 socket_app.setTSkin(tskin)
+
+            logging.warning("TSKIN: %s", app_config.TSKIN)
+            logging.warning("TSKINSOCKET: %s", app_config.TSKIN_SOCKET)
             
             shapes_app.autostart(tskin)
 
