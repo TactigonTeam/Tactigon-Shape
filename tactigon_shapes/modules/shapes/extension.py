@@ -679,7 +679,15 @@ class ShapesApp(ExtensionApp):
 
         if not config:
             return False
-
+        try:
+            self.ironboy_interface.start()
+        except:
+            self._logger.error("IronBoy interface not started correctly")
+        try:
+            self.braccio_interface.start()
+        except:
+            self._logger.error("Braccio interface not started correctly")
+        
         status, error = self.start(config.id, tskin)
 
         if not status:
