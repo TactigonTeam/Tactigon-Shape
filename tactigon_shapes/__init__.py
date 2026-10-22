@@ -116,6 +116,11 @@ class TactigonShapes:
             if tskin:
                 socket_app.setTSkin(tskin)
 
+            logging.warning("TSKIN: %s", app_config.TSKIN)
+            logging.warning("TSKINSOCKET: %s", app_config.TSKIN_SOCKET)
+            
+            shapes_app.autostart(tskin)
+
             from tactigon_shapes import main
             from tactigon_shapes.modules.tskin.blueprint import bp as tskin_bp
             from tactigon_shapes.modules.shapes.blueprint import bp as shapes_bp

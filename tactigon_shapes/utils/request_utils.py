@@ -18,8 +18,12 @@
 #********************************************************************************/
 
 
+from functools import wraps
+
 from flask import request, flash
 from typing import Any
+
+from tactigon_shapes.modules.shapes.manager import get_shapes_app
 
 
 def get_from_request(name: str) -> str | None:
@@ -38,3 +42,21 @@ def check_empty_inputs(local_variables: Any) -> bool:
             return True
 
     return False
+
+# decoratore per funzioni singole
+def stop_shape(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        _shapes = get_shapes_app()
+        if _shapes and _shapes.is_running:
+            _shapes.stop()
+            flash("Running Shape has been stopped to access the configuration.", category="warning")
+        return func(*args, **kwargs)
+    return wrapper
+
+# chiamata per tutto un blueprint
+def stop_running_shape():
+    _shapes = get_shapes_app()
+    if _shapes and (_shapes.is_running or _shapes.current_id):
+        _shapes.stop()
+        flash("Running Shape has been stopped to access the configuration.", category="warning")

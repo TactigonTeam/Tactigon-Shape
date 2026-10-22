@@ -439,16 +439,22 @@ class ShapesApp(ExtensionApp):
             for cfg in self.config:
                 if cfg.id == config.id:
                     cfg.name = config.name
-                    cfg.description = cfg.description
+                    cfg.description = config.description
                     cfg.readonly = config.readonly
                     cfg.app_file = config.app_file
                     cfg.created_on = config.created_on
                     cfg.modified_on = config.modified_on
+                    cfg.autostart = config.autostart
                     found = True
                     break
 
             if not found:
                 self.config.append(config)
+                
+            if config.autostart:
+                for cfg in self.config:
+                    if cfg.id != config.id:
+                        cfg.autostart = False
 
         with open(self.config_file_path, "w") as config_file:
             json.dump([cfg.toJSON() for cfg in self.config], config_file, indent=2)
@@ -533,6 +539,7 @@ class ShapesApp(ExtensionApp):
                     config = ShapeConfig.FromJSON(data)
 
                     config.id = uuid4()
+                    config.autostart = False
                     state_data = json.load(state_file)
                     program = Program(
                         state=state_data,
@@ -594,51 +601,54 @@ class ShapesApp(ExtensionApp):
 
         return Program(state, code)
 
-    def start(self, config_id: UUID, tskin: TSkin | None = None) -> Tuple[bool, str] | None:
+    def start(self, config_id: UUID, tskin: TSkin | None = None) -> Tuple[bool, str]:
         if self.is_running:
             self.stop()
 
-        for _config in self.config:
-            if _config.id == config_id:
+        _config = next((c for c in self.config if c.id == config_id), None)
 
-                current_program = self.get_shape(_config.id)
+        if not _config:
+            return (False, "Config not found")
 
-                if current_program.code is None:
-                    return (False, "Code not found")
+        current_program = self.get_shape(_config.id)
+        
+        if current_program.code is None:
+            return (False, "Code not found")
 
-                self.current_id = _config.id
+        self.current_id = _config.id
+        try:
+            self.thread = ShapeThread(
+                base_path=self.shapes_file_path, 
+                app=_config, 
+                tskin=tskin, 
+                keyboard=self.keyboard,
+                braccio=self.braccio_interface, 
+                zion=self.zion_interface, 
+                ros2=self.ros2_interface,
+                ironboy=self.ironboy_interface, 
+                file_manager=self.file_manager,
+                chords_llm=self.chords_llm,
+                chords_ml=self.chords_ml,
+                logging_queue=self.logging_queue,
+            ) 
+            self._logger.warning("Starting Shape %s, Autostart: %s", _config.name, _config.autostart)
+            self.thread.start()
+        except Exception as e:
+            self._logger.error("Cannot start Shape %s", e)
+            self.current_id = None
+            if self.thread:
                 try:
-                    self.thread = ShapeThread(
-                        base_path=self.shapes_file_path, 
-                        app=_config, 
-                        tskin=tskin, 
-                        keyboard=self.keyboard,
-                        braccio=self.braccio_interface, 
-                        zion=self.zion_interface, 
-                        ros2=self.ros2_interface,
-                        ironboy=self.ironboy_interface, 
-                        file_manager=self.file_manager,
-                        chords_llm=self.chords_llm,
-                        chords_ml=self.chords_ml,
-                        logging_queue=self.logging_queue,
-                    ) 
-                    self.thread.start()
-                except Exception as e:
-                    self._logger.error("Cannot start Shape %s", e)
-                    self.current_id = None
-                    if self.thread:
-                        try:
-                            self.thread.stop()
-                        except:
-                            pass
-                    self.thread = None
-                    return (False, str(e))
-                return (True, "")
-
-        return None
+                    self.thread.stop()
+                except:
+                    pass
+            self.thread = None
+            return (False, str(e))
+        return (True, "")
     
     def stop(self):
         ExtensionApp.stop(self)
+        # resettare il nome qui spegne lo shape, la shapeapp è gia spenta dal before_request
+        self.current_id = None
         self.in_flight_log = None
 
         while True:
@@ -663,5 +673,23 @@ class ShapesApp(ExtensionApp):
             json.dump(program.state, state_json_file, indent=2)
         
         return True
+
+    def autostart(self, tskin: TSkin | None) -> bool:
+        config = next((c for c in self.config if c.autostart), None)
+
+        if not config:
+            return False
         
-    
+        if self.ironboy_interface:
+            self.ironboy_interface.start()
+        if self.braccio_interface:
+            self.braccio_interface.start()
+
+        status, error = self.start(config.id, tskin)
+
+        if not status:
+            self._logger.error("Autostart of '%s' failed: %s", config.name, error)
+            return False
+
+        self._logger.info("Shape '%s' autostarted", config.name)
+        return True

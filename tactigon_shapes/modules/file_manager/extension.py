@@ -115,6 +115,9 @@ class FileManager:
         if os.path.exists(content_path) and os.path.isdir(content_path):
             for entry in os.scandir(content_path):
                 if entry.is_file():
+                    if entry.name in EXCLUDED_FILES:
+                        continue
+                    
                     file_item = FileItem(
                         name=entry.name,
                         path=entry.path,

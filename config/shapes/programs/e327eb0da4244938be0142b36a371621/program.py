@@ -419,9 +419,7 @@ def tactigon_shape_function(
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
     if check_touch(touch, "SINGLE_TAP"):
-        debug(logging_queue, 'Message')
-        record_audio(tskin,logging_queue,os.path.join("./Recordings", 'audio.wav'), 5)
-        debug(logging_queue, 'xxvcbvcxbvcxbvcxb')
+        debug(logging_queue, 'Tactigon')
 
     return True
 
