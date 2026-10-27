@@ -46,7 +46,7 @@ from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.file_manager.extension import FileManager
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
-from tactigon_shapes.modules.chords.manager import get_chord_llm_interface
+from tactigon_shapes.modules.chords.manager import get_chord_llm_config
 
 from tactigon_shapes.utils.extensions import force_stop_apps
 
@@ -151,7 +151,7 @@ class TactigonShapes:
                 braccio_interface = get_braccio_interface()
                 zion_interface = get_zion_interface()
                 ironboy_interface = get_ironboy_interface()
-                chord_llm_interface = get_chord_llm_interface()
+                chord_llm_config = get_chord_llm_config()
 
                 if braccio_interface:
                     braccio_config = braccio_interface.config
@@ -175,11 +175,6 @@ class TactigonShapes:
                     zion_config = zion_interface.config
                 else:
                     zion_config = None
-
-                if chord_llm_interface:
-                    chord_llm_config = chord_llm_interface.config
-                else:
-                    chord_llm_config = None
 
                 return dict(
                     DEBUG=app_config.DEBUG,

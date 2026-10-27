@@ -432,44 +432,44 @@
             </block>
         </category>
         {% if tskin_config %}
-        <sep></sep>
-        <category name="Gesture" colour="#EB6152">
-            <block type="tskin_gesture_list"></block>
-        </category>
-        <category name="Angle" colour="#EB6152">
-            <block type="tskin_take_angle"></block>
-        </category>
-        <category name="Touch" colour="#EB6152">
-            <block type="tskin_touch_list"></block>
-        </category>
-        <category name="Gyro" colour="#EB6152">
-            <block type="tskin_take_gyro">
-                <field name="gyro">x</field>
-            </block>
-        </category>
-        <category name="Voice" colour="#EB6152">
-            <block type="tskin_listen">
-            </block>
-            <block type="tskin_record">
-                <value name="filename">
-                    <shadow type="text">
-                        <field name="TEXT">audio.wav</field>
-                    </shadow>
-                </value>
-                <value name="seconds">
-                    <shadow type="math_number">
-                        <field name="NUM">5</field>
-                    </shadow>
-                </value>
-            </block>
-            {# <block type="tskin_play">
-                <value name="filename">
-                    <shadow type="text">
-                        <field name="TEXT">audio.wav</field>
-                    </shadow>
-                </value>
-            </block> #}
-        </category>
+            <sep></sep>
+            <category name="Gesture" colour="#EB6152">
+                <block type="tskin_gesture_list"></block>
+            </category>
+            <category name="Angle" colour="#EB6152">
+                <block type="tskin_take_angle"></block>
+            </category>
+            <category name="Touch" colour="#EB6152">
+                <block type="tskin_touch_list"></block>
+            </category>
+            <category name="Gyro" colour="#EB6152">
+                <block type="tskin_take_gyro">
+                    <field name="gyro">x</field>
+                </block>
+            </category>
+            <category name="Voice" colour="#EB6152">
+                <block type="tskin_listen">
+                </block>
+                <block type="tskin_record">
+                    <value name="filename">
+                        <shadow type="text">
+                            <field name="TEXT">audio.wav</field>
+                        </shadow>
+                    </value>
+                    <value name="seconds">
+                        <shadow type="math_number">
+                            <field name="NUM">5</field>
+                        </shadow>
+                    </value>
+                </block>
+                {# <block type="tskin_play">
+                    <value name="filename">
+                        <shadow type="text">
+                            <field name="TEXT">audio.wav</field>
+                        </shadow>
+                    </value>
+                </block> #}
+            </category>
         {% endif %}
         <sep></sep>
         <category name="Chords ML" colour="#8f6329">
@@ -487,7 +487,7 @@
             <block type="chords_ml_get_models_info"></block>
             <block type="chords_ml_log"></block>
         </category>
-        {% if chord_llm_config and chord_llm_config.is_valid() %}
+        {% if chord_llm_config and chord_llm_config.is_valid %}
             <category name="Chords LLM" colour="#8f6329">
                 <block type="chords_llm_stream">
                     <value name="user_input"></value>
@@ -672,26 +672,20 @@
                 </block>
             </category>
         {% endif %}
-        {# {% if current_config.ginos_config %}
+        {% if current_config.ollama_config %}
             <sep></sep>
-            <category name="Ginos AI" colour="#EB6152">
-                <block type="ginos_ai_prompt">
+            <category name="Ollama" colour="#EB6152">
+                <block type="ollama_prompt">
                     <value name="prompt">
                         <shadow type="text">
                         </shadow>
                     </value>
                 </block>
-                <block type="ginos_load_dataframe">
-                    <value name="input_path">
-                        <shadow type="text">
-                        </shadow>
-                    </value>
-                </block>
-                <block type="ginos_ai_chat">
+                {# <block type="ollama_chat">
                     <value name="messages">
-                        <shadow type="ginos_ai_chat_message">
+                        <shadow type="ollama_chat_message">
                             <value name="role">
-                                <shadow type="ginos_ai_chat_message_role">
+                                <shadow type="ollama_chat_message_role">
                                 </shadow>
                             </value>
                             <value name="content">
@@ -701,9 +695,9 @@
                         </shadow>
                     </value>
                 </block>
-                <block type="ginos_ai_chat_message">
+                <block type="ollama_chat_message">
                     <value name="role">
-                        <shadow type="ginos_ai_chat_message_role">
+                        <shadow type="ollama_chat_message_role">
                         </shadow>
                     </value>
                     <value name="content">
@@ -711,10 +705,10 @@
                         </shadow>
                     </value>
                 </block>
-                <block type="ginos_ai_chat_message_role">
-                </block>
+                <block type="ollama_chat_message_role">
+                </block> #}
             </category>
-        {% endif %} #}
+        {% endif %}
         <sep></sep>
         <category name="ROS 2" colour="#5b6da5">
             <block type="ros2_command">

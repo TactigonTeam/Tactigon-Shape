@@ -17,8 +17,8 @@ from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
-from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
+from tactigon_shapes.modules.ollama.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
@@ -52,7 +52,7 @@ def check_touch(touch: Touch | None, finger_gesture: str) -> bool:
         pass
     return False
 
-def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
+def check_speech(tskin: TSkin | None, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
     def build_tspeech(hws: list[Union[HotWord, list[HotWord]]]) -> TSpeechObject | None:
         if not hws:
             return None
@@ -67,7 +67,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
 
     tspeech = build_tspeech(hotwords)
 
-    if tspeech and tskin.can_listen:
+    if tskin and tspeech and tskin.can_listen:
         debug(logging_queue, f"Waiting for command...")
         r = tskin.listen(tspeech)
         if r:
@@ -219,22 +219,16 @@ def iron_boy_command(ironboy: IronBoyInterface | None, logging_queue: LoggingQue
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""):
-    if not ginos:
+def ollama_prompt(ollama: OllamaInterface | None, prompt: str, context: str = ""):
+    if not ollama:
         return
 
     prompt_object = LLMPromptRequest(
-        model=ginos.model,
+        model=ollama.model,
         prompt=prompt,
     )
 
-    return ginos.prompt(prompt_object)
-
-def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
-    if not ginos:
-        return False
-
-    return ginos.add_file_to_context(os.path.join(directory, file_path))
+    return ollama.prompt(prompt_object)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -348,7 +342,7 @@ def chords_ml_load_dataframe(chords_ml: ChordMLInterface | None, directory: str,
     if not chords_ml:
         return None
 
-    return chords_ml.get_dataframe(os.path.join(directory, file_path))
+    return chords_ml.get_dataframe(file_path)
 
 def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
     if not chords_llm:
@@ -376,6 +370,17 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
 
     return status.status if status else None 
 
+def record_audio(tskin: TSkin | None, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin and tskin.can_listen:
+        debug(logging_queue, f"Recording audio for {duration} seconds...")
+        if tskin.record(filename, duration):
+            while tskin.is_recording:
+                time.sleep(tskin.TICK)
+            debug(logging_queue, f"Recording finished. Audio saved to {filename}.")
+            return True
+
+    return False
+
 # ---------- Generated code ---------------
 
 can_move = None
@@ -396,34 +401,34 @@ pos_gripper = True
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 def tactigon_shape_function(
-        tskin: TSkin,
+        tskin: TSkin | None,
         keyboard: KeyboardController,
         braccio: BraccioInterface | None,
         zion: ZionInterface | None,
         ros2: Ros2Interface | None,
         ironboy: IronBoyInterface | None,
-        ginos: GinosInterface | None,
+        ollama: OllamaInterface | None,
         mqtt: MQTTClient | None,
         chords_llm: ChordLLMInterface | None,
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
     global pos_x, pos_y, pos_z, can_move, pos_wrist, pos_gripper
-    gesture = tskin.gesture
-    touch = tskin.touch
-    if check_gesture(gesture, "up"):
+    gesture = tskin.gesture if tskin else None
+    touch = tskin.touch if tskin else None
+    if check_gesture(gesture, "none"):
         pos_z = 100
         can_move = True
-    elif check_gesture(gesture, "down"):
+    elif check_gesture(gesture, "none"):
         pos_z = -20
         can_move = True
-    elif check_gesture(gesture, "twist"):
+    elif check_gesture(gesture, "none"):
         pos_wrist = not pos_wrist
         if pos_wrist:
             braccio_wrist(braccio, logging_queue, Wrist['HORIZONTAL'])
         else:
             braccio_wrist(braccio, logging_queue, Wrist['VERTICAL'])
-    elif check_touch(touch, "SINGLE_TAP"):
+    elif check_touch(touch, "none"):
         pos_gripper = not pos_gripper
         if pos_gripper:
             braccio_gripper(braccio, logging_queue, Gripper['OPEN'])

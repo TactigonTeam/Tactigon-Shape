@@ -29,7 +29,7 @@ function loadCustomBlocks(response) {
     const zion = response ? response.zion : [];
     const ros2 = response ? response.ros2 : {};
     const ironboy = response ? response.ironboy : [];
-    const ginos = response ? response.ginos : {};
+    const ollama = response ? response.ollama : {};
     const file_manager = response ? response.file_manager : {};
     const chords_ml = response ? response.chords_ml : {};
     const chords_llm = response ? response.chords_llm : {};
@@ -43,7 +43,7 @@ function loadCustomBlocks(response) {
     loadZionBlocks(zion);
     loadRos2Blocks(ros2);
     loadIronBoyBlocks(ironboy);
-    loadGinosAIBlocks(ginos, file_manager);
+    loadOllamaBlocks(ollama);
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
@@ -353,7 +353,6 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
     };
 }
 
-
 function loadSpeechBlocks(speechs, file_manager) {
     let args = [];
     let message = "Voice command:";
@@ -405,11 +404,6 @@ function loadSpeechBlocks(speechs, file_manager) {
     }
 
     const files = Array.isArray(file_manager) ? file_manager : [];
-
-    console.log(
-        "Recording folder:",
-        files.map(el => el.directory?.name).filter(Boolean)
-    );
 
     const recFolder = files.find(
         el => el.directory?.name === "Recordings"
@@ -1266,23 +1260,10 @@ function loadIronBoyBlocks(ironboy) {
     };
 }
 
-function loadGinosAIBlocks(ginos, file_manager) {
-    let directory = [];
-    let optionMapping = {};
-
-    file_manager.forEach(el => {
-        directory.push([el['directory']['name'], el['directory']['base_path']]);
-        optionMapping[el['directory']['base_path']] = [['---', '']];
-
-        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
-            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
-            return [f_path, f_path];
-        }));
-    });
-
+function loadOllamaBlocks(ollama) {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
-            "type": "ginos_ai_prompt",
+            "type": "ollama_prompt",
             "message0": "AI prompt %1",
             "args0": [
                 {
@@ -1292,48 +1273,26 @@ function loadGinosAIBlocks(ginos, file_manager) {
             ],
             "output": "String",
             "colour": "#EB6152",
-            "tooltip": "AI response from Ginos",
+            "tooltip": "AI response from Ollama",
             "helpUrl": ""
         },
         {
-            "type": "ginos_load_dataframe",
-            "message0": "Create dataframe from %1 %2",
-            "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "directory",
-                    "options": directory
-                },
-                {
-                    "type": "field_dependent_dropdown",
-                    "name": "filepath",
-                    "parentName": "directory",
-                    "optionMapping": optionMapping,
-                    "defaultOptions": [['---', '']],
-                }
-            ],
-            "output": "Boolean",
-            "colour": "#EB6152",
-            "tooltip": "Load dataframe locally",
-            "helpUrl": ""
-        },
-        {
-            "type": "ginos_ai_chat_message_role",
+            "type": "ollama_chat_message_role",
             "message0": "AI role %1",
             "args0": [
                 {
                     "type": "field_dropdown",
                     "name": "scope",
-                    "options": ginos.roles
+                    "options": ollama.roles
                 }
             ],
-            "output": "GinosAIChatRole",
+            "output": "OllamaChatRole",
             "colour": "#EB6152",
             "tooltip": "",
             "helpUrl": ""
         },
         {
-            "type": "ginos_ai_chat",
+            "type": "ollama_chat",
             "message0": "AI chat message %1",
             "args0": [
                 {
@@ -1347,20 +1306,20 @@ function loadGinosAIBlocks(ginos, file_manager) {
             "helpUrl": ""
         },
         {
-            "type": "ginos_ai_chat_message",
+            "type": "ollama_chat_message",
             "message0": "AI chat message %1 %2",
             "args0": [
                 {
                     "type": "input_value",
                     "name": "role",
-                    "check": "GinosAIChatRole"
+                    "check": "OllamaChatRole"
                 },
                 {
                     "type": "input_value",
                     "name": "content",
                 }
             ],
-            "output": "GinosAIChatMessage",
+            "output": "OllamaChatMessage",
             "colour": "#EB6152",
             "tooltip": "",
             "helpUrl": ""
@@ -1469,7 +1428,6 @@ function loadCameraBlocks() {
 }
 
 function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
-    console.log(chords_llm, chords_ml)
     let directory = [];            
     let df_options = {};
     let rag_options = {};
@@ -1751,11 +1709,11 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.ros2.models import RosMessageTypes, String, Bool, Float64, Int64
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
-from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
+from tactigon_shapes.modules.ollama.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
@@ -1956,22 +1914,16 @@ def iron_boy_command(ironboy: IronBoyInterface | None, logging_queue: LoggingQue
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""):
-    if not ginos:
+def ollama_prompt(ollama: OllamaInterface | None, prompt: str, context: str = ""):
+    if not ollama:
         return
 
     prompt_object = LLMPromptRequest(
-        model=ginos.model,
+        model=ollama.model,
         prompt=prompt,
     )
 
-    return ginos.prompt(prompt_object)
-
-def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
-    if not ginos:
-        return False
-
-    return ginos.add_file_to_context(file_path)
+    return ollama.prompt(prompt_object)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -1979,7 +1931,7 @@ def ros2_run(ros2: Ros2Interface | None, command: str):
 
     ros2.run(command)
 
-def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: RosMessageTypes):
     if not ros2:
         return
     
@@ -2154,7 +2106,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ollama: OllamaInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
@@ -2186,7 +2138,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ollama: OllamaInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
@@ -2218,7 +2170,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ollama: OllamaInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
@@ -2240,7 +2192,7 @@ function defineCustomGenerators() {
     defineZionGenerators();
     defineRos2Generators();
     defineIronBoyGenerators();
-    defineGinosAIGenerators();
+    defineOllamaAIGenerators();
     defineMQTTGenerators();
     defineCameraGenerators();
     defineChordsGenerators();
@@ -2569,25 +2521,25 @@ function defineRos2Generators() {
 
     python.pythonGenerator.forBlock['ros2_message_String'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.String(data=${data})`;
+        const command = `String(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Bool'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.Bool(data=${data})`;
+        const command = `Bool(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Int64'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.Int64(data=${data})`;
+        const command = `Int64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Float64'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.Float64(data=${data})`;
+        const command = `Float64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
@@ -2621,42 +2573,36 @@ function defineIronBoyGenerators() {
     };
 }
 
-function defineGinosAIGenerators() {
-    python.pythonGenerator.forBlock["ginos_ai_prompt"] = function (block, generator) {
+function defineOllamaAIGenerators() {
+    python.pythonGenerator.forBlock["ollama_prompt"] = function (block, generator) {
         var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
         // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-        // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
-        var code = `ginos_ai_prompt(ginos, ${prompt})`;
+        // var code = `ollama_prompt(ollama, ${prompt}, ${context})`;
+        var code = `ollama_prompt(ollama, ${prompt})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_load_dataframe"] = function (block, generator) {
-        const dir = block.getFieldValue('directory');
-        const fpath = block.getFieldValue('filepath');
-        return [`ginos_load_dataframe(ginos, "${dir}", "${fpath}")`, python.Order.ATOMIC];
-    };
-
-    // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
+    // python.pythonGenerator.forBlock["ollama_chat"] = function(block, generator) {
     //     // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
     //     // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-    //     // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
+    //     // var code = `ollama_prompt(ollama, ${prompt}, ${context})`;
     //     var code = ``;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // };
 
-    // python.pythonGenerator.forBlock["ginos_ai_chat_message"] = function(block, generator) {
+    // python.pythonGenerator.forBlock["ollama_chat_message"] = function(block, generator) {
     //     var code = ``;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // };
 
-    // python.pythonGenerator.forBlock["ginos_ai_chat_message_role"] = function(block, generator) {
+    // python.pythonGenerator.forBlock["ollama_chat_message_role"] = function(block, generator) {
     //     var code = ``;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // };
 
-    // python.pythonGenerator.forBlock['ginos_summarize_text'] = function (block, generator) {
+    // python.pythonGenerator.forBlock['ollama_summarize_text'] = function (block, generator) {
     //     const text = generator.valueToCode(block, 'text', python.Order.ATOMIC);
-    //     var code = `summarize_text(ginos,${text},logging_queue)`;
+    //     var code = `summarize_text(ollama,${text},logging_queue)`;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // }
 }

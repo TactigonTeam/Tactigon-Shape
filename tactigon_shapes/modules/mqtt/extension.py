@@ -143,7 +143,7 @@ class MQTTClient:
             node_type=self.config.node_type
         )
 
-        self.publish(f"ginos/devices/register/{self.config.node_name}", payload=payload)
+        self.publish(f"shapes/devices/register/{self.config.node_name}", payload=payload)
 
     def unregister(self):
         payload = dict(
@@ -151,7 +151,7 @@ class MQTTClient:
             node_type=self.config.node_type
         )
 
-        self.publish(f"ginos/devices/unregister/{self.config.node_name}", payload=payload)
+        self.publish(f"shapes/devices/unregister/{self.config.node_name}", payload=payload)
     
     def disconnect(self):
         self._can_reconnect = False

@@ -28,7 +28,7 @@
                     "type": "tskin_touch_list",
                     "id": "-t|ok*MvKiS)MOO#(~AW",
                     "fields": {
-                      "touch": "TAP_AND_HOLD"
+                      "touch": "none"
                     }
                   }
                 },

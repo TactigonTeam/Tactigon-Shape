@@ -17,8 +17,8 @@ from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2 import models as ros2_models
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
-from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
+from tactigon_shapes.modules.ollama.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
@@ -52,7 +52,7 @@ def check_touch(touch: Touch | None, finger_gesture: str) -> bool:
         pass
     return False
 
-def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
+def check_speech(tskin: TSkin | None, logging_queue: LoggingQueue, hotwords: list[Union[HotWord, list[HotWord]]]):
     def build_tspeech(hws: list[Union[HotWord, list[HotWord]]]) -> TSpeechObject | None:
         if not hws:
             return None
@@ -67,7 +67,7 @@ def check_speech(tskin: TSkin, logging_queue: LoggingQueue, hotwords: list[Union
 
     tspeech = build_tspeech(hotwords)
 
-    if tspeech and tskin.can_listen:
+    if tskin and tspeech and tskin.can_listen:
         debug(logging_queue, f"Waiting for command...")
         r = tskin.listen(tspeech)
         if r:
@@ -219,22 +219,16 @@ def iron_boy_command(ironboy: IronBoyInterface | None, logging_queue: LoggingQue
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""):
-    if not ginos:
+def ollama_prompt(ollama: OllamaInterface | None, prompt: str, context: str = ""):
+    if not ollama:
         return
 
     prompt_object = LLMPromptRequest(
-        model=ginos.model,
+        model=ollama.model,
         prompt=prompt,
     )
 
-    return ginos.prompt(prompt_object)
-
-def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
-    if not ginos:
-        return False
-
-    return ginos.add_file_to_context(os.path.join(directory, file_path))
+    return ollama.prompt(prompt_object)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -348,7 +342,7 @@ def chords_ml_load_dataframe(chords_ml: ChordMLInterface | None, directory: str,
     if not chords_ml:
         return None
 
-    return chords_ml.get_dataframe(os.path.join(directory, file_path))
+    return chords_ml.get_dataframe(file_path)
 
 def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
     if not chords_llm:
@@ -375,6 +369,17 @@ def chords_llm_get_chat_status(chords_llm: ChordLLMInterface | None) -> ChordLLM
     status = chords_llm.chat_status()
 
     return status.status if status else None 
+
+def record_audio(tskin: TSkin | None, logging_queue: LoggingQueue, filename: str, duration: float):
+    if tskin and tskin.can_listen:
+        debug(logging_queue, f"Recording audio for {duration} seconds...")
+        if tskin.record(filename, duration):
+            while tskin.is_recording:
+                time.sleep(tskin.TICK)
+            debug(logging_queue, f"Recording finished. Audio saved to {filename}.")
+            return True
+
+    return False
 
 # ---------- Generated code ---------------
 
@@ -406,23 +411,23 @@ carte_mazziere = 0
 # This is the main function that runs your code. Any
 # code blocks you add to this section will be executed.
 def tactigon_shape_function(
-        tskin: TSkin,
+        tskin: TSkin | None,
         keyboard: KeyboardController,
         braccio: BraccioInterface | None,
         zion: ZionInterface | None,
         ros2: Ros2Interface | None,
         ironboy: IronBoyInterface | None,
-        ginos: GinosInterface | None,
+        ollama: OllamaInterface | None,
         mqtt: MQTTClient | None,
         chords_llm: ChordLLMInterface | None,
         chords_ml: ChordMLInterface | None,
         logging_queue: LoggingQueue):
 
     global mie_carte, nuova_carta, puo_giocare, mazziere_vuole_carte, carte_mazziere, prima_mano
-    gesture = tskin.gesture
-    touch = tskin.touch
+    gesture = tskin.gesture if tskin else None
+    touch = tskin.touch if tskin else None
     if puo_giocare:
-        if check_gesture(gesture, "swipe_r"):
+        if check_gesture(gesture, "none"):
             if prima_mano:
                 debug(logging_queue, 'Dammi le carte')
                 for count in range(2):
@@ -432,7 +437,7 @@ def tactigon_shape_function(
             else:
                 mie_carte = (mie_carte if isinstance(mie_carte, Number) else 0) + dai_carta()
                 debug(logging_queue, ('Hai in mano:' + str(mie_carte)))
-        elif check_gesture(gesture, "swipe_l"):
+        elif check_gesture(gesture, "none"):
             debug(logging_queue, 'Ho finito')
             puo_giocare = False
             mazziere_vuole_carte = True
@@ -455,7 +460,7 @@ def tactigon_shape_function(
             puo_giocare = False
             mazziere_vuole_carte = False
     else:
-        if check_gesture(gesture, "up"):
+        if check_gesture(gesture, "none"):
             debug(logging_queue, 'Nuovo gioco!')
             puo_giocare = True
             mazziere_vuole_carte = False

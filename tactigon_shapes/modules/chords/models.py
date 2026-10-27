@@ -111,7 +111,8 @@ class ChordLLMConfig(BaseModel):
             "username": self.username,
             "password": self.password,
         }
-
+    
+    @property
     def is_valid(self) -> bool:
         return self.username != "" and self.password != "" and self.url != ""
 

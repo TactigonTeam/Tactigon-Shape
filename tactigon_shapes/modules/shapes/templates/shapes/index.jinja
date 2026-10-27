@@ -127,24 +127,35 @@
                                     <label for="program-description" class="form-label">Description</label>
                                     <textarea class="form-control" id="program-description" rows="3" name="description"></textarea>
                                 </div>
-                                <h6>Chords AI</h6>
-                                <div class="row mb-3">
-                                    <div class="col-md-6 border-end">
-                                        <label class="form-label">Chord LLM</label>
-                                        <div class="mb-3">
-                                            <select class="form-select" name="chord_llm_prompt" id="chord_llm_prompt">
-                                                <option value="">No prompt</option>
-                                                {% for (name, id) in blocks_config.chords_llm.prompts %}
-                                                    <option value="{{ name }}">{{ name }}</option>
-                                                {% endfor %}
-                                            </select>
+                                {% if chord_llm_config.is_valid %}
+                                    <h6>Chords AI</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6 border-end">
+                                            <label class="form-label">Chord LLM</label>
+                                            <div class="mb-3">
+                                                <select class="form-select" name="chord_llm_prompt" id="chord_llm_prompt">
+                                                    <option value="">No prompt</option>
+                                                    {% for (name, id) in blocks_config.chords_llm.prompts %}
+                                                        <option value="{{ name }}">{{ name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Chord ML</label>
+                                            <div class="mb-3">
+                                                Not yet implemented
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Chord ML</label>
-                                        <div class="mb-3">
-                                            Not yet implemented
-                                        </div>
+                                {% endif %}
+                                <h6>Ollama</h6>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <input type="text" class="form-control" name="ollama_url" id="ollama-url" placeholder="http://localhost:11434" value="{{current_config.ollama_config.url}}">
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" class="form-control" name="ollama_model" id="ollama-model" placeholder="mistral" value="{{current_config.ollama_config.model}}">
                                     </div>
                                 </div>
                                 <h6>MQTT</h6>
@@ -273,24 +284,35 @@
                                     <label for="programDescription" class="form-label">Description</label>
                                     <textarea class="form-control" id="programDescription" name="description">{{current_config.description}}</textarea>
                                 </div>
-                                <h6>Chords AI</h6>
-                                <div class="row mb-3">
-                                    <div class="col-md-6 border-end">
-                                        <label class="form-label">Chord LLM</label>
-                                        <div class="mb-3">
-                                            <select class="form-select" name="chord_llm_prompt" id="chord_llm_prompt">
-                                                <option value="">No prompt</option>
-                                                {% for (name, id) in blocks_config.chords_llm.prompts %}
-                                                    <option value="{{ name }}" {% if current_config.prompt == name %}selected{% endif %}>{{ name }}</option>
-                                                {% endfor %}
-                                            </select>
+                                {% if chord_llm_config.is_valid %}
+                                    <h6>Chords AI</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6 border-end">
+                                            <label class="form-label">Chord LLM</label>
+                                            <div class="mb-3">
+                                                <select class="form-select" name="chord_llm_prompt" id="chord_llm_prompt">
+                                                    <option value="">No prompt</option>
+                                                    {% for (name, id) in blocks_config.chords_llm.prompts %}
+                                                        <option value="{{ name }}" {% if current_config.prompt == name %}selected{% endif %}>{{ name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Chord ML</label>
+                                            <div class="mb-3">
+                                                Not yet implemented
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Chord ML</label>
-                                        <div class="mb-3">
-                                            Not yet implemented
-                                        </div>
+                                {% endif %}
+                                <h6>Ollama</h6>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <input type="text" class="form-control" name="ollama_url" id="ollama-url" placeholder="http://localhost:11434" value="{{current_config.ollama_config.url}}">
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" class="form-control" name="ollama_model" id="ollama-model" placeholder="mistral" value="{{current_config.ollama_config.model}}">
                                     </div>
                                 </div>
                                 <h6>MQTT</h6>
@@ -298,7 +320,7 @@
                                     <div class="col">
                                         <div class="row mb-3">
                                             <div class="col-10">
-                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="broker.emqx.io" value="{{current_config.ginos_config.url}}">
+                                                <input type="text" class="form-control" name="mqtt_url" id="mqtt-url" placeholder="broker.emqx.io" value="{{current_config.mqtt_config.broker_url}}">
                                             </div>
                                             <div class="col">
                                                 <input type="text" class="form-control" name="mqtt_port" id="mqtt-port" placeholder="1883" value="{{current_config.mqtt_config.broker_port}}">

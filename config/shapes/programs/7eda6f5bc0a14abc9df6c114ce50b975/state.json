@@ -28,7 +28,7 @@
                     "type": "tskin_touch_list",
                     "id": "ykf56lNo_}9Zdv0RG9QG",
                     "fields": {
-                      "touch": "SINGLE_TAP"
+                      "touch": "none"
                     }
                   }
                 },

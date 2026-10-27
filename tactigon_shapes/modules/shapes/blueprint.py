@@ -28,14 +28,14 @@ from tactigon_shapes.config import app_config, allowed_extensions
 from tactigon_shapes.models import ModelGesture
 from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program, ShapesApp
 from tactigon_shapes.modules.shapes.manager import get_shapes_app
-from tactigon_shapes.modules.ginos.models import GinosConfig
+from tactigon_shapes.modules.ollama.models import OllamaConfig
 from tactigon_shapes.modules.mqtt.models import MQTTConfig, MQTTSubscription
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
 from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.tskin.manager import get_tskin
 from tactigon_shapes.modules.zion.manager import get_zion_interface
-from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
 from tactigon_shapes.modules.ros2.manager import get_ros2_interface
 from tactigon_shapes.modules.file_manager.manager import get_file_manager_extension
 from tactigon_shapes.modules.chords.manager import get_chord_ml_interface, get_chord_llm_interface
@@ -76,7 +76,7 @@ def build_blocks_config(_shapes: ShapesApp) -> dict:
     if ros2_interface:
         blocks_config["ros2"] = ros2_interface.get_shape_blocks()
 
-    blocks_config["ginos"] = get_ginos_blocks()
+    blocks_config["ollama"] = OllamaInterface.get_shape_blocks()
 
     file_manager = get_file_manager_extension()
     if file_manager:
@@ -156,14 +156,14 @@ def add():
         flash(f"Name '{program_name}' already exist!", category="danger")
         return redirect(url_for("shapes.index"))
     
-    ginos_url = get_from_request("ginos_url")
-    ginos_model = get_from_request("ginos_model")
-    ginos_config = None
+    ollama_url = get_from_request("ollama_url")
+    ollama_model = get_from_request("ollama_model")
+    ollama_config = None
 
-    if (ginos_url and ginos_url != "") and (ginos_model and ginos_model != ""):
-        ginos_config = GinosConfig(
-            url=ginos_url,
-            model=ginos_model,
+    if (ollama_url and ollama_url != "") and (ollama_model and ollama_model != ""):
+        ollama_config = OllamaConfig(
+            url=ollama_url,
+            model=ollama_model,
         )
     
     mqtt_url = get_from_request("mqtt_url")
@@ -179,7 +179,7 @@ def add():
         try:
             mqtt_port = int(mqtt_port)
         except:
-            flash(f"Invalid Ginos MQTT port config!", category="danger")
+            flash(f"Invalid MQTT port config!", category="danger")
             return redirect(url_for("shapes.index"))
 
         mqtt_config = MQTTConfig(
@@ -197,7 +197,7 @@ def add():
         description=_program_description,
         created_on=datetime.now(),
         modified_on=datetime.now(),
-        ginos_config=ginos_config,
+        ollama_config=ollama_config,
         mqtt_config=mqtt_config,
         prompt=chords_llm_prompt or ""
     )
@@ -270,17 +270,17 @@ def save_config(program_id: str):
         flash(f"Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
 
-    ginos_url = get_from_request("ginos_url")
-    ginos_model = get_from_request("ginos_model")
+    ollama_url = get_from_request("ollama_url")
+    ollama_model = get_from_request("ollama_model")
 
-    if (ginos_url and ginos_url != "") and (ginos_model and ginos_model != ""):
-        ginos_config = GinosConfig(
-            url=ginos_url,
-            model=ginos_model,
+    if (ollama_url and ollama_url != "") and (ollama_model and ollama_model != ""):
+        ollama_config = OllamaConfig(
+            url=ollama_url,
+            model=ollama_model,
         )
     else:
-        ginos_config = None
-        # flash(f"Invalid Ginos AI config!", category="danger")
+        ollama_config = None
+        # flash(f"Invalid Ollama config!", category="danger")
         # return redirect(url_for("shapes.index"))
     
     mqtt_url = get_from_request("mqtt_url")
@@ -295,7 +295,7 @@ def save_config(program_id: str):
         try:
             mqtt_port = int(mqtt_port)
         except:
-            flash(f"Invalid Ginos MQTT port config!", category="danger")
+            flash(f"Invalid MQTT port config!", category="danger")
             return redirect(url_for("shapes.index"))
 
         if not config.mqtt_config:
@@ -315,7 +315,7 @@ def save_config(program_id: str):
     else:
         mqtt_config = None
     # else:
-    #     flash(f"Invalid Ginos MQTT config!", category="danger")
+    #     flash(f"Invalid MQTT config!", category="danger")
     #     return redirect(url_for("shapes.index"))
 
     chords_llm_prompt = get_from_request("chord_llm_prompt")
@@ -323,7 +323,7 @@ def save_config(program_id: str):
     config.name = program_name
     config.description = program_description
     config.modified_on = datetime.now()
-    config.ginos_config = ginos_config
+    config.ollama_config = ollama_config
     config.mqtt_config = mqtt_config
     config.prompt = chords_llm_prompt or ""
 
@@ -374,7 +374,7 @@ def clone_config(program_id: str):
         description=program_description,
         readonly=False,
         app_file=original_config.app_file,
-        ginos_config=original_config.ginos_config,
+        ollama_config=original_config.ollama_config,
         mqtt_config=original_config.mqtt_config,
         ros2_config=original_config.ros2_config,
     )
@@ -424,9 +424,9 @@ def save_program(program_id: str):
 
     if ros2_publishers or ros2_subscriptions:
         ros2_config = Ros2ShapeConfig(
-            config.name,
-            [Ros2Publisher.FromJSON(p) for p in json.loads(ros2_publishers)] if ros2_publishers else [],
-            [Ros2Subscription.FromJSON(s) for s in json.loads(ros2_subscriptions)] if ros2_subscriptions else [],
+            node_name=config.name,
+            publishers=[Ros2Publisher.FromJSON(p) for p in json.loads(ros2_publishers)] if ros2_publishers else [],
+            subscriptions=[Ros2Subscription.FromJSON(s) for s in json.loads(ros2_subscriptions)] if ros2_subscriptions else [],
         )
         config.ros2_config = ros2_config
 

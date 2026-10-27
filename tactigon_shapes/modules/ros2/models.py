@@ -19,15 +19,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from camera_tracking_msgs.msg import Point2D, Marker, MarkerList
+
 StrMessageTypes = String | Int64 | Bool | Float64
 InterfacesMessageTypes = Log
 
-try:
-    from camera_tracking_msgs.msg import Point2D, Marker, MarkerList
-    CameraTrackingMessageTypes = Point2D | Marker | MarkerList
-    RosMessageTypes = StrMessageTypes | InterfacesMessageTypes | CameraTrackingMessageTypes
-except ImportError:
-    RosMessageTypes = StrMessageTypes | InterfacesMessageTypes
+CameraTrackingMessageTypes = Point2D | Marker | MarkerList
+
+RosMessageTypes = StrMessageTypes | InterfacesMessageTypes | CameraTrackingMessageTypes
 
 def get_message_type_by_name(name: str) -> RosMessageTypes:
     type_index = [t.__name__ for t in RosMessageTypes.__args__].index(name)    
