@@ -372,6 +372,7 @@ class ChordMLInterface:
         self._logger = logging.getLogger(ChordMLInterface.__name__)
         self.config_file_path = config_file_path
 
+        self.models = []
         if config_file_path:
             self.config = self.load_config(config_file_path)
         else:
@@ -412,8 +413,8 @@ class ChordMLInterface:
 
     def init_app(self, app: Flask):
         app.extensions[ChordMLInterface.__name__] = self
-
-        self.get_models_info()
+        if self.config.is_valid:
+            self.get_models_info()
     
     def get_shape_blocks(self):
         return {

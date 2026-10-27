@@ -51,7 +51,7 @@
                           "type": "tskin_gesture_list",
                           "id": "M0]6?+!6nlDoAA+n6?V6",
                           "fields": {
-                            "gesture": "none"
+                            "gesture": "swipe_r"
                           }
                         }
                       },
@@ -288,7 +288,7 @@
                           "type": "tskin_gesture_list",
                           "id": ";9NYRY~}GOV[,7GGYa,w",
                           "fields": {
-                            "gesture": "none"
+                            "gesture": "swipe_l"
                           }
                         }
                       },
@@ -790,7 +790,7 @@
                           "type": "tskin_gesture_list",
                           "id": "d^*`3R~+ODZCn$fQBuRr",
                           "fields": {
-                            "gesture": "none"
+                            "gesture": "twist"
                           }
                         }
                       },

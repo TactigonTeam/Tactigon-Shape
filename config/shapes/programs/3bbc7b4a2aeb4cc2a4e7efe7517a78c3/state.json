@@ -32,7 +32,7 @@
                     "type": "tskin_touch_list",
                     "id": "t!iM2@iE@P2/QJcM,?~U",
                     "fields": {
-                      "touch": "none"
+                      "touch": "TAP_AND_HOLD"
                     }
                   }
                 },
@@ -136,7 +136,7 @@
                     "type": "tskin_touch_list",
                     "id": "Idj7]ZmR]U=^~4:M6lIO",
                     "fields": {
-                      "touch": "none"
+                      "touch": "SINGLE_TAP"
                     }
                   }
                 },
@@ -297,7 +297,7 @@
                         "type": "tskin_gesture_list",
                         "id": "iz6_H{fS$37AhyLTf6ap",
                         "fields": {
-                          "gesture": "none"
+                          "gesture": "twist"
                         }
                       }
                     },

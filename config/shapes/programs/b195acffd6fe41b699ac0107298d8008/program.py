@@ -14,7 +14,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.ros2.models import RosMessageTypes, String, Bool, Float64, Int64
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ollama.extension import OllamaInterface
@@ -236,7 +236,7 @@ def ros2_run(ros2: Ros2Interface | None, command: str):
 
     ros2.run(command)
 
-def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: RosMessageTypes):
     if not ros2:
         return
     
@@ -416,19 +416,19 @@ def tactigon_shape_function(
     global pos_x, pos_y, pos_z, can_move, pos_wrist, pos_gripper
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
-    if check_gesture(gesture, "none"):
+    if check_gesture(gesture, "up"):
         pos_z = 100
         can_move = True
-    elif check_gesture(gesture, "none"):
+    elif check_gesture(gesture, "down"):
         pos_z = -20
         can_move = True
-    elif check_gesture(gesture, "none"):
+    elif check_gesture(gesture, "twist"):
         pos_wrist = not pos_wrist
         if pos_wrist:
             braccio_wrist(braccio, logging_queue, Wrist['HORIZONTAL'])
         else:
             braccio_wrist(braccio, logging_queue, Wrist['VERTICAL'])
-    elif check_touch(touch, "none"):
+    elif check_touch(touch, "SINGLE_TAP"):
         pos_gripper = not pos_gripper
         if pos_gripper:
             braccio_gripper(braccio, logging_queue, Gripper['OPEN'])

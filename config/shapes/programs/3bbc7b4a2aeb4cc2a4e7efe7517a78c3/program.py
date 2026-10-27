@@ -410,12 +410,12 @@ def tactigon_shape_function(
     global tap_hold, tap_hold_counter
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
-    if check_touch(touch, "none"):
+    if check_touch(touch, "TAP_AND_HOLD"):
         if tap_hold == False:
             tap_hold = True
             keyboard_press(keyboard, HotKey.parse('<f5>'))
             debug(logging_queue, 'Toggle presentation')
-    elif check_touch(touch, "none"):
+    elif check_touch(touch, "SINGLE_TAP"):
         keyboard_press(keyboard, HotKey.parse('p'))
         debug(logging_queue, 'Prev slide')
     else:
@@ -423,7 +423,7 @@ def tactigon_shape_function(
         if tap_hold_counter >= 5:
             tap_hold = False
             tap_hold_counter = 0
-    if check_gesture(gesture, "none"):
+    if check_gesture(gesture, "twist"):
         keyboard_press(keyboard, HotKey.parse('n'))
         debug(logging_queue, 'Next slide')
 

@@ -14,7 +14,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.ros2.models import RosMessageTypes, String, Bool, Float64, Int64
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ollama.extension import OllamaInterface
@@ -236,7 +236,7 @@ def ros2_run(ros2: Ros2Interface | None, command: str):
 
     ros2.run(command)
 
-def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: RosMessageTypes):
     if not ros2:
         return
     
@@ -427,7 +427,7 @@ def tactigon_shape_function(
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
     if puo_giocare:
-        if check_gesture(gesture, "none"):
+        if check_gesture(gesture, "swipe_r"):
             if prima_mano:
                 debug(logging_queue, 'Dammi le carte')
                 for count in range(2):
@@ -437,7 +437,7 @@ def tactigon_shape_function(
             else:
                 mie_carte = (mie_carte if isinstance(mie_carte, Number) else 0) + dai_carta()
                 debug(logging_queue, ('Hai in mano:' + str(mie_carte)))
-        elif check_gesture(gesture, "none"):
+        elif check_gesture(gesture, "swipe_l"):
             debug(logging_queue, 'Ho finito')
             puo_giocare = False
             mazziere_vuole_carte = True
@@ -460,7 +460,7 @@ def tactigon_shape_function(
             puo_giocare = False
             mazziere_vuole_carte = False
     else:
-        if check_gesture(gesture, "none"):
+        if check_gesture(gesture, "twist"):
             debug(logging_queue, 'Nuovo gioco!')
             puo_giocare = True
             mazziere_vuole_carte = False
