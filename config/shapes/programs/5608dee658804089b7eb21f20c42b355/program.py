@@ -427,7 +427,7 @@ def tactigon_shape_function(
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
     if puo_giocare:
-        if check_gesture(gesture, "swipe_r"):
+        if check_gesture(gesture, "none"):
             if prima_mano:
                 debug(logging_queue, 'Dammi le carte')
                 for count in range(2):
@@ -437,7 +437,7 @@ def tactigon_shape_function(
             else:
                 mie_carte = (mie_carte if isinstance(mie_carte, Number) else 0) + dai_carta()
                 debug(logging_queue, ('Hai in mano:' + str(mie_carte)))
-        elif check_gesture(gesture, "swipe_l"):
+        elif check_gesture(gesture, "none"):
             debug(logging_queue, 'Ho finito')
             puo_giocare = False
             mazziere_vuole_carte = True

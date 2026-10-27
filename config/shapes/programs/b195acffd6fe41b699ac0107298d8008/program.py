@@ -419,16 +419,16 @@ def tactigon_shape_function(
     if check_gesture(gesture, "up"):
         pos_z = 100
         can_move = True
-    elif check_gesture(gesture, "down"):
+    elif check_gesture(gesture, "none"):
         pos_z = -20
         can_move = True
-    elif check_gesture(gesture, "twist"):
+    elif check_gesture(gesture, "none"):
         pos_wrist = not pos_wrist
         if pos_wrist:
             braccio_wrist(braccio, logging_queue, Wrist['HORIZONTAL'])
         else:
             braccio_wrist(braccio, logging_queue, Wrist['VERTICAL'])
-    elif check_touch(touch, "SINGLE_TAP"):
+    elif check_touch(touch, "none"):
         pos_gripper = not pos_gripper
         if pos_gripper:
             braccio_gripper(braccio, logging_queue, Gripper['OPEN'])
