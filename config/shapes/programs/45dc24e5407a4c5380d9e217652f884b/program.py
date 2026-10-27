@@ -14,7 +14,7 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.ros2.models import RosMessageTypes, String, Bool, Float64, Int64
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
 from tactigon_shapes.modules.ollama.extension import OllamaInterface
@@ -236,7 +236,7 @@ def ros2_run(ros2: Ros2Interface | None, command: str):
 
     ros2.run(command)
 
-def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: RosMessageTypes):
     if not ros2:
         return
     
@@ -408,8 +408,8 @@ def tactigon_shape_function(
     global positions, wrist_pos
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
-    if check_touch(touch, "none"):
-        positions = check_speech(tskin, logging_queue, [])
+    if check_touch(touch, "SINGLE_TAP"):
+        positions = check_speech(tskin, logging_queue, [HotWord("pick"), HotWord("position"), [HotWord("star"), HotWord("circle"), HotWord("square")]])
         if len(positions) == 3:
             if positions[-1] == 'star':
                 debug(logging_queue, 'Pick from star')
@@ -433,7 +433,7 @@ def tactigon_shape_function(
                 braccio_move(braccio, logging_queue, 0, 100, (-20))
                 braccio_gripper(braccio, logging_queue, Gripper['OPEN'])
                 braccio_move(braccio, logging_queue, 0, 100, 100)
-    if check_gesture(gesture, "none"):
+    if check_gesture(gesture, "up"):
         debug(logging_queue, 'Rotate wrist')
         wrist_pos = not wrist_pos
         if wrist_pos:

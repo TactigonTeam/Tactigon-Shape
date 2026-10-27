@@ -410,7 +410,7 @@ def tactigon_shape_function(
     global tap_hold, tap_hold_counter
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
-    if check_touch(touch, "none"):
+    if check_touch(touch, "TAP_AND_HOLD"):
         if tap_hold == False:
             tap_hold = True
             keyboard_press(keyboard, HotKey.parse('<f5>'))

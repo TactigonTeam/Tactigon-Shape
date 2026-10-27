@@ -155,10 +155,14 @@ class ChordsMLModelInfo(BaseModel):
        )
 
 class ChordsMLConfig(BaseModel):
-    url: str = "http://localhost:8000"
+    url: str = ""
 
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            url=data.get("url", "http://localhost:8000"),
+            url=data.get("url", ""),
         )
+
+    @property
+    def is_valid(self) -> bool:
+        return self.url != ""
