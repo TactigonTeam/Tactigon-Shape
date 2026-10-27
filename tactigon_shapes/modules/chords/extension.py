@@ -81,7 +81,7 @@ class ChordLLMInterface:
             with open(self.config_file, "r") as f:
                 config_data = json.load(f)
                 self.config = ChordLLMConfig.FromJSON(config_data)
-                if self.config.is_valid():
+                if self.config.is_valid:
                     self.login(self.base_url, self.config.username, self.config.password)
                     self.prompts = self.get_prompts()
         else:

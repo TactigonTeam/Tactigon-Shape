@@ -42,7 +42,7 @@ from tactigon_shapes.modules.zion.extension import ZionInterface
 from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
 from tactigon_shapes.modules.tskin.manager import walk
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
-from tactigon_shapes.modules.ginos.extension import GinosInterface
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
 from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
@@ -81,7 +81,7 @@ class ShapeThread(ExtensionThread):
     _braccio_interface: BraccioInterface | None = None
     _zion_interface: ZionInterface | None = None
     _ironboy_interface: IronBoyInterface | None = None
-    _ginos_interface: GinosInterface | None = None
+    _ollama_interface: OllamaInterface | None = None
     _mqtt_interface: MQTTClient | None = None
     _ros2_interface: Ros2Interface | None = None
     _ros2_subscription: list[Ros2Subscription] = []
@@ -115,8 +115,8 @@ class ShapeThread(ExtensionThread):
         self._chords_llm = chords_llm
         self._chords_ml = chords_ml
 
-        if app.ginos_config:
-            self._ginos_interface = GinosInterface(app.ginos_config.url, app.ginos_config.model)
+        if app.ollama_config:
+            self._ollama_interface = OllamaInterface(app.ollama_config.url, app.ollama_config.model)
 
         if app.mqtt_config:
             self._mqtt_interface = MQTTClient(app.mqtt_config, self.on_message)
@@ -214,7 +214,7 @@ class ShapeThread(ExtensionThread):
                     self._zion_interface, 
                     self._ros2_interface,
                     self._ironboy_interface, 
-                    self._ginos_interface,
+                    self._ollama_interface,
                     self._mqtt_interface,
                     self._chords_llm,
                     self._chords_ml,
@@ -232,7 +232,7 @@ class ShapeThread(ExtensionThread):
             self._zion_interface, 
             self._ros2_interface,
             self._ironboy_interface, 
-            self._ginos_interface,
+            self._ollama_interface,
             self._mqtt_interface,
             self._chords_llm,
             self._chords_ml,
@@ -252,7 +252,7 @@ class ShapeThread(ExtensionThread):
                     self._zion_interface, 
                     self._ros2_interface,
                     self._ironboy_interface, 
-                    self._ginos_interface,
+                    self._ollama_interface,
                     self._mqtt_interface,
                     self._chords_llm,
                     self._chords_ml,
@@ -264,14 +264,14 @@ class ShapeThread(ExtensionThread):
         if self._ros2_interface:
             self._ros2_interface.stop()
 
-        if self._ginos_interface:
-            self._ginos_interface = None
+        if self._ollama_interface:
+            self._ollama_interface = None
             
         if self._mqtt_interface:
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
         
-        if self._chords_llm:
+        if self._chords_llm and self._chords_llm.config.is_valid:
             self._chords_llm.deinit()
 
 

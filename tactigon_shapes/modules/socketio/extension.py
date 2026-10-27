@@ -25,6 +25,7 @@ from flask_socketio import SocketIO
 
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.braccio.extension import BraccioInterface
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
 from tactigon_shapes.modules.shapes.extension import ShapesApp
 from tactigon_shapes.modules.tskin.models import TSkin
 
@@ -44,7 +45,6 @@ class SocketApp(SocketIO):
 
         self.socket_thread = None
         self._stop_event = Event()
-        self._tutorial_app = None
         self._last_connection_status = None
         self._logger = logging.getLogger(SocketApp.__name__)
 
@@ -171,7 +171,6 @@ class SocketApp(SocketIO):
                 "braccio_connection": braccio_connection,
                 "ironboy_status": ironboy_status,
                 "ironboy_connection": ironboy_connection
-
             }
 
             self.emit("state", payload)

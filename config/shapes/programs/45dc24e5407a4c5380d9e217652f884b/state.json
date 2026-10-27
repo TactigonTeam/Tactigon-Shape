@@ -28,7 +28,7 @@
                     "type": "tskin_touch_list",
                     "id": "CNPhr1yHiHOs{!G)^D.D",
                     "fields": {
-                      "touch": "SINGLE_TAP"
+                      "touch": "none"
                     }
                   }
                 },
@@ -47,9 +47,7 @@
                           "type": "tskin_listen",
                           "id": "G0y,hE3BhY#B%tXmF5X2",
                           "fields": {
-                            "FIELD_0": "pick",
-                            "FIELD_1": "position",
-                            "FIELD_2": "---"
+                            "FIELD_0": ""
                           }
                         }
                       }
@@ -733,7 +731,7 @@
                         "type": "tskin_gesture_list",
                         "id": "w?i),i9Ub3p:v?71q-3-",
                         "fields": {
-                          "gesture": "twist"
+                          "gesture": "none"
                         }
                       }
                     },

@@ -25,13 +25,11 @@ import httpx
 import time
 import pandas as pd
 
-from typing import Iterator
+from typing import Generator, Any
 
-from tactigon_shapes.modules.file_manager.extension import FileManager
-from tactigon_shapes.modules.ginos.models import LLMChatResponse, LLMModelPullRequest, \
+from tactigon_shapes.modules.ollama.models import LLMChatResponse, LLMModelPullRequest, \
     LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, \
-        LLMPromptRequest, LLMChatRequest, LLMPromptResponse, \
-        DataFrameFileExtension
+        LLMPromptRequest, LLMChatRequest, LLMPromptResponse, LLMMessageRole
 
 APPLICATION_JSON = 'application/json'
 
@@ -39,7 +37,7 @@ HEADERS = {
     "accept": APPLICATION_JSON,
 }
 
-class GinosInterface:
+class OllamaInterface:
     _url: str
     _model: str
 
@@ -51,8 +49,7 @@ class GinosInterface:
     def __init__(self, url: str, model: str):
         self._url = url if url[-1] == "/" else f"{url}/"
         self._model = model
-        self._logger = logging.getLogger(GinosInterface.__name__)
-        self._dataframe = pd.DataFrame()
+        self._logger = logging.getLogger(OllamaInterface.__name__)
 
         retries = 0
         while retries < 6:
@@ -81,11 +78,13 @@ class GinosInterface:
     @property
     def model(self) -> str:
         return self._model
-    
-    @property
-    def dataframe_extensions(self) -> list[str]:
-        return [f".{e.value}" for e in DataFrameFileExtension]
 
+    @staticmethod
+    def get_shape_blocks():
+        return dict(
+            roles=[(role.name, role.value) for role in LLMMessageRole]
+        )
+    
     def get_version(self) -> str | None:
         resp = self._get("version")
 
@@ -99,7 +98,7 @@ class GinosInterface:
         
         if models_resp:
             self._model_list = [LLMModelRequest.FromJSON(m) for m in models_resp]
-    
+
     def find_model(self, model_name: str) -> LLMModelRequest | None:
         return next((m for m in self._model_list if m.name == model_name), None)
 
@@ -118,7 +117,7 @@ class GinosInterface:
         
         return LLMModelShowRequest.FromJSON(response_json)
 
-    def pull_model(self, model_name: str) -> Iterator[LLMModelPullResponse]:
+    def pull_model(self, model_name: str) -> Generator[LLMModelPullResponse, Any, None]:
         try:
             with self._stream("pull", LLMModelPullRequest(model_name).toJSON()) as res:
                 for line in res.iter_lines():
@@ -137,7 +136,7 @@ class GinosInterface:
     def remove_model(self, model_name: str) -> bool:
         return self._delete("delete", dict(model=model_name)) == 200
 
-    def prompt(self, prompt: LLMPromptRequest) -> Iterator[LLMPromptResponse]:
+    def prompt(self, prompt: LLMPromptRequest) -> Generator[str, Any, None]:
         if not self.find_model(prompt.model):
             self.pull_model(prompt.model)
 
@@ -147,7 +146,7 @@ class GinosInterface:
                 for line in res.iter_lines():
                     llm_prompt_response = LLMPromptResponse.FromJSON(json.loads(line))
                     self._logger.debug("Response line: %s", llm_prompt_response)
-                    yield llm_prompt_response
+                    yield llm_prompt_response.toText()
                 
         except Exception as e:
             self._logger.error(e)
@@ -155,7 +154,7 @@ class GinosInterface:
 
         return
     
-    def chat(self, chat: LLMChatRequest) -> Iterator[LLMChatResponse]:
+    def chat(self, chat: LLMChatRequest) -> Generator[LLMChatResponse, Any, None]:
         if not self.find_model(chat.model):
             self.pull_model(chat.model)
 
@@ -201,47 +200,3 @@ class GinosInterface:
             self._logger.error(e)
 
         return 500
-    
-    def file_to_dataframe(self,file_path: str) -> pd.DataFrame | None:
-
-        if FileManager.get_file_extension(file_path) not in self.dataframe_extensions:
-            self._logger.error("File type not supported.")
-            return None
-
-        try:
-            df = None
-
-            if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
-
-            elif file_path.endswith('.json'):
-                df = pd.read_json(file_path)
-
-            # elif file_path.endswith(('.txt', '.md')):
-            #     with open(file_path, 'r', encoding='utf-8') as f:
-            #         lines = [line.strip() for line in f.readlines() if line.strip()]
-
-            #     return pandas.DataFrame(lines, columns=['content'])
-            
-            return df
-        except Exception as e:
-            self._logger.error("Cannot read file into dataframe. %s", e.with_traceback)
-            
-        return None
-
-    def add_file_to_context(self, file_path: str):
-            
-        new_df = self.file_to_dataframe(file_path)
-        
-        if new_df is None:
-            self._logger.error(f"Cannot get dataframe from file {file_path}")
-            return False
-        
-        self._dataframe = pd.concat([self._dataframe, new_df], ignore_index=True)
-       
-        self._logger.info(f"Added {file_path} to context")
-        return True
-
-    def clear_context(self):
-        self._dataframe = pd.DataFrame()
-        self._logger.info("Dataframe cleared!")

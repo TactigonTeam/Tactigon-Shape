@@ -43,11 +43,9 @@ class LLMMessageRole(str, Enum):
     ASSISTANT = "assistant"
     TOOL = "tool"
 
-class DataFrameFileExtension(str, Enum):
-    CSV = "csv"
 
 @dataclass
-class GinosConfig:
+class OllamaConfig:
     url: str
     model: str
 
@@ -267,6 +265,9 @@ class LLMPromptResponse:
             prompt_eval_duration=json.get("prompt_eval_duration", 0),
             eval_duration=json.get("eval_duration", 0),
         )
+
+    def toText(self) -> str:
+        return self.response
     
     def toJSON(self) -> dict:
         return dict(
