@@ -132,7 +132,7 @@ class ChordLLMInterface:
             "username": username,
             "password": password,
         }
-        url = f"{self._get_base_url(url)}/api/auth/local"
+        url = f"{self._get_base_url(url)}/api/auth/local/"
 
         self._logger.info(f"Login with {payload} on {url}")
         resp = requests.post(
@@ -158,7 +158,7 @@ class ChordLLMInterface:
         return True
 
     def logout(self):
-        resp = self._do_post("/api/auth/logout")
+        resp = self._do_post("/api/auth/logout/")
 
         if resp and self._get_status(resp) == ChordLLMApiResponseStatusEnum.OK:
             self._logger.info("User logged out!")
@@ -187,7 +187,7 @@ class ChordLLMInterface:
             content=content
         )
 
-        url = f"/api/chat/{self.chat.chat_id}/stream"
+        url = f"/api/chat/{self.chat.chat_id}/stream/"
         payload = req.model_dump()
 
         for attempt in range(2):
@@ -218,14 +218,14 @@ class ChordLLMInterface:
                 "file": ( os.path.basename(file_path), f, "application/octet-stream" )
             }
 
-            res = self._do_post(f"/api/chat/{self.chat.chat_id}/upload", files=files)
+            res = self._do_post(f"/api/chat/{self.chat.chat_id}/upload/", files=files)
         return self._get_status(res) == ChordLLMApiResponseStatusEnum.OK if res else False
 
     def rag(self) -> bool:
         if not self.chat:
             return False
         
-        res = self._do_post(f"/api/chat/{self.chat.chat_id}/rag")
+        res = self._do_post(f"/api/chat/{self.chat.chat_id}/rag/")
 
         return self._get_status(res) == ChordLLMApiResponseStatusEnum.OK if res else False
 
@@ -233,12 +233,12 @@ class ChordLLMInterface:
         if not self.chat:
             return None
         
-        res = self._do_get(f"/api/chat/{self.chat.chat_id}/status", timeout=5)
+        res = self._do_get(f"/api/chat/{self.chat.chat_id}/status/", timeout=5)
 
         return ChordLLMChatStatus(**self._get_data(res)) if res else None
 
     def get_prompts(self):
-        res = self._do_get("/api/prompt")
+        res = self._do_get("/api/prompt/")
 
         prompts = []
         if res:
