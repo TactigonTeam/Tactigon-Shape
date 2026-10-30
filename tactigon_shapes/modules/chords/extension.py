@@ -18,6 +18,7 @@ from tactigon_shapes.modules.chords.models import (
     ChordLLMChat, 
     ChordLLMChatStream, 
     ChordLLMFileExtensionEnum,
+    ChordLLMKnowledgeBaseSchema,
     ChordLLMPromptSchema,
 
     ChordsMLConfig,
@@ -35,6 +36,7 @@ class ChordLLMInterface:
     config_file_path: str
     config: ChordLLMConfig
     prompts: list[ChordLLMPromptSchema]
+    knowledge_bases: list[ChordLLMKnowledgeBaseSchema]
     chat: ChordLLMChat | None
     access_token: str | None
     refresh_token: str | None
@@ -47,6 +49,7 @@ class ChordLLMInterface:
         self.access_token = None
         self.refresh_token = None
         self.prompts = []
+        self.knowledge_bases = []
 
         self.load_config()
 
@@ -67,7 +70,6 @@ class ChordLLMInterface:
     def configured(self) -> bool:
         return False if self.config is None else True
    
-
     @property
     def token(self) -> str:
         return self.access_token if self.access_token else ""
@@ -84,6 +86,7 @@ class ChordLLMInterface:
                 if self.config.is_valid:
                     self.login(self.base_url, self.config.username, self.config.password)
                     self.prompts = self.get_prompts()
+                    self.knowledge_bases = self.get_knowledge_bases()
         else:
             self.config = ChordLLMConfig()
 
@@ -91,7 +94,8 @@ class ChordLLMInterface:
         return {
             "agent_states": [(state.name, state.value) for state in ChordLLMAgentStateEnum],
             "valid_extensions": [ext.value for ext in ChordLLMFileExtensionEnum],
-            "prompts": [(p.name, p.id) for p in self.prompts]
+            "prompts": [(p.name, p.id) for p in self.prompts],
+            "knowledge_bases": [(kb.name, kb.id) for kb in self.knowledge_bases]
         }
     
     def save_config(self, config: ChordLLMConfig):
@@ -120,8 +124,8 @@ class ChordLLMInterface:
     def init_app(self, app: Flask):
         app.extensions[ChordLLMInterface.__name__] = self
 
-    def init(self, prompt: str | None):
-        self.chat = self.new_chat(prompt)
+    def init(self, prompt: str | None, kb: str | None):
+        self.chat = self.new_chat(prompt, kb)
 
     def deinit(self):
         self.chat = None
@@ -132,7 +136,7 @@ class ChordLLMInterface:
             "username": username,
             "password": password,
         }
-        url = f"{self._get_base_url(url)}/api/auth/local/"
+        url = f"{self._get_base_url(url)}/api/auth/local"
 
         self._logger.info(f"Login with {payload} on {url}")
         resp = requests.post(
@@ -158,7 +162,7 @@ class ChordLLMInterface:
         return True
 
     def logout(self):
-        resp = self._do_post("/api/auth/logout/")
+        resp = self._do_post("/api/auth/logout")
 
         if resp and self._get_status(resp) == ChordLLMApiResponseStatusEnum.OK:
             self._logger.info("User logged out!")
@@ -166,11 +170,12 @@ class ChordLLMInterface:
 
         self._logger.warning(f"Could not log out. Error: {self._get_error(resp) if resp else "No response"}")
         
-    def new_chat(self, prompt: str | None = None) -> ChordLLMChat | None:
+    def new_chat(self, prompt: str | None = None, kb: str | None = None) -> ChordLLMChat | None:
         res = self._do_post(
             "/api/chat/",
             payload={
-                "prompt": prompt
+                "prompt": prompt,
+                "kb": kb
             }
         )
 
@@ -187,7 +192,7 @@ class ChordLLMInterface:
             content=content
         )
 
-        url = f"/api/chat/{self.chat.chat_id}/stream/"
+        url = f"/api/chat/{self.chat.chat_id}/stream"
         payload = req.model_dump()
 
         for attempt in range(2):
@@ -218,14 +223,14 @@ class ChordLLMInterface:
                 "file": ( os.path.basename(file_path), f, "application/octet-stream" )
             }
 
-            res = self._do_post(f"/api/chat/{self.chat.chat_id}/upload/", files=files)
+            res = self._do_post(f"/api/chat/{self.chat.chat_id}/upload", files=files)
         return self._get_status(res) == ChordLLMApiResponseStatusEnum.OK if res else False
 
     def rag(self) -> bool:
         if not self.chat:
             return False
         
-        res = self._do_post(f"/api/chat/{self.chat.chat_id}/rag/")
+        res = self._do_post(f"/api/chat/{self.chat.chat_id}/rag")
 
         return self._get_status(res) == ChordLLMApiResponseStatusEnum.OK if res else False
 
@@ -233,7 +238,7 @@ class ChordLLMInterface:
         if not self.chat:
             return None
         
-        res = self._do_get(f"/api/chat/{self.chat.chat_id}/status/", timeout=5)
+        res = self._do_get(f"/api/chat/{self.chat.chat_id}/status", timeout=5)
 
         return ChordLLMChatStatus(**self._get_data(res)) if res else None
 
@@ -247,6 +252,17 @@ class ChordLLMInterface:
         self._logger.info(f"Loaded {len(prompts)} prompts")
 
         return prompts
+
+    def get_knowledge_bases(self):
+        res = self._do_get("/api/knowledge_base/")
+
+        knowledge_bases = []
+        if res:
+            knowledge_bases = [ChordLLMKnowledgeBaseSchema.model_validate(kb) for kb in self._get_data(res).get("knowledge_bases", [])]
+
+        self._logger.info(f"Loaded {len(knowledge_bases)} knowledge bases")
+
+        return knowledge_bases
 
     @staticmethod
     def _get_data(res: requests.Response) -> dict:

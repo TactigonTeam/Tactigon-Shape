@@ -126,7 +126,7 @@ class ShapeThread(ExtensionThread):
             self._ros2_interface.start(app.ros2_config, self.on_ros2_message)
 
         if self._chords_llm:
-            self._chords_llm.init(app.prompt)
+            self._chords_llm.init(app.prompt, app.knowledge_base)
 
         self._logger = logging.getLogger(ShapeThread.__name__)
 

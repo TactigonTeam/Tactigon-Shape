@@ -58,6 +58,7 @@ class ShapeConfig:
     readonly: bool = False
     app_file: str = "program.py"
     prompt: str = ""
+    knowledge_base: str = ""
     ollama_config: OllamaConfig | None = None
     ros2_config: Ros2ShapeConfig | None = None
     mqtt_config: MQTTConfig | None = None

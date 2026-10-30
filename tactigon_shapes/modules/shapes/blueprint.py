@@ -190,6 +190,7 @@ def add():
         )
 
     chords_llm_prompt = get_from_request("chord_llm_prompt")
+    chords_llm_knowledge_base = get_from_request("chord_llm_knowledge_base")
 
     new_config = ShapeConfig(
         id=uuid4(),
@@ -199,7 +200,8 @@ def add():
         modified_on=datetime.now(),
         ollama_config=ollama_config,
         mqtt_config=mqtt_config,
-        prompt=chords_llm_prompt or ""
+        prompt=chords_llm_prompt or "",
+        knowledge_base=chords_llm_knowledge_base or ""
     )
 
     _shapes.add(new_config)
@@ -319,6 +321,7 @@ def save_config(program_id: str):
     #     return redirect(url_for("shapes.index"))
 
     chords_llm_prompt = get_from_request("chord_llm_prompt")
+    chords_llm_knowledge_base = get_from_request("chord_llm_knowledge_base")
 
     config.name = program_name
     config.description = program_description
@@ -326,6 +329,7 @@ def save_config(program_id: str):
     config.ollama_config = ollama_config
     config.mqtt_config = mqtt_config
     config.prompt = chords_llm_prompt or ""
+    config.knowledge_base = chords_llm_knowledge_base or ""
 
     _shapes.save_config(config=config)
 
