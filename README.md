@@ -1,6 +1,16 @@
-# Tactigon Shapes
+# Tactigon Shapes — Visual programming for robotics and IoT
 
-Tactigon Shapes is an extension of [Blockly](https://developers.google.com/blockly), which is a project by Google and that allows you to create visual, drag-and-drop block-based programming interfaces. Instead of typing code, you can create programs by connecting blocks together. This README provides an overview of the project, its features, installation instructions, and guidance on contributing.
+Build robotics and IoT applications by connecting visual blocks.
+Bring together ROS 2, MQTT, REST APIs and local AI through Ollama.
+
+SHAPE is built on Google Blockly and runs locally on compatible hardware.
+Download it, explore the examples and build your first project.
+
+## Start here
+
+- [Installation and prerequisites](https://github.com/TactigonTeam/Tactigon-Shape/wiki/Prerequisites-and-installing)
+- [Documentation and tutorials](https://github.com/TactigonTeam/Tactigon-Shape/wiki)
+- [Report an issue](https://github.com/TactigonTeam/Tactigon-Shape/issues)
 
 ## Table of Contents
 1. [Do you want to know more ?](#do-you-want-to-know-more-)
