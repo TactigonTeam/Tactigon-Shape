@@ -1,19 +1,82 @@
-# Tactigon Shapes
+# SHAPE — Visual programming for robotics and IoT
 
-Tactigon Shapes is an extension of [Blockly](https://developers.google.com/blockly), which is a project by Google and that allows you to create visual, drag-and-drop block-based programming interfaces. Instead of typing code, you can create programs by connecting blocks together. This README provides an overview of the project, its features, installation instructions, and guidance on contributing.
+Build robotics and IoT applications by connecting visual blocks.
+Bring together ROS 2, MQTT, REST APIs and local AI through Ollama.
 
-## Table of Contents
-1. [Do you want to know more ?](#do-you-want-to-know-more-)
-2. [More about Tactigon packages](#more-about-tactigon-packages)
+SHAPE is built on Google Blockly and runs locally on compatible hardware.
+Download it, explore the examples and build your first project.
 
-## Do you want to know more ?
+## Start here
 
-You can access our full documentation, including exercises and additional resources, by clicking the [here](https://github.com/TactigonTeam/Tactigon-Shape/wiki)
+- [Installation and prerequisites](https://github.com/TactigonTeam/Tactigon-Shape/wiki/Prerequisites-and-installing)
+- [Documentation and tutorials](https://github.com/TactigonTeam/Tactigon-Shape/wiki)
+- [Report an issue](https://github.com/TactigonTeam/Tactigon-Shape/issues)
 
+## Quick start
 
-## More about Tactigon packages
+> **DEVELOPER REVIEW REQUIRED BEFORE MERGE**
+>
+> The first-run procedure must be verified on a clean Ubuntu installation.
+> Keep only the validated procedure in the published README.
+> See the pull request checklist for the two options to test.
 
-Below are our most useful Python packages available via pip. Feel free to download them, explore their features, and bring your own ideas to life!
+### Option A — Direct start
 
-1. [Tactigon Gear](https://pypi.org/project/tactigon-gear/)
-2. [Tactigon Speech](https://pypi.org/project/tactigon-speech/)
+From the repository directory:
+
+```bash
+bash start.sh
+```
+
+### Option B — Configure the graphical session and start
+
+Check whether `~/.xprofile` already exists before copying the file.
+If it exists, merge the required settings instead of overwriting it.
+
+```bash
+cp .xprofile ~/.xprofile
+bash start.sh
+```
+
+> **TO VERIFY:** whether copying `.xprofile` is necessary and whether
+> signing out and back in is required before starting SHAPE.
+
+Once the application is running, open:
+
+http://localhost:5123
+
+> **TO VERIFY:** confirm this address as part of the clean-install test.
+
+## What you can build
+
+- Connect MQTT messages to ROS 2 applications.
+- Use local language models through Ollama.
+- Connect applications and services through REST APIs.
+- Add voice and gesture interaction with Tactigon GEAR.
+
+## Tutorials and examples
+
+Explore the [Wiki](https://github.com/TactigonTeam/Tactigon-Shape/wiki)
+for installation instructions, tutorials and exercises covering MQTT,
+ROS 2, Ollama and supported hardware.
+
+## Feedback and contributions
+
+Found a bug or an unclear installation step?
+[Open an issue](https://github.com/TactigonTeam/Tactigon-Shape/issues)
+and include your operating system, installation method, steps to
+reproduce the problem and relevant error messages.
+
+Want to contribute? Explore the
+[contribution guides](https://github.com/TactigonTeam/Tactigon-Shape/wiki)
+to learn how to create custom blocks and modules.
+
+## Related packages
+
+- [Tactigon GEAR](https://pypi.org/project/tactigon-gear/)
+- [Tactigon Speech](https://pypi.org/project/tactigon-speech/)
+
+## License
+
+SHAPE is distributed under the Apache License 2.0.
+See [LICENSE](LICENSE) for details.
