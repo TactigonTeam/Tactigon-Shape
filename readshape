@@ -1,0 +1,152 @@
+<div align="center">
+
+# SHAPE
+
+### Visual programming for robotics and IoT
+
+Build applications by connecting blocks.<br>
+Bring together ROS 2, MQTT, REST APIs and local AI.
+
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![ROS 2](https://img.shields.io/badge/ROS_2-Jazzy-22314E)](https://github.com/TactigonTeam/Tactigon-Shape/wiki)
+[![Blockly](https://img.shields.io/badge/Built_with-Blockly-4285F4)](https://developers.google.com/blockly)
+
+**[Get started](#quick-start)** ·
+**[Documentation](https://github.com/TactigonTeam/Tactigon-Shape/wiki)** ·
+**[Report an issue](https://github.com/TactigonTeam/Tactigon-Shape/issues)**
+
+</div>
+
+---
+
+## Build with blocks. Connect to the real world.
+
+SHAPE is a visual programming environment for robotics and IoT,
+built on Google Blockly.
+
+Create application logic by connecting blocks, integrate devices
+and services, and use local language models through Ollama.
+Run SHAPE locally on compatible hardware.
+
+## What you can build
+
+| Integration | What you can do |
+| :--- | :--- |
+| **ROS 2** | Connect visual application logic to ROS 2 applications. |
+| **MQTT** | Exchange messages with connected devices and IoT services. |
+| **REST APIs** | Connect applications to external services. |
+| **Ollama** | Use language models running locally. |
+| **Tactigon GEAR** | Add voice and gesture interaction to your applications. |
+
+## Quick start
+
+> [!IMPORTANT]
+> **Developer review required before merge**
+>
+> The following first-run options are drafts.
+> Test them on a clean Ubuntu installation and publish only
+> the validated procedure, including its prerequisites.
+
+### 1. Get the project
+
+```bash
+git clone https://github.com/TactigonTeam/Tactigon-Shape.git
+cd Tactigon-Shape
+```
+
+### 2. Start SHAPE
+
+<details open>
+<summary><strong>⚠️ Option A — Direct start · To verify</strong></summary>
+
+Run from the repository directory:
+
+```bash
+bash start.sh
+```
+
+</details>
+
+<details>
+<summary><strong>⚠️ Option B — Configure the graphical session · To verify</strong></summary>
+
+First check whether `~/.xprofile` already exists.
+
+If it exists, merge the required settings instead of overwriting it.
+Otherwise:
+
+```bash
+cp .xprofile ~/.xprofile
+bash start.sh
+```
+
+**Developer check:** confirm whether this configuration is required
+and whether the user must sign out and back in before starting SHAPE.
+
+</details>
+
+### 3. Open the interface
+
+Once the application is running, open:
+
+**http://localhost:5123**
+
+> [!NOTE]
+> Confirm the browser address during the clean-install test.
+> Remove these review notices and the unused installation option
+> before merging.
+
+For detailed setup instructions, see
+[Installation and prerequisites](https://github.com/TactigonTeam/Tactigon-Shape/wiki/Prerequisites-and-installing).
+
+## Explore the documentation
+
+Installation instructions, tutorials and exercises are available
+in the [SHAPE Wiki](https://github.com/TactigonTeam/Tactigon-Shape/wiki).
+
+| Start with | Explore |
+| :--- | :--- |
+| **Installation** | Prerequisites, configuration and first steps |
+| **Robotics and IoT** | ROS 2 and MQTT tutorials |
+| **Local AI** | Ollama integration |
+| **Hardware examples** | Guides for the supported devices |
+| **Custom blocks** | Extend SHAPE with your own blocks and modules |
+
+## Feedback and contributions
+
+### Report a problem
+
+Found a bug or an unclear installation step?
+[Open an issue](https://github.com/TactigonTeam/Tactigon-Shape/issues)
+and include:
+
+- Your operating system and hardware.
+- The installation method you followed.
+- Steps to reproduce the problem.
+- Relevant error messages or logs.
+
+### Create your own blocks
+
+Want to extend SHAPE? Explore the
+[contribution guides](https://github.com/TactigonTeam/Tactigon-Shape/wiki)
+to learn how to create custom blocks and modules.
+
+## Related packages
+
+- **[Tactigon GEAR](https://pypi.org/project/tactigon-gear/)**
+- **[Tactigon Speech](https://pypi.org/project/tactigon-speech/)**
+
+## License
+
+SHAPE is distributed under the **Apache License 2.0**.
+See [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+**[Documentation](https://github.com/TactigonTeam/Tactigon-Shape/wiki)** ·
+**[Issues](https://github.com/TactigonTeam/Tactigon-Shape/issues)** ·
+**[Website](https://thetactigon.com)**
+
+</div>
