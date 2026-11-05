@@ -1,3 +1,5 @@
+![Logo Tactigon](tactigon_shapes/static/images/tactigon_logo.png)
+
 # SHAPE — Visual programming for robotics and IoT
 
 Build robotics and IoT applications by connecting visual blocks.
