@@ -18,10 +18,11 @@ Download it, explore the examples and build your first project.
 
 Before running SHAPE on Linux, ensure your host system is ready. You can test your environment by running these commands in your terminal:
 
-- git --version (verifies Git is installed)
-- docker info (verifies Docker is running and you have correct user permissions without sudo)
-- docker compose version (verifies the Compose plugin is available)
-- xhost (verifies the X server access control tool is installed)
+- `git --version` (verifies Git is installed)
+- `docker info` (verifies Docker is running and you have correct user permissions without sudo)
+- `docker compose version` (verifies the Compose plugin is available)
+- `xhost` (verifies the X server access control tool is installed)
+
 First, clone the repository and navigate into it:
 
 ```bash
