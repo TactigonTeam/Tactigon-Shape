@@ -14,38 +14,30 @@ Download it, explore the examples and build your first project.
 
 ## Quick start
 
-> **DEVELOPER REVIEW REQUIRED BEFORE MERGE**
->
-> The first-run procedure must be verified on a clean Ubuntu installation.
-> Keep only the validated procedure in the published README.
-> See the pull request checklist for the two options to test.
+Before running SHAPE on Linux, ensure your host system is ready. You can test your environment by running these commands in your terminal:
 
-### Option A — Direct start
-
-From the repository directory:
+- git --version (verifies Git is installed)
+- docker info (verifies Docker is running and you have correct user permissions without sudo)
+- docker compose version (verifies the Compose plugin is available)
+- xhost (verifies the X server access control tool is installed)
+First, clone the repository and navigate into it:
 
 ```bash
-bash start.sh
+git clone https://github.com/TactigonTeam/Tactigon-Shape.git
+cd Tactigon-Shape
 ```
 
-### Option B — Configure the graphical session and start
+On Linux systems, you must configure your graphical session before starting SHAPE. This grants the Docker container access to your host's display window. To preserve any existing settings you might already have in your user profile, append the configuration instead of overwriting the file.
 
-Check whether `~/.xprofile` already exists before copying the file.
-If it exists, merge the required settings instead of overwriting it.
+Run the following from the repository directory:
 
 ```bash
-cp .xprofile ~/.xprofile
+cat .xprofile >> ~/.xprofile
 bash start.sh
 ```
-
-> **TO VERIFY:** whether copying `.xprofile` is necessary and whether
-> signing out and back in is required before starting SHAPE.
-
-Once the application is running, open:
+Once the application is running, open your browser and navigate to:
 
 http://localhost:5123
-
-> **TO VERIFY:** confirm this address as part of the clean-install test.
 
 ## What you can build
 
