@@ -35,7 +35,6 @@ On Linux systems, you must configure your graphical session before starting SHAP
 Run the following from the repository directory:
 
 ```bash
-cat .xprofile >> ~/.xprofile
 bash start.sh
 ```
 Once the application is running, open your browser and navigate to:
