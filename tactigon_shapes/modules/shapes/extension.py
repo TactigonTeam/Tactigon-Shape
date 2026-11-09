@@ -88,6 +88,7 @@ class ShapeThread(ExtensionThread):
     _file_manager: FileManager | None = None
     _chords_llm : ChordLLMInterface | None = None
     _chords_ml: ChordMLInterface | None = None
+    module: Any = None
 
     def __init__(
             self, 

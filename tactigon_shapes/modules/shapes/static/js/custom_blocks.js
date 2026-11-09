@@ -1627,9 +1627,24 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
                     "check": "String"
                 }
             ],
-            "output": "String",
+            "output": ["ChordLLMStream"],
             "colour": "#8f6329",
             "tooltip": "Invia il testo digitato a chords e restituisce la risposta.",
+            "helpUrl": ""
+        },
+        {
+            "type": "chords_llm_parse_json",
+            "message0": "Parse response %1 into JSON",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "llm_output",
+                    "check": "ChordLLMStream"
+                }
+            ],
+            "output": "Dict",
+            "colour": "#8f6329",
+            "tooltip": "Parse the answer into a JSON object",
             "helpUrl": ""
         },
         {
@@ -2044,6 +2059,12 @@ def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
         return None
 
     return chords_llm.stream(user_input)
+
+def chords_llm_parse_json(chords_llm: ChordLLMInterface | None, llm_output):
+    if not chords_llm:
+        return None
+
+    return chords_llm.parse_json(llm_output)
 
 def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
@@ -2712,6 +2733,13 @@ function defineChordsGenerators() {
         const userInput = generator.valueToCode(block, 'user_input', python.Order.ATOMIC);
 
         const code = `chords_llm_stream(chords_llm, ${userInput})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['chords_llm_parse_json'] = function(block, generator) {
+        const llmOutput = generator.valueToCode(block, 'llm_output', python.Order.ATOMIC) || 'None';
+
+        const code = `chords_llm_parse_json(chords_llm, ${llmOutput})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 

@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import json
 import httpx
 import requests
@@ -209,6 +210,32 @@ class ChordLLMInterface:
                     self._logger.info(f"Got stream: {line}")
                     yield line
             return
+
+    def parse_json(self, content: Generator[str, Any, None]) -> dict:
+        try:
+            answer = ""
+            for chunk in content:
+                answer += chunk
+            answer = self._extract_json(self._strip_thought(answer)) if answer else "{}"
+            self._logger.info(f"Parsing JSON from: {answer}")
+            return json.loads(answer)
+        except (json.JSONDecodeError, TypeError) as e:
+            self._logger.error(f"Failed to parse JSON: {e}")
+            return {"error": f"Failed to parse JSON {answer}", "exception": str(e)}
+
+    @staticmethod
+    def _strip_thought(text: str) -> str:
+        return re.sub(r"<thought>.*?</thought>", "", text, flags=re.DOTALL).strip()
+
+    @staticmethod
+    def _extract_json(text: str) -> str:
+        """Removes markdown code fences and returns the outermost JSON object/array."""
+        text = re.sub(r"```(?:json)?", "", text, flags=re.IGNORECASE).strip()
+        starts = [i for i in (text.find("{"), text.find("[")) if i != -1]
+        ends = [i for i in (text.rfind("}"), text.rfind("]")) if i != -1]
+        if starts and ends and min(starts) < max(ends):
+            return text[min(starts):max(ends) + 1]
+        return text
 
     def upload(self, file_path: str) -> bool:
         if FileManager.get_file_extension(file_path) not in self.rag_extensions:

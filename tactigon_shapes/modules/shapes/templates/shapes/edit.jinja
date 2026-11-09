@@ -490,13 +490,26 @@
         {% if chord_llm_config and chord_llm_config.is_valid %}
             <category name="Chords LLM" colour="#8f6329">
                 <block type="chords_llm_stream">
-                    <value name="user_input"></value>
+                    <value name="user_input">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
+                </block>
+                <block type="chords_llm_parse_json">
+                    <value name="llm_output">
+                        <shadow type="chords_llm_stream">
+                            <value name="user_input">
+                                <shadow type="text">
+                                </shadow>
+                            </value>
+                        </shadow>
+                    </value>
                 </block>
                 <block type="chords_llm_upload">
-                        <value name="input_path">
-                            <shadow type="text">
-                            </shadow>
-                        </value>
+                    <value name="input_path">
+                        <shadow type="text">
+                        </shadow>
+                    </value>
                 </block>
                 <block type="chords_llm_rag"></block>
                 <block type="chords_llm_get_chat_status"></block>
