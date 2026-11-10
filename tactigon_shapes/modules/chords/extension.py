@@ -402,7 +402,8 @@ class ChordLLMInterface:
             follow_redirects=True,
             headers={
                 "Authorization": f"Bearer {self.access_token}"
-            }
+            },
+            timeout=httpx.Timeout(30.0)
         )
 
     def _get_base_url(self, url: str) -> str:
