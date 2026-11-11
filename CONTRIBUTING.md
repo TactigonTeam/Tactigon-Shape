@@ -549,6 +549,12 @@ We will use two examples:
 
 Both blocks will be added to a new toolbox category called `Custom Math`.
 
+Video tutorial (Italian, with subtitles):
+
+- [Part 1 — 1/3](<docs/assets/videos/Creazione dei blocchi con sottotitoli def parte 1_1.mp4>)
+- [Part 1 — 2/3](<docs/assets/videos/Creazione dei blocchi con sottotitoli def parte 1_2.mp4>)
+- [Part 1 — 3/3](<docs/assets/videos/Creazione dei blocchi con sottotitoli def parte 1_3.mp4>)
+
 ## 6.1 Step 1 — Create a Toolbox Category
 
 Open the Shapes editor template:
@@ -601,7 +607,7 @@ The `shadow` blocks provide default numeric values for the equation coefficients
 
 > **Important:** Block types, field names and input names must match their corresponding Blockly definitions. Avoid duplicate block identifiers.
 
-![Custom Math category in edit.jinja](https://github.com/TactigonTeam/Tactigon-Shape/wiki/images/edit_jinja_category.png)
+![Custom Math category in edit.jinja](docs/assets/images/edit_jinja_category.png)
 
 ## 6.2 Step 2 — Design the Blocks
 
@@ -719,6 +725,8 @@ Add a call to your new block group:
 ```javascript
 loadCustomMathBlocks();
 ```
+
+![Calling loadCustomMathBlocks() in custom_blocks.js](docs/assets/images/custom_blocks_load.png)
 
 Then define the function:
 
@@ -958,7 +966,7 @@ function defineCustomMathGenerators() {
 }
 ```
 
-![Custom Blockly generators](https://github.com/TactigonTeam/Tactigon-Shape/wiki/images/define_generators.png)
+![Custom Blockly generators](docs/assets/images/define_generators.png)
 
 > **Important — Generator vs. Python Function:** The generator does not perform the actual calculation. It produces a string of Python code, such as `quad_equation(1, -3, 2)`. The Python helper function defined in `defineImportsAndLibraries()` performs the calculation when the generated program runs.
 

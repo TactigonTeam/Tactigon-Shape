@@ -12,7 +12,7 @@ For robotics developers, IoT makers and educators building connected application
 
 **[Get started](#quick-start)** · **[Explore projects](#projects-you-can-build)** · **[Documentation](https://thetactigon.com/docs/)** · **[Report an issue](https://github.com/TactigonTeam/Tactigon-Shape/issues)**
 
-[![SHAPE visual programming preview: create and edit a workflow](docs/assets/shape-visual-preview.gif)](https://thetactigon.com/wp-content/uploads/2026/10/SHAPE_Visual_Development_Preview.mp4)
+[![SHAPE visual programming preview: create and edit a workflow](docs/assets/images/shape-visual-preview.gif)](https://thetactigon.com/wp-content/uploads/2026/10/SHAPE_Visual_Development_Preview.mp4)
 
 *Watch the 29-second visual development preview. Click the animation to open the video.*
 
@@ -64,7 +64,7 @@ The current `start.sh` configures local Docker display access with `xhost` and r
 
 Open **[http://localhost:5123](http://localhost:5123)** in your browser.
 
-![SHAPE application interface](docs/assets/shape-interface.png)
+![SHAPE application interface](docs/assets/images/shape-interface.png)
 
 For system preparation, see [Install SHAPE with Docker](https://thetactigon.com/docs/install-shape-docker/). Use the dedicated instructions above for WSL and Jetson.
 
@@ -125,7 +125,7 @@ Send a movement status value from SHAPE to a ZION device and display it on a das
 
 ## How the ecosystem fits together
 
-[![Animated overview of the SHAPE ecosystem](docs/assets/shape-ecosystem.jpg)](https://thetactigon.com/wp-content/uploads/2026/10/ecosystem-cartoon.mp4)
+[![Animated overview of the SHAPE ecosystem](docs/assets/images/shape-ecosystem.jpg)](https://thetactigon.com/wp-content/uploads/2026/10/ecosystem-cartoon.mp4)
 
 [Watch the 42-second ecosystem animation](https://thetactigon.com/wp-content/uploads/2026/10/ecosystem-cartoon.mp4)
 
