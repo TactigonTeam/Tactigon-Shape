@@ -13,7 +13,6 @@
 
 import rclpy
 import os
-import json
 import subprocess
 import signal
 import logging
@@ -21,14 +20,13 @@ from rclpy.node import Node, QoSProfile
 from std_msgs.msg import String
 from threading import Thread, Event as ThreadEvent
 from multiprocessing import Process, Queue, Event, Pipe
-from queue import Queue, Empty
 from functools import wraps
-from flask import Flask
 from werkzeug.datastructures import FileStorage
 import time
 
 from typing import Callable, Any
 
+from tactigon_shapes.interfaces.interface import Interface
 from tactigon_shapes.modules.ros2.models import Ros2Config, Ros2Command, Ros2ShapeConfig, RosMessage, NodeAction, NodeActions, RosMessageTypes, get_message_name
 
 class ShapeNode(Node):
@@ -368,79 +366,44 @@ class ProcessManager:
             process.wait(timeout=5)
             self._processes.remove(process)
 
-class Ros2Interface:
+class Ros2Interface(Interface):
     _process: Ros2Process | None
     _process_manager: ProcessManager
-    ros2_path: str
-    config: Ros2Config
-    _logger: logging.Logger
+    _config: Ros2Config
 
-    def __init__(self, ros2_path: str, app: Flask | None = None):
+    config_class = Ros2Config
+
+    def post_init(self):
         self._process_manager = ProcessManager()
-        self.ros2_path = ros2_path
-        self._logger = logging.getLogger(Ros2Interface.__name__)
-
-        self.load_config()
-
         self._process = None
-
-        if app:
-            self.init_app(app)
-
-    def init_app(self, app: Flask):
-        app.extensions[Ros2Interface.__name__] = self
 
     def get_shape_blocks(self):
         return {
             "default_types": [(n, n) for n in get_message_name()],
-            "commands": [(c.name, c.identifier) for c in self.config.ros2_commands] if self.config.ros2_commands else [("", "")],
+            "commands": [(c.name, c.identifier) for c in self._config.ros2_commands] if self._config.ros2_commands else [("", "")],
             "action_types": [("GESTURE", "GESTURE"), ("VOICE_COMMAND", "VOICE_COMMAND"), ("TOUCH", "TOUCH"), ("CAMERA_POINT", "CAMERA_POINT"), ("MARKER", "MARKER")],
             "intent_types": [("TEACH", "TEACH"), ("REPEAT", "REPEAT")],
         }
+
+    @property
+    def can_run(self) -> bool:
+        return True
     
     @property
-    def is_running(self) -> bool:
+    def running(self) -> bool:
         return self._process.is_alive() if self._process else False
     
     @property
-    def config_file(self) -> str:
-        return os.path.join(self.ros2_path, "config.json")
-    
-    @property
     def nodes_config_folder(self) -> str:
-        return os.path.join(self.ros2_path, "parameters")
-    
-    def load_config(self):
-        if os.path.exists(self.ros2_path) and os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                config_data = json.load(f)
-                self.config = Ros2Config.FromJSON(config_data)
-                self._logger.info("ROS2 configuration loaded")
-        else:
-            self.config = Ros2Config.Default()
-            self.save_config()
+        return os.path.join(self._config_path, "parameters")
 
-    def save_config(self):
-        if not os.path.exists(self.ros2_path):
-            os.makedirs(self.ros2_path)
-
-        with open(self.config_file, "w") as f:
-            json.dump(self.config.toJSON(), f, indent=2)
-
-        self._logger.info("ROS2 configuration saved")
-        self.load_config()
-
-    def reset_config(self):
-        self.stop()
-        
-        if os.path.exists(self.ros2_path) and os.path.exists(self.config_file):
-            os.remove(self.config_file)
-
-        self.load_config()
+    def post_load_config(self):
+        if not self._config:
+            self.save_config(Ros2Config.Default())
 
     def get_package_command(self, package_name: str, node_name: str) -> Ros2Command | None:
         return next(
-            (c for c in self.config.ros2_commands 
+            (c for c in self._config.ros2_commands 
              if c.package_name == package_name and c.node_name == node_name), None)
 
     def add(self, package_name: str, node_name: str, param_file: FileStorage) -> bool:
@@ -453,7 +416,7 @@ class Ros2Interface:
         filepath = os.path.join(self.nodes_config_folder, param_file.filename)
         param_file.save(filepath)
 
-        self.config.ros2_commands.append(
+        self._config.ros2_commands.append(
             Ros2Command(
                 package_name,
                 node_name,
@@ -471,7 +434,7 @@ class Ros2Interface:
         if c:
             filepath = os.path.join(self.nodes_config_folder, c.parameter_file)
             os.remove(filepath)
-            self.config.ros2_commands.remove(c)
+            self._config.ros2_commands.remove(c)
             self._logger.info(f"Removed ROS2 command for package {package_name} and node {node_name}.")
 
         return True
@@ -491,7 +454,7 @@ class Ros2Interface:
         self._process = None
 
     def run(self, command: str):
-        c = next((c for c in self.config.ros2_commands if c.identifier == command), None)
+        c = next((c for c in self._config.ros2_commands if c.identifier == command), None)
         if c:
             self._process_manager.run(c.get_command())
 

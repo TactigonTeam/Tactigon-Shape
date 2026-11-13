@@ -63,6 +63,20 @@ class ShapeConfig:
     ros2_config: Ros2ShapeConfig | None = None
     mqtt_config: MQTTConfig | None = None
 
+    @classmethod
+    def Default(cls):
+        return cls(
+            id=UUID(int=0),
+            name="Default",
+            created_on=datetime.now(),
+            modified_on=datetime.now(),
+            description=None,
+            readonly=False,
+            autostart=False,
+            ginos_config=None,
+            ros2_config=None,
+            mqtt_config=None
+        )
 
     @classmethod
     def FromJSON(cls, json):

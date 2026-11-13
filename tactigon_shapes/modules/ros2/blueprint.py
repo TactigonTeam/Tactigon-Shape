@@ -28,7 +28,7 @@ def index():
         flash("Ros 2 interface not running", category="danger")
         return redirect(url_for("main.index"))
     
-    return render_template("ros2/index.jinja", config=app.config)
+    return render_template("ros2/index.jinja", config=app._config)
 
 @bp.route("/add", methods=["POST"])
 def add():

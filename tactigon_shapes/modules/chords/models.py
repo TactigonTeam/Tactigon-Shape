@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from tactigon_shapes.interfaces.interface import InterfaceConfig
+
 # Chords LLM
 
 class ChordLLMFileExtensionEnum(str, Enum):
@@ -91,7 +93,7 @@ class ChordLLMPromptList(BaseModel):
     prompts: list[ChordLLMPromptSchema] = []
 
 
-class ChordLLMConfig(BaseModel):
+class ChordLLMConfig(BaseModel, InterfaceConfig):
     url: str = "https://localhost/"
     username: str = ""
     password: str = ""

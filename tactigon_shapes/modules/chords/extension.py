@@ -10,6 +10,7 @@ from typing import Generator, Any
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+from tactigon_shapes.interfaces.interface import Interface
 from tactigon_shapes.modules.chords.models import (
     ChordLLMApiResponseStatusEnum, 
     ChordLLMChatStatus, 
@@ -31,61 +32,40 @@ from tactigon_shapes.modules.file_manager.extension import FileManager
 
 APPLICATION_JSON = 'application/json'
 
-class ChordLLMInterface:
-    config_file_path: str
-    config: ChordLLMConfig
-    prompts: list[ChordLLMPromptSchema]
-    chat: ChordLLMChat | None
-    access_token: str | None
-    refresh_token: str | None
+class ChordLLMInterface(Interface):
+    _config: ChordLLMConfig
+    prompts: list[ChordLLMPromptSchema] = []
+    chat: ChordLLMChat | None = None
+    access_token: str | None = None
+    refresh_token: str | None = None
 
-    def __init__(self, config_file_path: str, app: Flask | None = None):
-        self._logger = logging.getLogger(ChordLLMInterface.__name__)
-        self.config_file_path = config_file_path
-
-        self.chat = None
-        self.access_token = None
-        self.refresh_token = None
-        self.prompts = []
-
-        self.load_config()
-
-        self._logger.info("Created!")
-    
-        if app:
-            self.init_app(app)
+    @property
+    def running(self) -> bool:
+        return True
 
     @property
     def config_file(self) -> str:
-        return os.path.join(self.config_file_path, "llm_config.json")
+        return os.path.join(self._config_path, "llm_config.json")
 
     @property
     def rag_extensions(self) -> list[str]:
         return [f".{e.value}" for e in ChordLLMFileExtensionEnum]
-
-    @property
-    def configured(self) -> bool:
-        return False if self.config is None else True
    
-
     @property
     def token(self) -> str:
         return self.access_token if self.access_token else ""
 
     @property
     def base_url(self) -> str:
-        return self._get_base_url(self.config.url)
-    
-    def load_config(self):
-        if os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                config_data = json.load(f)
-                self.config = ChordLLMConfig.FromJSON(config_data)
-                if self.config.is_valid():
-                    self.login(self.base_url, self.config.username, self.config.password)
-                    self.prompts = self.get_prompts()
-        else:
-            self.config = ChordLLMConfig()
+        return self._get_base_url(self._config.url)
+
+    def post_load_config(self):
+        if not self._config:
+            return self.save_config(ChordLLMConfig())
+
+        if self._config.is_valid():
+            self.login(self.base_url, self._config.username, self._config.password)
+            self.prompts = self.get_prompts()
 
     def get_shape_blocks(self):
         return {
@@ -93,32 +73,6 @@ class ChordLLMInterface:
             "valid_extensions": [ext.value for ext in ChordLLMFileExtensionEnum],
             "prompts": [(p.name, p.id) for p in self.prompts]
         }
-    
-    def save_config(self, config: ChordLLMConfig):
-        """save config to remain configurated
-
-        Args:
-            config (ChordLLMConfig): the Chords Configuration
-        """
-        if not os.path.exists(self.config_file_path):
-            os.makedirs(self.config_file_path)
-
-        with open(self.config_file, "w") as f:
-            json.dump(config.toJSON(), f, indent=2)
-
-        self._logger.info("ChordsLLM configuration saved.")
-        self.load_config()
-
-    def reset_config(self):
-        """ remove config file and reloads it
-        """
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            os.remove(self.config_file)
-
-        self.load_config()
-
-    def init_app(self, app: Flask):
-        app.extensions[ChordLLMInterface.__name__] = self
 
     def init(self, prompt: str | None):
         self.chat = self.new_chat(prompt)
@@ -194,7 +148,7 @@ class ChordLLMInterface:
             with self._stream(url, payload) as response:
                 if response.status_code == 401 and attempt == 0:
                     self._logger.info("Stream got 401, trying to re-login")
-                    if not self.login(self.base_url, self.config.username, self.config.password):
+                    if not self.login(self.base_url, self._config.username, self._config.password):
                         return
                     continue
 
@@ -304,7 +258,7 @@ class ChordLLMInterface:
             self._logger.info(f"POST: {url}, payload: {payload}. Response {res.status_code}")
 
             if res.status_code == 401:
-                if not self.login(self.base_url, self.config.username, self.config.password):
+                if not self.login(self.base_url, self._config.username, self._config.password):
                     return None
                 
                 return self._do_post(url, payload, files, auth, timeout)
@@ -336,7 +290,7 @@ class ChordLLMInterface:
             )
 
             if res.status_code == 401:
-                if not self.login(self.base_url, self.config.username, self.config.password):
+                if not self.login(self.base_url, self._config.username, self._config.password):
                     return None
                 
                 return self._do_get(url, auth, timeout)
@@ -370,12 +324,12 @@ class ChordMLInterface:
 
     def __init__(self, config_file_path: str | None = None, app: Flask | None = None):
         self._logger = logging.getLogger(ChordMLInterface.__name__)
-        self.config_file_path = config_file_path
+        self._config_file_path = config_file_path
 
         if config_file_path:
-            self.config = self.load_config(config_file_path)
+            self._config = self.load_config(config_file_path)
         else:
-            self.config = self.default_config()
+            self._config = self.default_config()
     
         if app:
             self.init_app(app)
@@ -403,12 +357,12 @@ class ChordMLInterface:
 
     @property
     def base_url(self) -> str:
-        return self.config.url.rstrip("/")
+        return self._config.url.rstrip("/")
 
     def save_config(self):
-        if self.config_file_path:
-            with open(self.config_file(self.config_file_path), "w") as f:
-                json.dump(self.config.model_dump_json(), f)
+        if self._config_file_path:
+            with open(self.config_file(self._config_file_path), "w") as f:
+                json.dump(self._config.model_dump_json(), f)
 
     def init_app(self, app: Flask):
         app.extensions[ChordMLInterface.__name__] = self

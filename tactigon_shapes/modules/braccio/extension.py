@@ -29,6 +29,7 @@ from queue import Queue
 
 from typing import Tuple
 
+from tactigon_shapes.interfaces.interface import Interface
 from tactigon_shapes.modules.braccio.middleware import Solver
 from tactigon_shapes.modules.braccio.models import BraccioConfig, BraccioCommand, BraccioPosition, CommandStatus, Wrist, Gripper
 
@@ -228,24 +229,11 @@ class Braccio(Thread):
     def off(self) -> Tuple[bool, CommandStatus, float]:
         return self.send_command(BraccioCommand.Off())
 
-class BraccioInterface:
-    config_file_path: str
-    config: BraccioConfig | None
+class BraccioInterface(Interface):
+    _config: BraccioConfig | None = None
     _thread: Braccio | None = None
-
-    def __init__(self, config_file_path: str, app: Flask | None = None):
-        self.config_file_path = config_file_path
-        self.load_config()
-        
-        if app:
-            self.init_app(app)
-
-    def init_app(self, app: Flask):
-        app.extensions[BraccioInterface.__name__] = self
-   
-    @property
-    def configured(self) -> bool:
-        return False if self.config is None else True
+    
+    config_class = BraccioConfig
     
     @property
     def running(self) -> bool:
@@ -254,41 +242,19 @@ class BraccioInterface:
     @property
     def connected(self) -> bool:
         return bool(self._thread.connected) if self._thread else False
-    
-    @property
-    def config_file(self) -> str:
-        return os.path.join(self.config_file_path, "config.json")
-    
-    def load_config(self):
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                self.config = BraccioConfig.FromJSON(json.load(f))
-        else:
-            self.config = None
 
-    def save_config(self, config: BraccioConfig):
-        if not os.path.exists(self.config_file_path):
-            os.makedirs(self.config_file_path)
-
-        with open(self.config_file, "w") as f:
-            json.dump(config.toJSON(), f, indent=2)
-
-        self.load_config()
-
-    def reset_config(self):
-        self.stop()
-        
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            os.remove(self.config_file)
-
-        self.load_config()
+    def get_shape_blocks(self) -> dict:
+        return {
+            "wrist": [[e.name.capitalize(), e.name] for e in Wrist],
+            "gripper": [[e.name.capitalize(), e.name] for e in Gripper]
+        }
 
     def start(self):
         if self._thread:
             self.stop()
 
-        if self.config:
-            self._thread = Braccio(self.config)
+        if self._config:
+            self._thread = Braccio(self._config)
             self._thread.start()
             self.move(0, 100, 100)
             

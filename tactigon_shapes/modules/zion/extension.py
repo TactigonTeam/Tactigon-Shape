@@ -24,91 +24,40 @@ import requests
 
 from flask import Flask
 
+from tactigon_shapes.interfaces.interface import Interface
 from tactigon_shapes.modules.zion.models import AlarmStatus, ZionConfig, Device, Scope, AlarmSearchStatus, AlarmSeverity, DeviceAlarm
 
 APPLICATION_JSON = 'application/json'
 
-class ZionInterface:
-    config_file_path: str
-    config: ZionConfig | None
+class ZionInterface(Interface):
+    _config: ZionConfig | None = None
 
+    config_class = ZionConfig
     devices: list[Device] = []
-    _logger: logging.Logger
-    
-    def __init__(self, config_file_path: str, app: Flask | None = None):
-        """inizialize app in Flask
-
-        Args:
-            config_file_path (str): the configuration file path
-            app (Flask | None, optional): Flask object. Defaults to None.
-        """
-        self._logger = logging.getLogger(ZionInterface.__name__)
-
-        self.config_file_path = config_file_path
-        self.load_config()
-
-        if app:
-            self.init_app(app)
-
-    def init_app(self, app: Flask):
-        """inizialize app through flask
-        Args:
-            app (Flask): connects flask with zion
-        """
-        app.extensions[ZionInterface.__name__] = self
 
     @property
-    def configured(self) -> bool:
-        return False if self.config is None else True
+    def can_run(self) -> bool:
+        return bool(self._config and self._config.is_valid())
     
     @property
-    def config_file(self) -> str:
-        return os.path.join(self.config_file_path, "config.json")
-    
+    def running(self) -> bool:
+        return bool(self._config and self._config.is_valid())
+
     @property
     def token(self) -> str:
-        return self.config.token if self.config else ""
+        return self._config.token if self._config else ""
     
     @token.setter
     def token(self, token: str):
-        if self.config:
-            self.config.token = token
-    
-    def load_config(self):
-        """loads configuration from Zionconfig JSON
-        """
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                self.config = ZionConfig.FromJSON(json.load(f))
-                self._logger.debug("Zion configuration loaded. %s", self.config)
-                self.devices = self.get_devices()
+        if self._config:
+            self._config.token = token
+
+    def post_load_config(self):
+        if self._config:
+            self.devices = self.get_devices()
         else:
-            self.config = None
             self.devices = []
-    
-    def save_config(self, config: ZionConfig):
-        """save config to remain configurated
-
-        Args:
-            config (ZionConfig): the Zion Configuration
-        """
-        if not os.path.exists(self.config_file_path):
-            os.makedirs(self.config_file_path)
-
-        with open(self.config_file, "w") as f:
-            json.dump(config.toJSON(), f, indent=2)
-
-        self._logger.info("Zion configuration saved.")
-        self.load_config()
-
-    def reset_config(self):
-        """ remove config file and reloads it
-        """
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            os.remove(self.config_file)
-
-        self.load_config()
-    
+        
     def get_shape_blocks(self):
         """the lists that create the basic blocks in Shape used in the Zion Api.
         these are shown as fields dropdowns and are included in the other blocks.
@@ -134,7 +83,7 @@ class ZionInterface:
         Returns:
             requests.Response | None:request response
         """
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return None
 
         headers = {
@@ -149,7 +98,7 @@ class ZionInterface:
                 )
             
             if res.status_code == 401:
-                token = self.refresh_token(self.config.url, self.config.username, self.config.password)
+                token = self.refresh_token(self._config.url, self._config.username, self._config.password)
                 
                 if not token:
                     return None
@@ -173,7 +122,7 @@ class ZionInterface:
         Returns:
             dict | None: JSON of the response
         """
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return None
 
         headers = {
@@ -185,7 +134,7 @@ class ZionInterface:
             res = requests.get(url, headers=headers, timeout=5)
 
             if res.status_code == 401:
-                token = self.refresh_token(self.config.url, self.config.username, self.config.password)
+                token = self.refresh_token(self._config.url, self._config.username, self._config.password)
                 
                 if not token:
                     return None
@@ -209,7 +158,7 @@ class ZionInterface:
             dict | None: response status code
         """
 
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return None
 
         headers = {
@@ -221,7 +170,7 @@ class ZionInterface:
             res = requests.delete(url, headers=headers, timeout=5)
 
             if res.status_code == 401:
-                token = self.refresh_token(self.config.url, self.config.username, self.config.password)
+                token = self.refresh_token(self._config.url, self._config.username, self._config.password)
                 
                 if not token:
                     return None
@@ -279,13 +228,13 @@ class ZionInterface:
 
         device_list = []
 
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return device_list
         
         hasNext = True
         
         while hasNext:
-            url = f"{self.config.url}api/tenant/devices?pageSize={size}&page={page}"
+            url = f"{self._config.url}api/tenant/devices?pageSize={size}&page={page}"
             res = self.do_get(url)
 
             if not res:
@@ -315,10 +264,10 @@ class ZionInterface:
         Returns:
             dict | None: dictionary
         """
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return None
         
-        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/values/timeseries?useStrictDataTypes=true"
+        url = f"{self._config.url}api/plugins/telemetry/DEVICE/{device_id}/values/timeseries?useStrictDataTypes=true"
         if keys:
             url += f"&keys={keys}"
 
@@ -349,10 +298,10 @@ class ZionInterface:
         Returns:
             dict | None: dict of device attributes
         """
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return None
         
-        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/values/attributes/{scope.value}"
+        url = f"{self._config.url}api/plugins/telemetry/DEVICE/{device_id}/values/attributes/{scope.value}"
         if keys:
             url += f"?keys={keys}"
 
@@ -387,13 +336,13 @@ class ZionInterface:
 
         alarms: list[DeviceAlarm] = []
         
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return alarms
 
         hasNext = True
         
         while hasNext:
-            url = f"{self.config.url}api/alarm/DEVICE/{device_id}?searchStatus={search_status.value}&textSearch={severity.value}&pageSize={size}&page={page}"
+            url = f"{self._config.url}api/alarm/DEVICE/{device_id}?searchStatus={search_status.value}&textSearch={severity.value}&pageSize={size}&page={page}"
             res = self.do_get(url)
 
             if not res:
@@ -419,10 +368,10 @@ class ZionInterface:
         Returns:
             bool: response code is 200
         """
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return False
         
-        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/timeseries/ANY?scope=ANY"
+        url = f"{self._config.url}api/plugins/telemetry/DEVICE/{device_id}/timeseries/ANY?scope=ANY"
 
         res = self.do_post(url, payload)
         
@@ -435,10 +384,10 @@ class ZionInterface:
         return True
     
     def send_device_attr(self, device_id: str, payload: dict, scope: Scope = Scope.SERVER) -> bool:
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return False
         
-        url = f"{self.config.url}api/plugins/telemetry/{device_id}/{scope.value}"
+        url = f"{self._config.url}api/plugins/telemetry/{device_id}/{scope.value}"
 
         res = self.do_post(url, payload)
 
@@ -462,10 +411,10 @@ class ZionInterface:
         Returns:
             bool: connection was successful
         """
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return False
         
-        url = f"{self.config.url}api/alarm"
+        url = f"{self._config.url}api/alarm"
 
         device = next(filter(lambda d: d.id.id == device_id, self.devices), None)
 
@@ -499,16 +448,16 @@ class ZionInterface:
         Returns:
             bool: operation result
         """      
-        if not self.config or not self.config.is_valid():
+        if not self._config or not self._config.is_valid():
             return False
         
         if not self.token:
-            token = self.refresh_token(self.config.url, self.config.username, self.config.password)
+            token = self.refresh_token(self._config.url, self._config.username, self._config.password)
             if not token:
                 return False
             self.token = token
         
-        url = f"{self.config.url}api/plugins/telemetry/DEVICE/{device_id}/{scope.value}?keys={key}"
+        url = f"{self._config.url}api/plugins/telemetry/DEVICE/{device_id}/{scope.value}?keys={key}"
 
         res = self.do_delete(url)
 

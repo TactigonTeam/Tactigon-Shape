@@ -21,6 +21,8 @@
 from enum import Enum
 from dataclasses import dataclass
 
+from tactigon_shapes.interfaces.interface import InterfaceConfig
+
 
 class Scope(Enum):
     SERVER = "SERVER_SCOPE"
@@ -135,7 +137,7 @@ class DeviceAlarm:
         }
 
 @dataclass
-class ZionConfig:
+class ZionConfig(InterfaceConfig):
     username: str
     password: str
     url: str = "https://zion.nextind.eu/"

@@ -29,21 +29,22 @@ from datetime import datetime
 from flask import Flask
 from pathlib import Path
 from werkzeug.datastructures import FileStorage
+
+from tactigon_shapes.interfaces.interface import Interface
 from tactigon_shapes.modules.file_manager.models import FileManagerConfig, ContentItem, DirectoryItem, FolderItem, FileItem, ItemAlreadyExists
 from tactigon_shapes.models import BASE_PATH
 
 EXCLUDED_FILES = [".gitkeep"]
 
-class FileManager:
-    def __init__(self, config_path: str, app: Flask | None = None):
-        self._logger = self.get_logger()
-        self.config_path = config_path
+class FileManager(Interface):
+    _config: FileManagerConfig | None = None
 
-        self.load_config()
+    config_class = FileManagerConfig
 
-        if app:
-            self.init_app(app)
-
+    @property
+    def running(self) -> bool:
+        return self._config is not None
+    
     @staticmethod
     def get_logger() -> logging.Logger:
         return logging.getLogger(FileManager.__name__)
@@ -308,49 +309,38 @@ class FileManager:
 
         return zip_buffer, "application/zip", "download.zip"
 
-    @property
-    def config_file(self) -> str:
-        return os.path.join(self.config_path, "config.json")
-
-    def init_app(self, app: Flask):
-        app.extensions[FileManager.__name__] = self
-
-    def load_config(self):
-        if os.path.exists(self.config_path) and os.path.isfile(self.config_file):
-            with open(self.config_file, "r") as f:
-                config_data = json.load(f)
-                self.config = FileManagerConfig.FromJSON(config_data)
-                self._logger.info("FileManager configuration loaded")
-        else:
-            self.config = FileManagerConfig.Default(BASE_PATH)
-            self.save_config()
-
-    def save_config(self):
-        if not os.path.exists(self.config_path):
-            os.makedirs(self.config_path)
-
-        with open(self.config_file, "w") as f:
-            json.dump(self.config.toJSON(), f, indent=2)
-
-        self._logger.info("FileManager configuration saved")
-        self.load_config()
+    def post_load_config(self):
+        if self._config is None:
+            self.save_config(FileManagerConfig.Default(BASE_PATH))
 
     def get_directories_from_config(self) -> list[DirectoryItem]:
-        return self.config.directories
+        if self._config is None:
+            raise ValueError("Config is not loaded")
+        
+        return self._config.directories
     
     def add_directory_to_config(self, directory: DirectoryItem):
-        self.config.directories.append(directory)
-        self.save_config()
+        if self._config is None:
+            raise ValueError("Config is not loaded")
+        
+        self._config.directories.append(directory)
+        self.save_config(self._config)
         self._logger.info(f"Directory '{directory.name}' added to config")
     
     def remove_directory_from_config(self, directory: DirectoryItem):
-        self.config.directories = [d for d in self.config.directories if d.name != directory.name]
-        self.save_config()
+        if self._config is None:
+            raise ValueError("Config is not loaded")
+
+        self._config.directories = [d for d in self._config.directories if d.name != directory.name]
+        self.save_config(self._config)
         self._logger.info(f"Directory '{directory.name}' deleted")
 
     def get_shape_blocks(self):
+        if self._config is None:
+            raise ValueError("Config is not loaded")
+        
         blocks = []
-        for directory in self.config.directories:
+        for directory in self._config.directories:
             blocks.append({
                 "directory": directory.toJSON(),
                 "content": [c.toJSON() for c in self.list_contents(directory, recursive=True)]

@@ -23,20 +23,22 @@ from threading import Thread, Event
 from flask import Flask
 from flask_socketio import SocketIO
 
+from tactigon_shapes.interfaces.interface import get_interface
+from tactigon_shapes.modules.tskin.extension import TSkinInterface
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.braccio.extension import BraccioInterface
-from tactigon_shapes.modules.shapes.extension import ShapesApp
+from tactigon_shapes.modules.shapes.extension import ShapesExtension
 from tactigon_shapes.modules.tskin.models import TSkin
 
 class SocketApp(SocketIO):
-    name: str = "socket_app"
     _TICK: float = 0.02
     socket_thread: Thread | None
     _stop_event: Event
-    _shapes_app: ShapesApp | None = None
+    _shapes_app: ShapesExtension | None = None
     _tskin: TSkin | None = None
     _braccio_interface: BraccioInterface | None = None
     _ironboy_interface: IronBoyInterface | None = None
+    _tskin_interface: TSkinInterface | None = None
     _last_connection_status: bool | None
 
     def __init__(self, app: Flask | None = None, **kwargs):
@@ -44,7 +46,6 @@ class SocketApp(SocketIO):
 
         self.socket_thread = None
         self._stop_event = Event()
-        self._tutorial_app = None
         self._last_connection_status = None
         self._logger = logging.getLogger(SocketApp.__name__)
 
@@ -53,79 +54,19 @@ class SocketApp(SocketIO):
 
     def init_app(self, app: Flask, *args, **kwargs):
         SocketIO.init_app(self, app, *args, **kwargs)
-        app.extensions[self.name] = self
+        app.extensions[SocketApp.__name__] = self
 
         self._stop_event.clear()
         self.socket_thread = self.start_background_task(target=self.socket_emit_function)
 
     @property
-    def is_running(self) -> bool:
+    def running(self) -> bool:
         return not self._stop_event.is_set()
 
-    @property
-    def shapes_app(self) -> ShapesApp | None:
-        """
-        Get the Shapes App reference
-
-        :return: Shapes App if present
-        """
-
-        return self._shapes_app
-
-    @shapes_app.setter
-    def shapes_app(self, app: ShapesApp) -> None:
-        """
-        Set the Shapes App reference
-
-        :app: Shapes App
-        """
-        self._shapes_app = app
-
-    @property
-    def braccio_interface(self) -> BraccioInterface | None:
-        """
-        Get the BraccioInterface reference
-
-        :return: BraccioInterface if present
-        """
-
-        return self._braccio_interface
-
-    @braccio_interface.setter
-    def braccio_interface(self, app: BraccioInterface) -> None:
-        """
-        Set the BraccioInterface reference
-
-        :app: BraccioInterface
-        """
-        self._braccio_interface = app
-
-    @property
-    def ironboy_interface(self) -> IronBoyInterface | None:
-        """
-        Get the IronBoyInterface reference
-
-        :return: IronBoyInterface if present
-        """
-        return self._ironboy_interface
-
-    @ironboy_interface.setter
-    def ironboy_interface(self, app: IronBoyInterface) -> None:
-        """
-        Set the IronBoyInterface reference
-
-        :app: IronBoyInterface
-        """
-        self._ironboy_interface = app
-
-    def setTSkin(self, tskin: TSkin) -> None:
-        """
-        Set the Tactigon Skin reference
-
-        :tskin: Tactigon Skin reference
-        """
-
-        self._tskin = tskin
+    def load_interfaces(self, app: Flask):
+        self._braccio_interface = get_interface(BraccioInterface, app)
+        self._ironboy_interface = get_interface(IronBoyInterface, app)
+        self._tskin_interface = get_interface(TSkinInterface, app)
 
     def stop(self):
         """
@@ -145,33 +86,25 @@ class SocketApp(SocketIO):
             ironboy_status = False
             ironboy_connection = False
 
-            tskin_selector = None
-            tskin_connected = None
-            tskin_battery = None
+            if self._braccio_interface:
+                braccio_status = self._braccio_interface.running
+                braccio_connection = self._braccio_interface.connected
 
-            if self.braccio_interface:
-                braccio_status = self.braccio_interface.running
-                braccio_connection = self.braccio_interface.connected
+            if self._ironboy_interface:
+                ironboy_status = self._ironboy_interface.running
+                ironboy_connection = self._ironboy_interface.connected
 
-            if self.ironboy_interface:
-                ironboy_status = self.ironboy_interface.running
-                ironboy_connection = self.ironboy_interface.connected
-
-
-            if self._tskin:
-                tskin_selector = self._tskin.selector.value if self._tskin.selector else None
-                tskin_connected = self._tskin.connected
-                tskin_battery = self._tskin.battery
+            if self._tskin_interface:
+                tskin_data = self._tskin_interface.get_socket_data()
+            else:
+                tskin_data = {}
 
             payload = {
-                "selector": tskin_selector,
-                "connected": tskin_connected,
-                "battery": tskin_battery,
                 "braccio_status": braccio_status,
                 "braccio_connection": braccio_connection,
                 "ironboy_status": ironboy_status,
-                "ironboy_connection": ironboy_connection
-
+                "ironboy_connection": ironboy_connection,
+                **tskin_data
             }
 
             self.emit("state", payload)
@@ -183,4 +116,4 @@ class SocketApp(SocketIO):
 
             self.sleep(SocketApp._TICK)  # type: ignore
 
-        logging.info("Stopped SocketIO Tactigon Skin thread")
+        logging.info("Stopped SocketIO thread")

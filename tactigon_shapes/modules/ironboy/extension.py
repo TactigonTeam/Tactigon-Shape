@@ -18,30 +18,21 @@
 #********************************************************************************/
 
 
-import json
-import os
 import time
-from flask import Flask
-from tactigon_ironboy import IronBoyConfig, IronBoy, IronBoyCommand
+from tactigon_ironboy import IronBoy, IronBoyCommand
 
-class IronBoyInterface:
-    config_file_path: str
-    config: IronBoyConfig | None
+from tactigon_shapes.modules.ironboy.models import IronBoyConfigWrapper
+from tactigon_shapes.interfaces.interface import Interface
+
+class IronBoyInterface(Interface):
+    _config: IronBoyConfigWrapper | None
     _thread: IronBoy | None = None
 
-    def __init__(self, config_file_path: str, app: Flask | None = None):
-        self.config_file_path = config_file_path
-        self.load_config()
-        
-        if app:
-            self.init_app(app)
+    config_class = IronBoyConfigWrapper
 
-    def init_app(self, app: Flask):
-        app.extensions[IronBoyInterface.__name__] = self
-   
     @property
-    def configured(self) -> bool:
-        return False if self.config is None else True
+    def can_run(self) -> bool:
+        return self._config is not None
     
     @property
     def running(self) -> bool:
@@ -57,45 +48,13 @@ class IronBoyInterface:
     @property
     def connected(self) -> bool:
         return bool(self._thread.connected) if self._thread else False
-    
-    @property
-    def config_file(self) -> str:
-        return os.path.join(self.config_file_path, "config.json")
-    
-    def load_config(self):
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                config_data = json.load(f)
-
-                self.config = IronBoyConfig.FromJSON(config_data)
-                
-        else:
-            self.config = None
-
-
-    def save_config(self, config: IronBoyConfig):
-        if not os.path.exists(self.config_file_path):
-            os.makedirs(self.config_file_path)
-
-        with open(self.config_file, "w") as f:
-            json.dump(config.toJSON(), f, indent=2)
-
-        self.load_config()
-
-    def reset_config(self):
-        self.stop()
-        
-        if os.path.exists(self.config_file_path) and os.path.exists(self.config_file):
-            os.remove(self.config_file)
-
-        self.load_config()
 
     def start(self):
         if self._thread:
             self.stop()
 
-        if self.config:
-            self._thread = IronBoy(self.config)
+        if self._config:
+            self._thread = IronBoy(self._config)
             self._thread.start()
 
             
