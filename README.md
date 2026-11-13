@@ -2,7 +2,7 @@
   <img src="tactigon_shapes/static/images/tactigon_logo.png" alt="Tactigon" width="280">
 </p>
 
-# SHAPE — Visual programming for robotics and IoT
+# SHAPE — Visual programming for AI, Robotics and IoT
 
 **Connect ROS 2, MQTT, REST APIs and local AI in visual workflows.**
 
