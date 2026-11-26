@@ -1,3 +1,23 @@
+#********************************************************************************
+# Copyright (c) 2025 Next Industries s.r.l.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache 2.0 which is available at http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Project Name:
+# Tactigon Soul - Shape
+# 
+# Release date: 30/09/2025
+# Release version: 1.0
+#
+# Contributors:
+# - Massimiliano Bellino
+# - Stefano Barbareschi
+#********************************************************************************/
+
+
 import asyncio
 
 from os import path
@@ -212,4 +232,5 @@ class TSkinInterface(Interface[TSkinConfigWrapper]):
         if not self._config or not self._config.config:
             return []
 
-        return [(s.name, s.label) for s in self._config.config.speech_config] if self._config.config.speech_config else []
+        # return [(s.name, s.label) for s in self._config.speech_config] if self._config.config.speech_config else []
+        return []

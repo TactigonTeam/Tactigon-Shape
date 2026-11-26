@@ -24,19 +24,15 @@ from datetime import datetime
 
 from flask import Blueprint, render_template, flash, redirect, url_for,request, send_file
 
-from tactigon_shapes.config import app_config, allowed_extensions
-from tactigon_shapes.models import ModelGesture
+from tactigon_shapes.config import allowed_extensions
 from tactigon_shapes.interfaces.extension import get_extension
-from tactigon_shapes.interfaces.interface import get_interface
 from tactigon_shapes.modules.shapes.extension import ShapesExtension
 
 
 from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program, ShapesExtension
-from tactigon_shapes.modules.ginos.models import GinosConfig
 from tactigon_shapes.modules.mqtt.models import MQTTConfig, MQTTSubscription
-from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ollama.models import OllamaConfig
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
-from tactigon_shapes.modules.ginos.manager import get_ginos_blocks
 from tactigon_shapes.utils.request_utils import get_from_request
 
 

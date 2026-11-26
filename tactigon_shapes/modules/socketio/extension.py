@@ -61,6 +61,10 @@ class SocketApp(SocketIO):
     def running(self) -> bool:
         return not self._stop_event.is_set()
 
+    @property
+    def name(self) -> str:
+        return SocketApp.__name__
+
     def load_interfaces(self, app: Flask):
         self._braccio_interface = get_interface(BraccioInterface, app)
         self._ironboy_interface = get_interface(IronBoyInterface, app)

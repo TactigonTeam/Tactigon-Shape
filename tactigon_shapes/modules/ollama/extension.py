@@ -23,13 +23,14 @@ import logging
 import requests
 import httpx
 import time
-import pandas as pd
 
 from typing import Generator, Any
 
-from tactigon_shapes.modules.ollama.models import LLMChatResponse, LLMModelPullRequest, \
-    LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest, \
-        LLMPromptRequest, LLMChatRequest, LLMPromptResponse, LLMMessageRole
+from tactigon_shapes.modules.ollama.models import (
+    LLMChatResponse, LLMModelPullRequest, 
+    LLMModelPullResponse, LLMModelRequest, LLMModelShowRequest,
+    LLMPromptRequest, LLMChatRequest, LLMPromptResponse, LLMMessageRole
+)
 
 APPLICATION_JSON = 'application/json'
 
@@ -43,8 +44,6 @@ class OllamaInterface:
 
     _version: str | None
     _model_list: list[LLMModelRequest]
-    _logger: logging.Logger
-    _dataframe: pd.DataFrame
 
     def __init__(self, url: str, model: str):
         self._url = url if url[-1] == "/" else f"{url}/"

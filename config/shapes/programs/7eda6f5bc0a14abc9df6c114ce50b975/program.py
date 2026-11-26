@@ -350,6 +350,12 @@ def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
 
     return chords_llm.stream(user_input)
 
+def chords_llm_parse_json(chords_llm: ChordLLMInterface | None, llm_output):
+    if not chords_llm:
+        return None
+
+    return chords_llm.parse_json(llm_output)
+
 def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
         return False

@@ -29,15 +29,15 @@ from tactigon_shapes.modules.file_manager.extension import FileManager
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 
 excluded_apps = [
-    SocketApp.__name__, 
-    TSkinInterface.name, 
     "socketio", 
+    SocketApp.name, 
+    TSkinInterface.name, 
     BraccioInterface.name, 
     ZionInterface.name, 
     IronBoyInterface.name, 
     FileManager.name, 
     ChordLLMInterface.name,
-    ChordMLInterface.__name__,
+    ChordMLInterface.name,
 ]
 
 def stop_apps(exclude: str | None = None):

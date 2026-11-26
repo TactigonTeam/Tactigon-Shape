@@ -18,10 +18,7 @@
 #********************************************************************************/
 
 
-import sys
 import json
-import asyncio
-from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, flash
 
 from tactigon_shapes.interfaces.interface import get_interface

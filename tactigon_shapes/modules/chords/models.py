@@ -93,6 +93,19 @@ class ChordLLMPromptList(BaseModel):
     prompts: list[ChordLLMPromptSchema] = []
 
 
+class ChordLLMKnowledgeBaseSchema(BaseModel):
+    id: int
+    name: str
+    version: str
+    category: str
+    created_on: datetime
+    modified_on: datetime
+
+
+class ChordLLMKnowledgeBaseList(BaseModel):
+    knowledge_bases: list[ChordLLMKnowledgeBaseSchema] = []
+
+
 class ChordLLMConfig(BaseModel, InterfaceConfig):
     url: str = "https://localhost/"
     username: str = ""

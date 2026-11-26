@@ -273,7 +273,7 @@ class ShapeThread(ExtensionThread):
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
         
-        if self._chords_llm and self._chords_llm.config.is_valid:
+        if self._chords_llm and self._chords_llm.configured:
             self._chords_llm.deinit()
 
 
@@ -532,6 +532,7 @@ class ShapesExtension(Extension):
             "file_manager": self._file_manager.get_shape_blocks() if self._file_manager else None,
             "chords_llm": self._chords_llm.get_shape_blocks() if self._chords_llm else None,
             "chords_ml": self._chords_ml.get_shape_blocks() if self._chords_ml else None,
+            "ollama": OllamaInterface.get_shape_blocks()
         }
     
     def get_speech_block_config(self, tspeechobject: TSpeechObject) -> list:
@@ -635,7 +636,7 @@ class ShapesExtension(Extension):
         return True
 
     def autostart(self) -> bool:
-        pass
+        return False
         # config = next((c for c in self.config if c.autostart), None)
 
         # if not config:

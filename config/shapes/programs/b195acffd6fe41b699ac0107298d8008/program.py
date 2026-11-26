@@ -350,6 +350,12 @@ def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
 
     return chords_llm.stream(user_input)
 
+def chords_llm_parse_json(chords_llm: ChordLLMInterface | None, llm_output):
+    if not chords_llm:
+        return None
+
+    return chords_llm.parse_json(llm_output)
+
 def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
         return False
@@ -416,19 +422,19 @@ def tactigon_shape_function(
     global pos_x, pos_y, pos_z, can_move, pos_wrist, pos_gripper
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
-    if check_gesture(gesture, "up"):
+    if check_gesture(gesture, ""):
         pos_z = 100
         can_move = True
-    elif check_gesture(gesture, "none"):
+    elif check_gesture(gesture, ""):
         pos_z = -20
         can_move = True
-    elif check_gesture(gesture, "none"):
+    elif check_gesture(gesture, ""):
         pos_wrist = not pos_wrist
         if pos_wrist:
             braccio_wrist(braccio, logging_queue, Wrist['HORIZONTAL'])
         else:
             braccio_wrist(braccio, logging_queue, Wrist['VERTICAL'])
-    elif check_touch(touch, "none"):
+    elif check_touch(touch, "SINGLE_TAP"):
         pos_gripper = not pos_gripper
         if pos_gripper:
             braccio_gripper(braccio, logging_queue, Gripper['OPEN'])

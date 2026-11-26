@@ -30,6 +30,7 @@ import traceback
 from os import path
 from flask import Flask, render_template, send_from_directory, request, current_app
 from gevent.pywsgi import WSGIServer
+from werkzeug.exceptions import HTTPException
 from geventwebsocket.handler import WebSocketHandler
 
 from tactigon_shapes.config import app_config
@@ -162,19 +163,19 @@ class TactigonShapes:
             self.load_blueprints(flask_app)
 
             flask_app.debug = debug
+            TSkinInterface(path.join(BASE_PATH, "config", "tskin"), flask_app)
+            BraccioInterface(path.join(BASE_PATH, "config", "braccio"), flask_app)
+            ZionInterface(path.join(BASE_PATH, "config", "zion"), flask_app)
+            Ros2Interface(path.join(BASE_PATH, "config", "ros2"), flask_app)
+            IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"), flask_app)
+            FileManager(path.join(BASE_PATH, "config", "file_manager"), flask_app)
+            ChordLLMInterface(path.join(BASE_PATH, "config", "chords"), flask_app)
+            ChordMLInterface(path.join(BASE_PATH, "config", "chords"), flask_app)
+
+            shapes_app = ShapesExtension(path.join(BASE_PATH, "config", "shapes"), flask_app)
+            shapes_app.load_interfaces(flask_app)
 
             socket_app = SocketApp(flask_app)
-            tskin_interface = TSkinInterface(path.join(BASE_PATH, "config", "tskin"), flask_app)
-            shapes_app = ShapesExtension(path.join(BASE_PATH, "config", "shapes"), flask_app)
-            braccio_interface = BraccioInterface(path.join(BASE_PATH, "config", "braccio"), flask_app)
-            zion_interface = ZionInterface(path.join(BASE_PATH, "config", "zion"), flask_app)
-            ros2_interface = Ros2Interface(path.join(BASE_PATH, "config", "ros2"), flask_app)
-            ironboy_interface = IronBoyInterface(path.join(BASE_PATH, "config", "ironboy"), flask_app)
-            file_manager = FileManager(path.join(BASE_PATH, "config", "file_manager"), flask_app)
-            chords_llm_interface = ChordLLMInterface(path.join(BASE_PATH, "config", "chords"), flask_app)
-            chords_ml_interface = ChordMLInterface(path.join(BASE_PATH, "config", "chords"), flask_app)
-
-            shapes_app.load_interfaces(flask_app)
             socket_app.load_interfaces(flask_app)
            
             shapes_app.autostart()
@@ -185,7 +186,9 @@ class TactigonShapes:
 
             @flask_app.errorhandler(Exception)
             def handle_exception(e):
-                # now you're handling non-HTTP exceptions only
+                if isinstance(e, HTTPException):
+                    return e
+
                 current_app.logger.error("Exception while loading the page %s %s. Exception %s", request.method, request.url, e, exc_info=e)
                 tb = "".join(traceback.format_exception(type(e), e, e.__traceback__))
                 return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form, traceback=tb), 500

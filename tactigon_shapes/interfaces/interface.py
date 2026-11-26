@@ -53,7 +53,7 @@ class Interface(ABC, Generic[C]):
     _config_path: str
     _config: C | None = None
 
-    _config_class: type[C] | None = None
+    _config_class: type[C]
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -105,11 +105,7 @@ class Interface(ABC, Generic[C]):
     def init_app(self, flask_app: Flask):
         flask_app.extensions[self.name] = self
 
-    def load_config(self):
-        if not self._config_class:
-            self._logger.error("Config class not set for %s", self.name)
-            raise ValueError("Config class not set for {}".format(self.name))
-        
+    def load_config(self):        
         if path.exists(self.config_file):
             with open(self.config_file, "r") as f:
                 self._config = self._config_class.FromJSON(json.load(f))

@@ -350,6 +350,12 @@ def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
 
     return chords_llm.stream(user_input)
 
+def chords_llm_parse_json(chords_llm: ChordLLMInterface | None, llm_output):
+    if not chords_llm:
+        return None
+
+    return chords_llm.parse_json(llm_output)
+
 def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
         return False
@@ -416,7 +422,7 @@ def tactigon_shape_function(
     global pos_x, pos_y, pos_z, roll, pitch
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
-    if check_touch(touch, "TAP_AND_HOLD"):
+    if check_touch(touch, "SINGLE_TAP"):
         roll = tskin.angle.roll if tskin.angle else 0
         pitch = tskin.angle.pitch if tskin.angle else 0
         if roll < -15:

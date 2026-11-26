@@ -20,17 +20,12 @@
 
 import sys
 import json
-import asyncio
-from os import path
-from bleak import BleakScanner
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 
 from tactigon_shapes.interfaces.interface import get_interface
 from tactigon_shapes.modules.tskin.extension import DEFAULT_SCORER_CONFIG, DEFAULT_SOCKET_CONFIG, TSkinInterface
-from tactigon_shapes.modules.tskin.models import TSkinModel, TSkinConfig, Hand, GestureConfig, SocketConfig, TSpeechObject
+from tactigon_shapes.modules.tskin.models import Hand, SocketConfig
 
-from tactigon_shapes.modules.socketio import get_socket_app
-from tactigon_shapes.config import app_config, speechs_file_path
 from tactigon_shapes.utils.extensions import stop_apps
 from tactigon_shapes.utils.request_utils import get_from_request
 

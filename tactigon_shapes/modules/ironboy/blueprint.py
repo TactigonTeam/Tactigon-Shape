@@ -18,7 +18,6 @@
 #********************************************************************************/
 
 
-import sys
 import json
 import asyncio
 from bleak import BleakScanner

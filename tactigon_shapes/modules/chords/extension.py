@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 import json
@@ -6,7 +5,6 @@ import httpx
 import requests
 import urllib3
 import pandas as pd
-from flask import Flask
 from typing import Generator, Any
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -36,6 +34,7 @@ APPLICATION_JSON = 'application/json'
 
 class ChordLLMInterface(Interface[ChordLLMConfig]):
     prompts: list[ChordLLMPromptSchema] = []
+    knowledge_bases: list[ChordLLMKnowledgeBaseSchema] = []
     chat: ChordLLMChat | None = None
     access_token: str | None = None
     refresh_token: str | None = None
@@ -43,6 +42,10 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
     @property
     def running(self) -> bool:
         return True
+
+    @property
+    def configured(self) -> bool:
+        return self._config is not None and self._config.is_valid
 
     @property
     def config_file(self) -> str:
@@ -66,9 +69,10 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
         if not self._config:
             return self.save_config(ChordLLMConfig())
 
-        if self._config.is_valid():
+        if self._config.is_valid:
             self.login(self.base_url, self._config.username, self._config.password)
             self.prompts = self.get_prompts()
+            self.knowledge_bases = self.get_knowledge_bases()
 
     def get_shape_blocks(self):
         return {
@@ -222,7 +226,7 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
 
         return ChordLLMChatStatus(**self._get_data(res)) if res else None
 
-    def get_prompts(self):
+    def get_prompts(self) -> list[ChordLLMPromptSchema]:
         res = self._do_get("/api/prompt/")
 
         prompts = []
@@ -233,7 +237,7 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
 
         return prompts
 
-    def get_knowledge_bases(self):
+    def get_knowledge_bases(self) -> list[ChordLLMKnowledgeBaseSchema]:
         res = self._do_get("/api/knowledge_base/")
 
         knowledge_bases = []
