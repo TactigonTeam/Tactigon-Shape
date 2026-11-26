@@ -24,7 +24,6 @@ from enum import Enum
 from datetime import datetime
 from dataclasses import dataclass, field
 
-import dateutil.parser
 
 def parse_datetime(date_string: str | None) -> datetime:
     if not date_string:

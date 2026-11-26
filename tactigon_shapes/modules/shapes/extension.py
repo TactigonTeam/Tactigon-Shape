@@ -36,11 +36,12 @@ from flask import Flask
 from werkzeug.datastructures import FileStorage
 from pynput.keyboard import Controller as KeyboardController
 
-from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, ShapesPostAction, Program
-from tactigon_shapes.modules.braccio.extension import BraccioInterface, Wrist, Gripper
+from tactigon_shapes.interfaces.interface import get_interface
+from tactigon_shapes.modules.shapes.models import ShapeConfig, DebugMessage, Program
+from tactigon_shapes.modules.braccio.extension import BraccioInterface
 from tactigon_shapes.modules.zion.extension import ZionInterface
-from tactigon_shapes.modules.tskin.models import ModelGesture, TSkin, OneFingerGesture, TwoFingerGesture, TSpeechObject
-from tactigon_shapes.modules.tskin.manager import walk
+from tactigon_shapes.modules.tskin.extension import TSkinInterface
+from tactigon_shapes.modules.tskin.models import OneFingerGesture, TwoFingerGesture, TSpeechObject
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.ollama.extension import OllamaInterface
 from tactigon_shapes.modules.mqtt.extension import MQTTClient, mqtt_client
@@ -48,7 +49,7 @@ from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, RosMessage, get_message_data
 from tactigon_shapes.modules.file_manager.extension import FileManager
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
-from tactigon_shapes.extensions.base import ExtensionThread, ExtensionApp
+from tactigon_shapes.interfaces.extension import ExtensionThread, Extension
 
 IMPORT_FOLDER_NAME = 'import'
 IMPORT_DESCRIPTION = "Please click 'edit code' button and click save to generate the python code."
@@ -71,11 +72,11 @@ class LoggingQueue(Queue):
 
 class ShapeThread(ExtensionThread):
     MODULE_NAME: str = "ShapeThreadModule"
-    TOUCH_DEBOUCE_TIME: float = 0.05
+    # TOUCH_DEBOUCE_TIME: float = 0.05
     TOUCH_DEBOUNCE_TIMEOUT: float = 0.2
 
     _logger: logging.Logger
-    _tskin: TSkin |None
+    _tskin_interface: TSkinInterface | None
     _keyboard: KeyboardController
     _logging_queue: LoggingQueue
     _braccio_interface: BraccioInterface | None = None
@@ -94,7 +95,7 @@ class ShapeThread(ExtensionThread):
             self, 
             base_path: str, 
             app: ShapeConfig, 
-            tskin: TSkin | None,
+            tskin: TSkinInterface | None,
             keyboard: KeyboardController, 
             braccio: BraccioInterface | None, 
             zion: ZionInterface | None, 
@@ -135,23 +136,23 @@ class ShapeThread(ExtensionThread):
 
         self.load_module(path.join(base_path, "programs", app.id.hex, "program.py"))
 
-    @staticmethod
-    def debouce(tskin: TSkin | None) -> bool:
-        debouce_time = 0
-        timeout = 0
-        while tskin and timeout <= ShapeThread.TOUCH_DEBOUNCE_TIMEOUT:
-            if tskin.touch is None:
-                debouce_time += ShapeThread.TICK
-            else:
-                debouce_time = 0
+    # @staticmethod
+    # def debouce(tskin: TSkin | None) -> bool:
+    #     debouce_time = 0
+    #     timeout = 0
+    #     while tskin and timeout <= ShapeThread.TOUCH_DEBOUNCE_TIMEOUT:
+    #         if tskin.touch is None:
+    #             debouce_time += ShapeThread.TICK
+    #         else:
+    #             debouce_time = 0
 
-            if debouce_time >= ShapeThread.TOUCH_DEBOUCE_TIME:
-                return True
+    #         if debouce_time >= ShapeThread.TOUCH_DEBOUCE_TIME:
+    #             return True
             
-            time.sleep(ShapeThread.TICK)
-            timeout += ShapeThread.TICK
+    #         time.sleep(ShapeThread.TICK)
+    #         timeout += ShapeThread.TICK
             
-        return False
+    #     return False
     
     def on_ros2_message(self, message: RosMessage):
         if not self._ros2_interface or not self.module:
@@ -272,7 +273,7 @@ class ShapeThread(ExtensionThread):
             self._mqtt_interface.disconnect()
             self._mqtt_interface = None
         
-        if self._chords_llm and self._chords_llm.config.is_valid:
+        if self._chords_llm and self._chords_llm.configured:
             self._chords_llm.deinit()
 
 
@@ -290,7 +291,7 @@ class ShapeThread(ExtensionThread):
         spec.loader.exec_module(self.module)  # type: ignore
 
 
-class ShapesApp(ExtensionApp):
+class ShapesExtension(Extension):
     config_file_path: str
     config: list[ShapeConfig]
     shapes_file_path: str
@@ -300,6 +301,7 @@ class ShapesApp(ExtensionApp):
     in_flight_log: DebugMessage | None = None
 
     _logger: logging.Logger
+    _tskin_interface: TSkinInterface | None = None
     _ironboy_interface: IronBoyInterface | None = None
     _braccio_interface: BraccioInterface | None = None
     _zion_interface: ZionInterface | None = None
@@ -313,74 +315,25 @@ class ShapesApp(ExtensionApp):
         self.shapes_file_path = config_path
         self.keyboard = KeyboardController()
         self.logging_queue = LoggingQueue()
-        self._logger = logging.getLogger(ShapesApp.__name__)
+        self._logger = logging.getLogger(ShapesExtension.__name__)
 
         self.hotkey_list = [("<ctrl>+", "ctrl"), ("<shift>+", "shift"), ("<alt>+", "alt"), ("<ctrl>+<alt>+", "ctrl+alt"), ("<ctrl>+<shift>+", "ctrl+shift")]        
         self.function_list = [("Left arrow", "<left>"), ("Right arrow", "<right>"), ("Up arrow", "<up>"), ("Down arrow", "<down>"), ("Del", "<delete>"), ("Esc", "<esc>"), ("Enter", "<enter>")] + [(F"f{k+1}", F"<f{k+1}>") for k in range(12)]
-        self.wristOptions = [[e.name.capitalize(), e.name] for e in Wrist]
-        self.gripperOptions = [[e.name.capitalize(), e.name] for e in Gripper]
 
         with open(self.config_file_path) as cfg:
             self.config = [ShapeConfig.FromJSON(c) for c in json.load(cfg)]
 
-        ExtensionApp.__init__(self, flask_app)
-        
+        Extension.__init__(self, flask_app)
 
-    @property
-    def braccio_interface(self) -> BraccioInterface | None:
-        return self._braccio_interface
-
-    @braccio_interface.setter
-    def braccio_interface(self, braccio_interface: BraccioInterface | None):
-        self._braccio_interface = braccio_interface
-    
-    @property
-    def zion_interface(self) -> ZionInterface | None:
-        return self._zion_interface
-
-    @zion_interface.setter
-    def zion_interface(self, zion_interface: ZionInterface | None):
-        self._zion_interface = zion_interface
-
-    @property
-    def ros2_interface(self) -> Ros2Interface | None:
-        return self._ros2_interface
-
-    @ros2_interface.setter
-    def ros2_interface(self, ros2_interface: Ros2Interface | None):
-        self._ros2_interface = ros2_interface
-
-    @property
-    def ironboy_interface(self) -> IronBoyInterface | None:
-        return self._ironboy_interface
-
-    @ironboy_interface.setter
-    def ironboy_interface(self, ironboy_interface: IronBoyInterface | None):
-        self._ironboy_interface = ironboy_interface
-
-    @property
-    def file_manager(self) -> FileManager | None:
-        return self._file_manager
-    
-    @file_manager.setter
-    def file_manager(self, file_manager: FileManager):
-        self._file_manager = file_manager
-
-    @property
-    def chords_ml(self) -> ChordMLInterface | None:
-        return self._chords_ml
-
-    @chords_ml.setter
-    def chords_ml(self, chords_ml: ChordMLInterface | None):
-        self._chords_ml = chords_ml
-
-    @property
-    def chords_llm(self) -> ChordLLMInterface | None:
-        return self._chords_llm
-
-    @chords_llm.setter
-    def chords_llm(self, chords_llm: ChordLLMInterface | None):
-        self._chords_llm = chords_llm
+    def load_interfaces(self, app: Flask):
+        self._tskin_interface = get_interface(TSkinInterface, app)
+        self._braccio_interface = get_interface(BraccioInterface, app)
+        self._zion_interface = get_interface(ZionInterface, app)
+        self._ros2_interface = get_interface(Ros2Interface, app)
+        self._ironboy_interface = get_interface(IronBoyInterface, app)
+        self._file_manager = get_interface(FileManager, app)
+        self._chords_llm = get_interface(ChordLLMInterface, app)
+        self._chords_ml = get_interface(ChordMLInterface, app)
 
     def get_log(self) -> DebugMessage | None:
         if self.in_flight_log:
@@ -396,7 +349,7 @@ class ShapesApp(ExtensionApp):
         self._logger.debug("Logging read acknowledged")
         self.in_flight_log = None
 
-    def get_state(self, program_id: UUID) -> dict | None:
+    def get_state(self, program_id: UUID) -> dict:
         try:
             folder_path = path.join(self.shapes_file_path, "programs", program_id.hex)
             state_file_path = path.join(folder_path, "state.json")
@@ -410,7 +363,7 @@ class ShapesApp(ExtensionApp):
         except json.JSONDecodeError:
             self._logger.error("Error: The file is not a valid JSON document.")
 
-        return None
+        return {}
     
     def get_code(self, program_id: UUID) -> str | None:   
         try:
@@ -440,16 +393,22 @@ class ShapesApp(ExtensionApp):
             for cfg in self.config:
                 if cfg.id == config.id:
                     cfg.name = config.name
-                    cfg.description = cfg.description
+                    cfg.description = config.description
                     cfg.readonly = config.readonly
                     cfg.app_file = config.app_file
                     cfg.created_on = config.created_on
                     cfg.modified_on = config.modified_on
+                    cfg.autostart = config.autostart
                     found = True
                     break
 
             if not found:
                 self.config.append(config)
+                
+            if config.autostart:
+                for cfg in self.config:
+                    if cfg.id != config.id:
+                        cfg.autostart = False
 
         with open(self.config_file_path, "w") as config_file:
             json.dump([cfg.toJSON() for cfg in self.config], config_file, indent=2)
@@ -534,6 +493,7 @@ class ShapesApp(ExtensionApp):
                     config = ShapeConfig.FromJSON(data)
 
                     config.id = uuid4()
+                    config.autostart = False
                     state_data = json.load(state_file)
                     program = Program(
                         state=state_data,
@@ -556,31 +516,38 @@ class ShapesApp(ExtensionApp):
     def find_shape_by_name_and_not_id(self, name: str, config_id: UUID) -> ShapeConfig | None:
         return next((c for c in self.config if c.id != config_id and c.name.strip().lower() == name.strip().lower()), None)
 
-    def get_blocks_config(self, gestures: list[ModelGesture], has_tskin: bool) -> dict:
-        taps = []
-        if has_tskin:
-            for fin_gesture in (OneFingerGesture, TwoFingerGesture):
-                taps.extend([[e.name.replace("_", " "), e.name] for e in fin_gesture if "TAP" in e.name])
-
-        data = {
-            "has_tskin": has_tskin,
+    def get_blocks(self) -> dict:
+        return {
             "modKeys": self.hotkey_list,
             "funckeys": self.function_list,
-            "gestures": [(g.label, g.gesture) for g in gestures],
-            "taps": taps,           
-            "wristOptions": self.wristOptions,
-            "gripperOptions": self.gripperOptions,
+            "keyboard": {
+                "mod_keys": self.hotkey_list,
+                "func_keys": self.function_list,
+            },
+            "tskin": self._tskin_interface.get_shape_blocks() if self._tskin_interface else None,
+            "zion": self._zion_interface.get_shape_blocks() if self._zion_interface else None,
+            "braccio": self._braccio_interface.get_shape_blocks() if self._braccio_interface else None,
+            "ironboy": self._ironboy_interface.get_shape_blocks() if self._ironboy_interface else None,
+            "ros2": self._ros2_interface.get_shape_blocks() if self._ros2_interface else None,
+            "file_manager": self._file_manager.get_shape_blocks() if self._file_manager else None,
+            "chords_llm": self._chords_llm.get_shape_blocks() if self._chords_llm else None,
+            "chords_ml": self._chords_ml.get_shape_blocks() if self._chords_ml else None,
+            "ollama": OllamaInterface.get_shape_blocks()
         }
-
-        return data
     
     def get_speech_block_config(self, tspeechobject: TSpeechObject) -> list:
         args = []
 
         for s in tspeechobject.t_speech:
-            walk(args, s)
+            TSkinInterface.walk(args, s)
 
         return args
+
+    def get_shape_config(self, config_id: UUID) -> ShapeConfig | None:
+        return next((c for c in self.config if c.id == config_id), None)
+
+    def get_first_or_default_config(self) -> ShapeConfig:
+        return self.config[0] if self.config else ShapeConfig.Default()
     
     def get_shape(self, uuid: UUID | None = None) -> Program:
         code = None
@@ -595,51 +562,54 @@ class ShapesApp(ExtensionApp):
 
         return Program(state, code)
 
-    def start(self, config_id: UUID, tskin: TSkin | None = None) -> Tuple[bool, str] | None:
+    def start(self, config_id: UUID) -> Tuple[bool, str]:
         if self.is_running:
             self.stop()
 
-        for _config in self.config:
-            if _config.id == config_id:
+        _config = next((c for c in self.config if c.id == config_id), None)
 
-                current_program = self.get_shape(_config.id)
+        if not _config:
+            return (False, "Config not found")
 
-                if current_program.code is None:
-                    return (False, "Code not found")
+        current_program = self.get_shape(_config.id)
+        
+        if current_program.code is None:
+            return (False, "Code not found")
 
-                self.current_id = _config.id
+        self.current_id = _config.id
+        try:
+            self.thread = ShapeThread(
+                base_path=self.shapes_file_path, 
+                app=_config, 
+                tskin=self._tskin_interface, 
+                keyboard=self.keyboard,
+                braccio=self._braccio_interface, 
+                zion=self._zion_interface, 
+                ros2=self._ros2_interface,
+                ironboy=self._ironboy_interface, 
+                file_manager=self._file_manager,
+                chords_llm=self._chords_llm,
+                chords_ml=self._chords_ml,
+                logging_queue=self.logging_queue,
+            ) 
+            self._logger.warning("Starting Shape %s, Autostart: %s", _config.name, _config.autostart)
+            self.thread.start()
+        except Exception as e:
+            self._logger.error("Cannot start Shape %s", e)
+            self.current_id = None
+            if self.thread:
                 try:
-                    self.thread = ShapeThread(
-                        base_path=self.shapes_file_path, 
-                        app=_config, 
-                        tskin=tskin, 
-                        keyboard=self.keyboard,
-                        braccio=self.braccio_interface, 
-                        zion=self.zion_interface, 
-                        ros2=self.ros2_interface,
-                        ironboy=self.ironboy_interface, 
-                        file_manager=self.file_manager,
-                        chords_llm=self.chords_llm,
-                        chords_ml=self.chords_ml,
-                        logging_queue=self.logging_queue,
-                    ) 
-                    self.thread.start()
-                except Exception as e:
-                    self._logger.error("Cannot start Shape %s", e)
-                    self.current_id = None
-                    if self.thread:
-                        try:
-                            self.thread.stop()
-                        except:
-                            pass
-                    self.thread = None
-                    return (False, str(e))
-                return (True, "")
-
-        return None
+                    self.thread.stop()
+                except:
+                    pass
+            self.thread = None
+            return (False, str(e))
+        return (True, "")
     
     def stop(self):
-        ExtensionApp.stop(self)
+        Extension.stop(self)
+        # resettare il nome qui spegne lo shape, la shapeapp è gia spenta dal before_request
+        self.current_id = None
         self.in_flight_log = None
 
         while True:
@@ -664,5 +634,24 @@ class ShapesApp(ExtensionApp):
             json.dump(program.state, state_json_file, indent=2)
         
         return True
+
+    def autostart(self) -> bool:
+        return False
+        # config = next((c for c in self.config if c.autostart), None)
+
+        # if not config:
+        #     return False
         
-    
+        # if self.ironboy_interface:
+        #     self.ironboy_interface.start()
+        # if self.braccio_interface:
+        #     self.braccio_interface.start()
+
+        # status, error = self.start(config.id)
+
+        # if not status:
+        #     self._logger.error("Autostart of '%s' failed: %s", config.name, error)
+        #     return False
+
+        # self._logger.info("Shape '%s' autostarted", config.name)
+        # return True

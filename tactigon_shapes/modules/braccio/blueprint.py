@@ -18,14 +18,11 @@
 #********************************************************************************/
 
 
-import sys
 import json
-import asyncio
-from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, flash
 
+from tactigon_shapes.interfaces.interface import get_interface
 from tactigon_shapes.modules.braccio.extension import BraccioConfig, BraccioInterface
-from tactigon_shapes.modules.braccio.manager import get_braccio_interface
 
 from tactigon_shapes.utils.extensions import stop_apps
 from tactigon_shapes.utils.request_utils import get_from_request
@@ -38,7 +35,7 @@ def manage():
 
 @bp.route("/")
 def index():
-    app = get_braccio_interface()
+    app = get_interface(BraccioInterface)
 
     if not app:
         flash("Braccio interface not running", category="danger")
@@ -48,23 +45,16 @@ def index():
 
 @bp.route("/scan")
 def scan():
-    app = get_braccio_interface()
+    app = get_interface(BraccioInterface)
 
     if not app:
-        flash("Braccio interface not running", category="danger")
-        return redirect(url_for("main.index"))
+        return json.dumps({"error": "Braccio interface not running"}), 500
     
-    async def find_devices():
-        devices = await BleakScanner.discover()
-        return filter(lambda d: str(d.name).upper().startswith("ADA") , devices)
-
-    devices = [{"name": d.name, "id": d.address, "address": d.address} for d in asyncio.run(find_devices())]
-
-    return json.dumps(devices)
+    return json.dumps(app.find_devices())
 
 @bp.route("/save", methods=["POST"])
 def save():
-    app = get_braccio_interface()
+    app = get_interface(BraccioInterface)
 
     if not app:
         flash("Braccio interface not running", category="danger")
@@ -89,7 +79,7 @@ def save():
 
 @bp.route("/remove")
 def remove():
-    app = get_braccio_interface()
+    app = get_interface(BraccioInterface)
 
     if not app:
         flash("Braccio interface not running", category="danger")
@@ -102,7 +92,7 @@ def remove():
 
 @bp.route("/start")
 def start():
-    app = get_braccio_interface()
+    app = get_interface(BraccioInterface)
 
     if not app:
         flash("Braccio interface not running", category="danger")
@@ -118,7 +108,7 @@ def start():
 
 @bp.route("/stop")
 def stop():
-    app = get_braccio_interface()
+    app = get_interface(BraccioInterface)
 
     if not app:
         flash("Braccio interface not running", category="danger")

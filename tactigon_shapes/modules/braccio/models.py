@@ -21,6 +21,8 @@
 from enum import Enum
 from dataclasses import dataclass
 
+from tactigon_shapes.interfaces.interface import InterfaceConfig
+
 class Wrist(Enum):
     HORIZONTAL = 90
     VERTICAL = 0
@@ -44,7 +46,7 @@ class CommandStatus(Enum):
     TIMEOUT = "99"
 
 @dataclass
-class BraccioConfig:
+class BraccioConfig(InterfaceConfig):
     name: str
     address: str
 

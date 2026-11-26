@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from tactigon_shapes.interfaces.interface import InterfaceConfig
+
 # Chords LLM
 
 class ChordLLMFileExtensionEnum(str, Enum):
@@ -104,7 +106,7 @@ class ChordLLMKnowledgeBaseList(BaseModel):
     knowledge_bases: list[ChordLLMKnowledgeBaseSchema] = []
 
 
-class ChordLLMConfig(BaseModel):
+class ChordLLMConfig(BaseModel, InterfaceConfig):
     url: str = "https://localhost/"
     username: str = ""
     password: str = ""
@@ -167,8 +169,8 @@ class ChordsMLModelInfo(BaseModel):
            state=ChordsMLModelStateEnum(json.get("state", "NOT_TRAINED")),
        )
 
-class ChordsMLConfig(BaseModel):
-    url: str = ""
+class ChordsMLConfig(BaseModel, InterfaceConfig):
+    url: str = "http://localhost:8000"
 
     @classmethod
     def FromJSON(cls, data: dict):

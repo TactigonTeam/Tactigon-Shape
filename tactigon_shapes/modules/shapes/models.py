@@ -59,10 +59,25 @@ class ShapeConfig:
     app_file: str = "program.py"
     prompt: str = ""
     knowledge_base: str = ""
+    autostart: bool = False
     ollama_config: OllamaConfig | None = None
     ros2_config: Ros2ShapeConfig | None = None
     mqtt_config: MQTTConfig | None = None
 
+    @classmethod
+    def Default(cls):
+        return cls(
+            id=UUID(int=0),
+            name="Default",
+            created_on=datetime.now(),
+            modified_on=datetime.now(),
+            description=None,
+            readonly=False,
+            autostart=False,
+            ollama_config=None,
+            ros2_config=None,
+            mqtt_config=None
+        )
 
     @classmethod
     def FromJSON(cls, json):
@@ -77,6 +92,9 @@ class ShapeConfig:
             modified_on=datetime.fromisoformat(json["modified_on"]),
             description=json["description"],
             readonly=json["readonly"],
+            prompt=json.get("prompt", ""),
+            knowledge_base=json.get("knowledge_base", ""),
+            autostart=json.get("autostart", False), 
             ollama_config=OllamaConfig.FromJSON(ollama_config) if ollama_config else None,
             ros2_config=Ros2ShapeConfig.FromJSON(ros2_config) if ros2_config else None,
             mqtt_config=MQTTConfig.FromJSON(mqtt_config) if mqtt_config else None,
@@ -90,7 +108,9 @@ class ShapeConfig:
             modified_on=self.modified_on.isoformat(),
             description=self.description,
             readonly=self.readonly,
+            autostart=self.autostart,
             prompt=self.prompt,
+            knowledge_base=self.knowledge_base,
             ollama_config=self.ollama_config.toJSON() if self.ollama_config else None,
             ros2_config=self.ros2_config.toJSON() if self.ros2_config else None,
             mqtt_config=self.mqtt_config.toJSON() if self.mqtt_config else None

@@ -20,8 +20,8 @@
 from flask import render_template, redirect, url_for, flash, request, send_file
 from flask.blueprints import Blueprint
 
+from tactigon_shapes.interfaces.interface import get_interface
 from tactigon_shapes.modules.file_manager.extension import FileManager
-from tactigon_shapes.modules.file_manager.manager import get_file_manager_extension
 from tactigon_shapes.modules.file_manager.models import ItemAlreadyExists, ItemBuilder, DirectoryItem
 from tactigon_shapes.utils.request_utils import get_from_request
 
@@ -29,7 +29,7 @@ bp = Blueprint('file_manager', __name__, url_prefix="/files",template_folder='te
 
 @bp.route("/")
 def index():
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         flash("File Manager extension not initialized", "danger")
@@ -39,7 +39,7 @@ def index():
 
 @bp.route("directories/")
 def list_directories():
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response("File Manager extension not initialized")
@@ -50,7 +50,7 @@ def list_directories():
 
 @bp.route("directories/add", methods=["POST"])
 def add_directories():
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response("File Manager extension not initialized")
@@ -61,9 +61,8 @@ def add_directories():
         return FileManager.build_error_response("Folder name is required")
     
     try:
-        directory = app.add_directory(app.config.base_path, directory_name)
+        directory = app.add_directory(directory_name)
         app.add_directory_to_config(directory)
-        app.save_config()
     except ItemAlreadyExists as e:
         return FileManager.build_error_response(e.message)
     except Exception as e:
@@ -73,7 +72,7 @@ def add_directories():
 
 @bp.route("directories/<string:directory_name>/delete", methods=["POST"])
 def delete_directory(directory_name: str):
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response("File Manager extension not initialized")
@@ -90,7 +89,7 @@ def delete_directory(directory_name: str):
 
 @bp.route("directories/<string:directory_name>/content")
 def list_directory_content(directory_name: str):
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response("File Manager extension not initialized")
@@ -114,7 +113,7 @@ def list_directory_content(directory_name: str):
 
 @bp.route("directories/<string:directory_name>/folders/add", methods=["POST"])
 def add_folder_to_directory(directory_name: str):
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response("File Manager extension not initialized")
@@ -140,7 +139,7 @@ def add_folder_to_directory(directory_name: str):
 
 @bp.route("directories/<string:directory_name>/files/add", methods=["POST"])
 def add_file_to_directory(directory_name: str):
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response("File Manager extension not initialized")
@@ -166,7 +165,7 @@ def add_file_to_directory(directory_name: str):
 
 @bp.route("directories/<string:directory_name>/files/delete", methods=["DELETE"])
 def delete_file_from_directory(directory_name: str):
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response("File Manager extension not initialized")
@@ -200,7 +199,7 @@ def delete_file_from_directory(directory_name: str):
 
 @bp.route("directories/<string:directory_name>/files/download", methods=["POST"])
 def download_file_from_directory(directory_name: str):
-    app = get_file_manager_extension()
+    app = get_interface(FileManager)
 
     if not app:
         return FileManager.build_error_response(

@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
+from tactigon_shapes.interfaces.interface import InterfaceConfig
+
 class ItemType(str, Enum):
     FILE = "file"
     FOLDER = "folder"
@@ -135,7 +137,7 @@ class ItemBuilder:
         return item.FromJSON(json)
 
 @dataclass
-class FileManagerConfig:
+class FileManagerConfig(InterfaceConfig):
     base_path: str
     directories: list[DirectoryItem] = field(default_factory=list)
 
@@ -144,7 +146,9 @@ class FileManagerConfig:
         return cls(
             base_path="",
             directories=[
-                DirectoryItem(name="DataFrame", base_path=path.join(base_path, "DataFrame")),
+                DirectoryItem(name="DataFrame", base_path=path.join(base_path, "data_frame")),
+                DirectoryItem(name="Recordings", base_path=path.join(base_path, "recordings")),
+                DirectoryItem(name="User uploads", base_path=path.join(base_path, "user_uploads")),
             ],
         )
 

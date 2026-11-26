@@ -17,35 +17,36 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-
-from tabnanny import check
 from flask import Blueprint, redirect, render_template, flash, url_for
-from tactigon_shapes.modules.chords.manager import get_chord_llm_config
 
-from tactigon_shapes.modules.chords.manager import get_chord_llm_interface
+from tactigon_shapes.interfaces.interface import get_interface
+from tactigon_shapes.modules.chords.extension import ChordLLMInterface
 from tactigon_shapes.modules.chords.models import ChordLLMConfig
 
-from tactigon_shapes.config import app_config
-from tactigon_shapes.utils.request_utils import get_from_request
+from tactigon_shapes.utils.request_utils import get_from_request, stop_running_shape
 
 bp = Blueprint("chord_llm", __name__, url_prefix="/chord-llm", template_folder="../templates")
 
+@bp.before_request
+def manage():
+    stop_running_shape()
+
 @bp.route("/")
 def index(edit: bool = False):
-    app = get_chord_llm_interface()
+    app = get_interface(ChordLLMInterface)
 
     if not app:
         flash("Chords interface not running", category="danger")
         return redirect(url_for("main.index"))
 
-    config = get_chord_llm_config()
+    config = app.config or ChordLLMConfig.Default()
     edit = not config.is_valid
         
     return render_template("chord_llm/index.jinja", configured=app.configured, config=config, edit=edit, prompts=app.prompts)
 
 @bp.route("/edit")
 def edit():
-    app = get_chord_llm_interface()
+    app = get_interface(ChordLLMInterface)
 
     if not app:
         flash("Chords interface not running", category="danger")
@@ -55,7 +56,7 @@ def edit():
 
 @bp.route("/save", methods=["POST"])
 def save():
-    app = get_chord_llm_interface()
+    app = get_interface(ChordLLMInterface)
 
     if not app:
         flash("Chords interface not running", category="danger")
@@ -91,7 +92,7 @@ def save():
 
 @bp.route("/remove")
 def remove():
-    app = get_chord_llm_interface()
+    app = get_interface(ChordLLMInterface)
 
     if not app:
         flash("Chords interface not running", category="danger")
@@ -105,7 +106,7 @@ def remove():
 
 @bp.route("/prompts/refresh")
 def refresh_prompts():
-    app = get_chord_llm_interface()
+    app = get_interface(ChordLLMInterface)
 
     if not app:
         flash("Chords interface not running", category="danger")

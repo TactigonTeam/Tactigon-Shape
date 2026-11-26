@@ -350,6 +350,12 @@ def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
 
     return chords_llm.stream(user_input)
 
+def chords_llm_parse_json(chords_llm: ChordLLMInterface | None, llm_output):
+    if not chords_llm:
+        return None
+
+    return chords_llm.parse_json(llm_output)
+
 def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
         return False
@@ -427,7 +433,7 @@ def tactigon_shape_function(
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
     if puo_giocare:
-        if check_gesture(gesture, "none"):
+        if check_gesture(gesture, ""):
             if prima_mano:
                 debug(logging_queue, 'Dammi le carte')
                 for count in range(2):
@@ -437,7 +443,7 @@ def tactigon_shape_function(
             else:
                 mie_carte = (mie_carte if isinstance(mie_carte, Number) else 0) + dai_carta()
                 debug(logging_queue, ('Hai in mano:' + str(mie_carte)))
-        elif check_gesture(gesture, "none"):
+        elif check_gesture(gesture, ""):
             debug(logging_queue, 'Ho finito')
             puo_giocare = False
             mazziere_vuole_carte = True
@@ -460,7 +466,7 @@ def tactigon_shape_function(
             puo_giocare = False
             mazziere_vuole_carte = False
     else:
-        if check_gesture(gesture, "twist"):
+        if check_gesture(gesture, ""):
             debug(logging_queue, 'Nuovo gioco!')
             puo_giocare = True
             mazziere_vuole_carte = False

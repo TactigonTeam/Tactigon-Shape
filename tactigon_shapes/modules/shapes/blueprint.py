@@ -24,100 +24,39 @@ from datetime import datetime
 
 from flask import Blueprint, render_template, flash, redirect, url_for,request, send_file
 
-from tactigon_shapes.config import app_config, allowed_extensions
-from tactigon_shapes.models import ModelGesture
-from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program, ShapesApp
-from tactigon_shapes.modules.shapes.manager import get_shapes_app
-from tactigon_shapes.modules.ollama.models import OllamaConfig
+from tactigon_shapes.config import allowed_extensions
+from tactigon_shapes.interfaces.extension import get_extension
+from tactigon_shapes.modules.shapes.extension import ShapesExtension
+
+
+from tactigon_shapes.modules.shapes.extension import ShapeConfig, Program, ShapesExtension
 from tactigon_shapes.modules.mqtt.models import MQTTConfig, MQTTSubscription
-from tactigon_shapes.modules.ros2.extension import Ros2Interface
+from tactigon_shapes.modules.ollama.models import OllamaConfig
 from tactigon_shapes.modules.ros2.models import Ros2Subscription, Ros2Publisher, Ros2ShapeConfig
-from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
-from tactigon_shapes.modules.tskin.manager import get_tskin
-from tactigon_shapes.modules.zion.manager import get_zion_interface
-from tactigon_shapes.modules.ollama.extension import OllamaInterface
-from tactigon_shapes.modules.ros2.manager import get_ros2_interface
-from tactigon_shapes.modules.file_manager.manager import get_file_manager_extension
-from tactigon_shapes.modules.chords.manager import get_chord_ml_interface, get_chord_llm_interface
 from tactigon_shapes.utils.request_utils import get_from_request
 
 
 bp = Blueprint("shapes", __name__, url_prefix="/shapes", template_folder="templates", static_folder="static")
 
-def get_tskin_gestures() -> list[ModelGesture]:
-    if app_config.TSKIN and app_config.TSKIN.gesture_config:
-        for model in app_config.MODELS:
-            if model.name == app_config.TSKIN.gesture_config.name:
-                gesture_list = model.gestures
-                return gesture_list
-
-    return []
-
-def build_blocks_config(_shapes: ShapesApp) -> dict:
-    tskin = get_tskin()
-    gesture_list: list[ModelGesture] = []
-    if tskin:
-        gesture_list = get_tskin_gestures()
-
-    blocks_config = _shapes.get_blocks_config(gesture_list, has_tskin=tskin is not None)
-
-    if tskin and app_config.TSKIN_SPEECH:
-        blocks_config["speechs"] = _shapes.get_speech_block_config(app_config.TSKIN_SPEECH)
-
-    zion = get_zion_interface()
-    if zion and zion.devices:
-        blocks_config["zion"] = zion.get_shape_blocks()
-
-    ironboy = get_ironboy_interface()
-    if ironboy:
-        blocks_config["ironboy"] = ironboy.get_shape_blocks()
-
-    ros2_interface = get_ros2_interface()
-    if ros2_interface:
-        blocks_config["ros2"] = ros2_interface.get_shape_blocks()
-
-    blocks_config["ollama"] = OllamaInterface.get_shape_blocks()
-
-    file_manager = get_file_manager_extension()
-    if file_manager:
-        blocks_config["file_manager"] = file_manager.get_shape_blocks()
-
-    chords_llm = get_chord_llm_interface()
-    if chords_llm:
-        blocks_config["chords_llm"] = chords_llm.get_shape_blocks()
-
-    chords_ml = get_chord_ml_interface()
-    if chords_ml:
-        blocks_config["chords_ml"] = chords_ml.get_shape_blocks()
-
-    return blocks_config
-
 @bp.route("/")
 @bp.route("/<string:program_id>")
 def index(program_id: str | None = None):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash("Shapes app not found", category="danger")
         return redirect(url_for("main.index"))
 
-    current_config: ShapeConfig | None = None
-
     if program_id:
-        program = _shapes.find_shape_by_id(UUID(program_id))
+        current_config = _shapes.get_shape_config(UUID(program_id))
 
-        if program is None:
+        if current_config is None:
             flash(f"Shape not found!", category="danger")
             return redirect(url_for("shapes.index"))
-
-        current_config = program
     else:
-        if any(_shapes.config):
-            current_config = _shapes.config[0]
+        current_config = _shapes.get_first_or_default_config()
 
-    blocks_config = build_blocks_config(_shapes)
-
-    state = _shapes.get_state(current_config.id) if current_config else None
+    state = _shapes.get_state(current_config.id)
 
     return render_template("shapes/index.jinja",
         current_config=current_config,
@@ -125,13 +64,13 @@ def index(program_id: str | None = None):
         is_running=_shapes.is_running,
         state=json.dumps(state),
         shapes_config=_shapes.config,
-        blocks_config=blocks_config,
+        blocks_config=_shapes.get_blocks(),
     )
 
 
 @bp.route("/add", methods=["POST"])
 def add():
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash("Shapes app not found", category="danger")
@@ -212,7 +151,7 @@ def add():
 
 @bp.route("/<string:program_id>/edit")
 def edit(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash("Shapes app not found", category="danger")
@@ -229,19 +168,19 @@ def edit(program_id: str):
     if not _shapes.get_code(current_config.id):
         flash("Remember to save before leaving the page!", category="warning")
 
-    blocks_config = build_blocks_config(_shapes)
+    # blocks_config = build_blocks_config(_shapes)
 
     return render_template(
         "shapes/edit.jinja",
         current_config=current_config,
         state=json.dumps(state),
-        blocks_config=blocks_config
+        blocks_config=_shapes.get_blocks()
     )
 
 
 @bp.route("/<string:program_id>/save/config", methods=["POST"])
 def save_config(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash(f"Shapes app not found!", category="danger")
@@ -339,7 +278,7 @@ def save_config(program_id: str):
 
 @bp.route("/<string:program_id>/clone/config", methods=["POST"])
 def clone_config(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash(f"Shapes app not found!", category="danger")
@@ -396,7 +335,7 @@ def clone_config(program_id: str):
 
 @bp.route("/<string:program_id>/save/program", methods=["POST"])
 def save_program(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash(f"Shapes app not found!", category="danger")
@@ -447,7 +386,7 @@ def save_program(program_id: str):
 
 @bp.route("/<string:program_id>/start")
 def start(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash(f"Shapes app not found!", category="danger")
@@ -459,15 +398,7 @@ def start(program_id: str):
         flash(f"Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
     
-    tskin = get_tskin()
-
-    status = _shapes.start(program.id, tskin)
-
-    if status is None:
-        flash(f"{program.name} does not exists!", category="danger")
-        return redirect(url_for("shapes.index"))
-    
-    status, error = status
+    status, error = _shapes.start(program.id)
 
     if status is False:
         flash(f"Failed to start {program.name}. {error}", category="danger")
@@ -479,7 +410,7 @@ def start(program_id: str):
 
 @bp.route("/<string:program_id>/stop")
 def stop(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash(f"Shapes app not found!", category="danger")
@@ -501,7 +432,7 @@ def stop(program_id: str):
 
 @bp.route("/<string:program_id>/delete")
 def delete(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash(f"Shapes app not found!", category="danger")
@@ -521,7 +452,7 @@ def delete(program_id: str):
 @bp.route("/import", methods=["POST"])
 
 def import_shape():
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash(f"Shapes app not found!", category="danger")
@@ -548,7 +479,7 @@ def import_shape():
 
 @bp.route("/<string:program_id>/export")
 def export_shape(program_id: str):
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
 
     if not _shapes:
         flash("Shapes app not found!", category="danger")
@@ -569,3 +500,35 @@ def export_shape(program_id: str):
         download_name=f"{config.name}_export.zip"
     )
     
+    
+@bp.route("/<string:program_id>/autostart/<int:enabled>")
+def autostart(program_id: str, enabled: int):
+    _shapes = get_extension(ShapesExtension)
+
+    if not _shapes:
+        flash("Shapes app not found!", category="danger")
+        return redirect(url_for("main.index"))
+
+    config = _shapes.find_shape_by_id(UUID(program_id))
+
+    if not config:
+        flash("Shape not found!", category="danger")
+        return redirect(url_for("shapes.index"))
+    if _shapes.get_code(config.id) is None:
+        flash("The selected Shape must be saved first", category="warning")
+        return redirect(url_for("shapes.index"))
+    
+    previous = next((c for c in _shapes.config if c.autostart and c.id != config.id), None)
+
+    config.autostart = bool(enabled)
+    _shapes.save_config(config=config)
+
+    if config.autostart:
+        if previous:
+            flash(f"Autostart enabled for {config.name}. It has been disabled on {previous.name}.", category="info")
+        else:
+            flash(f"{config.name} will start automatically.", category="success")
+    else:
+        flash(f"Autostart disabled for {config.name}.", category="success")
+
+    return redirect(url_for("shapes.index", program_id=program_id))

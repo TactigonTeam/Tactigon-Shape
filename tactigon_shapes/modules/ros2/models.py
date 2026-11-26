@@ -19,11 +19,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from tactigon_shapes.interfaces.interface import InterfaceConfig
 from camera_tracking_msgs.msg import Point2D, Marker, MarkerList
 
 StrMessageTypes = String | Int64 | Bool | Float64
 InterfacesMessageTypes = Log
-
 CameraTrackingMessageTypes = Point2D | Marker | MarkerList
 
 RosMessageTypes = StrMessageTypes | InterfacesMessageTypes | CameraTrackingMessageTypes
@@ -211,7 +211,7 @@ class Ros2Command:
         return f"ros2 run {self.package_name} {self.node_name} --ros-args --params-file {self.parameter_file}"
 
 @dataclass
-class Ros2Config:
+class Ros2Config(InterfaceConfig):
     ros2_commands: list[Ros2Command] = field(default_factory=list)
 
     @classmethod

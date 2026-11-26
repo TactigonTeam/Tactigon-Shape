@@ -5,7 +5,7 @@
     if (typeof define === 'function' && define.amd) { // AMD
       define(["./blockly_compressed.js"], factory);
     } else if (typeof exports === 'object') { // Node.js
-      module.exports = factory(require("./blockly_compressed.js"));
+      module.exports = factory(require("./blocks_compressed.js"));
     } else { // Script
       root.python = factory(root.Blockly);
       root.Blockly.Python = root.python.pythonGenerator;

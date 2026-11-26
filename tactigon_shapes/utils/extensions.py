@@ -21,23 +21,23 @@
 from flask import current_app
 
 from tactigon_shapes.modules.socketio import SocketApp
+from tactigon_shapes.modules.tskin.extension import TSkinInterface
 from tactigon_shapes.modules.braccio.extension import BraccioInterface
 from tactigon_shapes.modules.zion.extension import ZionInterface
-from tactigon_shapes.modules.tskin.manager import TSKIN_EXTENSION
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.file_manager.extension import FileManager
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 
 excluded_apps = [
-    SocketApp.name, 
-    TSKIN_EXTENSION, 
     "socketio", 
-    BraccioInterface.__name__, 
-    ZionInterface.__name__, 
-    IronBoyInterface.__name__, 
-    FileManager.__name__, 
-    ChordLLMInterface.__name__,
-    ChordMLInterface.__name__,
+    SocketApp.name, 
+    TSkinInterface.name, 
+    BraccioInterface.name, 
+    ZionInterface.name, 
+    IronBoyInterface.name, 
+    FileManager.name, 
+    ChordLLMInterface.name,
+    ChordMLInterface.name,
 ]
 
 def stop_apps(exclude: str | None = None):

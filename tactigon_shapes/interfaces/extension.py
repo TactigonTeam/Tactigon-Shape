@@ -21,9 +21,9 @@
 import time
 from abc import ABC, abstractmethod
 from threading import Thread, Event
-from typing import Any
+from typing import Any, TypeVar
 
-from flask import Flask
+from flask import Flask, current_app
 
 
 class ExtensionThread(ABC, Thread):
@@ -56,7 +56,7 @@ class ExtensionThread(ABC, Thread):
         Thread.join(self)
 
 
-class ExtensionApp(ABC):
+class Extension(ABC):
     _thread: ExtensionThread | None = None
 
     def __init__(self, flask_app: Flask | None = None):
@@ -96,3 +96,13 @@ class ExtensionApp(ABC):
                 self.thread.join(0.5)
 
         self.thread = None
+
+
+T = TypeVar("T", bound=Extension)
+    
+
+def get_extension(extension: type[T], app: Flask = current_app) -> T | None:
+    ext = app.extensions.get(extension.__name__)
+    if isinstance(ext, extension):
+        return ext
+    return None

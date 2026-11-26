@@ -13,7 +13,6 @@
 
 import rclpy
 import os
-import json
 import subprocess
 import signal
 import logging
@@ -21,14 +20,13 @@ from rclpy.node import Node, QoSProfile
 from std_msgs.msg import String
 from threading import Thread, Event as ThreadEvent
 from multiprocessing import Process, Queue, Event, Pipe
-from queue import Queue, Empty
 from functools import wraps
-from flask import Flask
 from werkzeug.datastructures import FileStorage
 import time
 
 from typing import Callable, Any
 
+from tactigon_shapes.interfaces.interface import Interface
 from tactigon_shapes.modules.ros2.models import Ros2Config, Ros2Command, Ros2ShapeConfig, RosMessage, NodeAction, NodeActions, RosMessageTypes, get_message_name
 
 class ShapeNode(Node):
@@ -368,82 +366,50 @@ class ProcessManager:
             process.wait(timeout=5)
             self._processes.remove(process)
 
-class Ros2Interface:
+class Ros2Interface(Interface[Ros2Config]):
     _process: Ros2Process | None
     _process_manager: ProcessManager
-    ros2_path: str
-    config: Ros2Config
-    _logger: logging.Logger
 
-    def __init__(self, ros2_path: str, app: Flask | None = None):
+    def post_init(self):
         self._process_manager = ProcessManager()
-        self.ros2_path = ros2_path
-        self._logger = logging.getLogger(Ros2Interface.__name__)
-
-        self.load_config()
-
         self._process = None
-
-        if app:
-            self.init_app(app)
-
-    def init_app(self, app: Flask):
-        app.extensions[Ros2Interface.__name__] = self
 
     def get_shape_blocks(self):
         return {
             "default_types": [(n, n) for n in get_message_name()],
-            "commands": [(c.name, c.identifier) for c in self.config.ros2_commands] if self.config.ros2_commands else [("", "")],
+            "commands": [(c.name, c.identifier) for c in self._get_commands()],
             "action_types": [("GESTURE", "GESTURE"), ("VOICE_COMMAND", "VOICE_COMMAND"), ("TOUCH", "TOUCH"), ("CAMERA_POINT", "CAMERA_POINT"), ("MARKER", "MARKER")],
             "intent_types": [("TEACH", "TEACH"), ("REPEAT", "REPEAT")],
         }
+
+    @property
+    def can_run(self) -> bool:
+        return True
     
     @property
-    def is_running(self) -> bool:
+    def running(self) -> bool:
         return self._process.is_alive() if self._process else False
     
     @property
-    def config_file(self) -> str:
-        return os.path.join(self.ros2_path, "config.json")
-    
-    @property
     def nodes_config_folder(self) -> str:
-        return os.path.join(self.ros2_path, "parameters")
-    
-    def load_config(self):
-        if os.path.exists(self.ros2_path) and os.path.exists(self.config_file):
-            with open(self.config_file, "r") as f:
-                config_data = json.load(f)
-                self.config = Ros2Config.FromJSON(config_data)
-                self._logger.info("ROS2 configuration loaded")
-        else:
-            self.config = Ros2Config.Default()
-            self.save_config()
+        return os.path.join(self._config_path, "parameters")
 
-    def save_config(self):
-        if not os.path.exists(self.ros2_path):
-            os.makedirs(self.ros2_path)
+    @property
+    def config(self) -> Ros2Config:
+        if not self._config:
+            self._config = Ros2Config.Default()
+        return self._config
 
-        with open(self.config_file, "w") as f:
-            json.dump(self.config.toJSON(), f, indent=2)
-
-        self._logger.info("ROS2 configuration saved")
-        self.load_config()
-
-    def reset_config(self):
-        self.stop()
-        
-        if os.path.exists(self.ros2_path) and os.path.exists(self.config_file):
-            os.remove(self.config_file)
-
-        self.load_config()
+    def post_load_config(self):
+        if not self._config:
+            self.save_config(Ros2Config.Default())
 
     def get_package_command(self, package_name: str, node_name: str) -> Ros2Command | None:
         return next(
-            (c for c in self.config.ros2_commands 
+            (c for c in self._get_commands() 
              if c.package_name == package_name and c.node_name == node_name), None)
 
-    def add(self, package_name: str, node_name: str, param_file: FileStorage) -> bool:
+    def add(self, package_name: str, node_name: str, param_file: FileStorage) -> bool:       
         if not param_file.filename:
             return False
         
@@ -461,17 +427,20 @@ class Ros2Interface:
             )
         )
 
+        self.save_config(self.config)
+
         self._logger.info(f"Added ROS2 command for package {package_name} and node {node_name}. Config file: {param_file.filename}")
 
         return True
     
-    def remove(self, package_name: str, node_name: str) -> bool:
+    def remove(self, package_name: str, node_name: str) -> bool:   
         c = self.get_package_command(package_name, node_name)
 
         if c:
             filepath = os.path.join(self.nodes_config_folder, c.parameter_file)
             os.remove(filepath)
             self.config.ros2_commands.remove(c)
+            self.save_config(self.config)
             self._logger.info(f"Removed ROS2 command for package {package_name} and node {node_name}.")
 
         return True
@@ -491,7 +460,7 @@ class Ros2Interface:
         self._process = None
 
     def run(self, command: str):
-        c = next((c for c in self.config.ros2_commands if c.identifier == command), None)
+        c = next((c for c in self._get_commands() if c.identifier == command), None)
         if c:
             self._process_manager.run(c.get_command())
 
@@ -506,20 +475,23 @@ class Ros2Interface:
 
     def is_ros2_node_ready(self) -> bool:
         """Wrapper for the boolean block in Shape. Defaults to 5 seconds timeout."""
-        if self._process and self.is_running:
+        if self._process and self.running:
             return self._process.is_ros2_node_ready(timeout=5.0)
         # If ROS 2 process is completely dead, return True to prevent Shape from freezing forever
         return True
     
     def get_topics(self) -> list[str]:
         """Discovery wrapper for Topics in Shape."""
-        if self._process and self.is_running:
+        if self._process and self.running:
             return self._process.get_topics()
         return []
 
     def get_nodes(self) -> list[str]:
         """Discovery wrapper for Nodes in Shape."""
-        if self._process and self.is_running:
+        if self._process and self.running:
             return self._process.get_nodes()
         return []
-    
+
+    def _get_commands(self) -> list[Ros2Command]:
+        """Returns the list of ROS2 commands configured in this interface."""
+        return self._config.ros2_commands if self._config else []
