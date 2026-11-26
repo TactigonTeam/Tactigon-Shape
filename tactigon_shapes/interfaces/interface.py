@@ -22,7 +22,7 @@ import logging
 import json
 
 from os import path, makedirs, remove
-from typing import TypeVar
+from typing import Generic, TypeVar, get_args, get_origin
 from flask import Flask, current_app
 from abc import ABC, abstractmethod
 
@@ -42,12 +42,26 @@ class InterfaceConfig(ABC):
         return None
 
 
-class Interface(ABC):
+C = TypeVar("C", bound=InterfaceConfig)
+
+
+class Interface(ABC, Generic[C]):
+    """Abstract interface bound to a config type: `class MyInterface(Interface[MyConfig])`.
+    `config_class` is resolved automatically from the generic argument.
+    """
     _logger: logging.Logger
     _config_path: str
-    _config: InterfaceConfig | None = None
+    _config: C | None = None
 
-    config_class: type[InterfaceConfig] | None = None
+    _config_class: type[C] | None = None
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        for base in getattr(cls, "__orig_bases__", ()):
+            if get_origin(base) is Interface:
+                (config_type,) = get_args(base)
+                if isinstance(config_type, type):
+                    cls._config_class = config_type
 
     def __init__(self, config_path: str, app: Flask | None = None):
         self._logger = logging.getLogger(self.name)
@@ -78,6 +92,10 @@ class Interface(ABC):
     def can_run(self) -> bool:
         return self.configured
 
+    @property
+    def config(self) -> C | None:
+        return self._config
+
     def post_init(self):
         pass
 
@@ -88,20 +106,20 @@ class Interface(ABC):
         flask_app.extensions[self.name] = self
 
     def load_config(self):
-        if not self.config_class:
+        if not self._config_class:
             self._logger.error("Config class not set for %s", self.name)
             raise ValueError("Config class not set for {}".format(self.name))
         
         if path.exists(self.config_file):
             with open(self.config_file, "r") as f:
-                self._config = self.config_class.FromJSON(json.load(f))
+                self._config = self._config_class.FromJSON(json.load(f))
                 self._logger.debug("%s configuration loaded. %s", self.name, self._config)
         else:
             self._config = None
 
         self.post_load_config()
 
-    def save_config(self, config: InterfaceConfig):
+    def save_config(self, config: C):
         if not path.exists(self._config_path):
             makedirs(self._config_path)
 

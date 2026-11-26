@@ -26,6 +26,7 @@ __version__ = f"5.5.0.3"
 import sys
 import sys
 import logging
+import traceback
 from os import path
 from flask import Flask, render_template, send_from_directory, request, current_app
 from gevent.pywsgi import WSGIServer
@@ -34,21 +35,18 @@ from geventwebsocket.handler import WebSocketHandler
 from tactigon_shapes.config import app_config
 from tactigon_shapes.models import BASE_PATH, TACTIGON_GEAR
 
+from tactigon_shapes.interfaces.interface import get_interface
+
 from tactigon_shapes.modules.socketio import SocketApp, get_socket_app
 from tactigon_shapes.modules.tskin.extension import TSkinInterface
-from tactigon_shapes.modules.tskin.manager import get_tskin_interface
 from tactigon_shapes.modules.braccio.extension import BraccioInterface
-from tactigon_shapes.modules.braccio.manager import get_braccio_interface
 from tactigon_shapes.modules.shapes.extension import ShapesExtension
 from tactigon_shapes.modules.zion.extension import ZionInterface
-from tactigon_shapes.modules.zion.manager import get_zion_interface
 # from tactigon_shapes.modules.tskin.manager import load_tskin, start_tskin, stop_tskin, TSKIN_EXTENSION
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
-from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.file_manager.extension import FileManager
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
-from tactigon_shapes.modules.chords.manager import get_chord_llm_interface
 
 from tactigon_shapes.utils.extensions import force_stop_apps
 
@@ -94,10 +92,18 @@ class TactigonShapes:
 
     @staticmethod
     def load_shared_context() -> dict:
-        braccio_interface = get_braccio_interface()
-        zion_interface = get_zion_interface()
-        ironboy_interface = get_ironboy_interface()
-        chord_llm_interface = get_chord_llm_interface()
+        tskin_interface = get_interface(TSkinInterface)
+        braccio_interface = get_interface(BraccioInterface)
+        zion_interface = get_interface(ZionInterface)
+        ironboy_interface = get_interface(IronBoyInterface)
+        chord_llm_interface = get_interface(ChordLLMInterface)
+
+        if tskin_interface:
+            tskin_config = tskin_interface.tskin_config
+            tskin_hand = tskin_interface.tskin_hand
+        else:
+            tskin_config = None
+            tskin_hand = None
 
         if braccio_interface:
             braccio_config = braccio_interface.config
@@ -131,8 +137,8 @@ class TactigonShapes:
             DEBUG=app_config.DEBUG,
             BASE_PATH=BASE_PATH,
             platform=sys.platform,
-            tskin_config=app_config.TSKIN,
-            hand=app_config.TSKIN.hand.value if app_config.TSKIN else None,
+            tskin_config=tskin_config,
+            hand=tskin_hand,
             request_path=request.path,
             braccio_config=braccio_config,
             braccio_status=braccio_status,
@@ -180,8 +186,9 @@ class TactigonShapes:
             @flask_app.errorhandler(Exception)
             def handle_exception(e):
                 # now you're handling non-HTTP exceptions only
-                current_app.logger.error("Exception while loading the page %s %s. Exception %s", request.method, request.url, e)
-                return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form), 500
+                current_app.logger.error("Exception while loading the page %s %s. Exception %s", request.method, request.url, e, exc_info=e)
+                tb = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                return render_template("error.jinja", error=e, url=request.url, method=request.method, args=request.args, form=request.form, traceback=tb), 500
 
             flask_app.context_processor(self.load_shared_context)                
 
@@ -205,7 +212,7 @@ class TactigonShapes:
         try:
             with self._app.app_context():
                 force_stop_apps()
-                tskin_interface = get_tskin_interface()
+                tskin_interface = get_interface(TSkinInterface)
                 if tskin_interface and tskin_interface.running:
                     tskin_interface.stop()
 

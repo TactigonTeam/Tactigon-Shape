@@ -170,13 +170,13 @@ def edit(program_id: str):
     if not _shapes.get_code(current_config.id):
         flash("Remember to save before leaving the page!", category="warning")
 
-    blocks_config = build_blocks_config(_shapes)
+    # blocks_config = build_blocks_config(_shapes)
 
     return render_template(
         "shapes/edit.jinja",
         current_config=current_config,
         state=json.dumps(state),
-        blocks_config=blocks_config
+        blocks_config=_shapes.get_blocks()
     )
 
 
@@ -398,9 +398,7 @@ def start(program_id: str):
         flash(f"Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
     
-    tskin = get_tskin()
-
-    status, error = _shapes.start(program.id, tskin)
+    status, error = _shapes.start(program.id)
 
     if status is False:
         flash(f"Failed to start {program.name}. {error}", category="danger")

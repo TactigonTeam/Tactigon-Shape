@@ -18,15 +18,11 @@
 #********************************************************************************/
 
 
-from functools import wraps
-from flask import Blueprint, render_template, flash, redirect, url_for, current_app
+from flask import Blueprint, render_template, redirect, url_for
 
 from tactigon_shapes import __version__
 
-from tactigon_shapes.modules.socketio import get_socket_app
-from tactigon_shapes.utils.extensions import stop_apps
 
-from tactigon_shapes.modules.tskin.manager import stop_tskin
 from tactigon_shapes.utils.request_utils import stop_shape
 
 bp = Blueprint('main', __name__, template_folder="main")

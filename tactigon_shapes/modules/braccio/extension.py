@@ -23,7 +23,7 @@ import asyncio
 import json
 import os
 from flask import Flask
-from bleak import BleakClient
+from bleak import BleakClient, BleakScanner
 from threading import Thread, Event
 from queue import Queue
 
@@ -229,12 +229,9 @@ class Braccio(Thread):
     def off(self) -> Tuple[bool, CommandStatus, float]:
         return self.send_command(BraccioCommand.Off())
 
-class BraccioInterface(Interface):
-    _config: BraccioConfig | None = None
+class BraccioInterface(Interface[BraccioConfig]):
     _thread: Braccio | None = None
-    
-    config_class = BraccioConfig
-    
+
     @property
     def running(self) -> bool:
         return self._thread.running if self._thread else False
@@ -242,6 +239,13 @@ class BraccioInterface(Interface):
     @property
     def connected(self) -> bool:
         return bool(self._thread.connected) if self._thread else False
+
+    def find_devices(self) -> list[dict]:
+        async def find_devices():
+            devices = await BleakScanner.discover()
+            return filter(lambda d: str(d.name).upper().startswith("ADA") , devices)
+    
+        return [{"name": d.name, "id": d.address, "address": d.address} for d in asyncio.run(find_devices())]
 
     def get_shape_blocks(self) -> dict:
         return {

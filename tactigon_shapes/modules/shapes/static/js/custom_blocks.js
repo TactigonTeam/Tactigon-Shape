@@ -17,37 +17,31 @@
 # - Stefano Barbareschi
 #********************************************************************************/
 
-var recordingBasePath = "./Recordings";
-function loadCustomBlocks(response) {
-    const gestures = response?.gestures?.length ? response.gestures : [["---", "none"]];
-    const modKeys = response ? response.modKeys : [];
-    const funcKeys = response ? response.funckeys : [];
-    const taps     = response?.taps?.length ? response.taps : [["---", "none"]];
-    const wristOptions = response ? response.wristOptions : [];
-    const gripperOptions = response ? response.gripperOptions : [];
-    const speechs = response?.speechs?.length ? response.speechs : [["---", "none"]];
-    const zion = response ? response.zion : [];
-    const ros2 = response ? response.ros2 : {};
-    const ironboy = response ? response.ironboy : [];
-    const ginos = response ? response.ginos : {};
-    const file_manager = response ? response.file_manager : {};
-    const chords_ml = response ? response.chords_ml : {};
-    const chords_llm = response ? response.chords_llm : {};
+const RECORDING_BASE_PATH = "Recordings";
+const DEFAULT_OPTIONS = [["---", ""]]
+
+function get_options_safe(arr) {
+    if (Array.isArray(arr) && arr.length > 0){
+        return arr;
+    }
+
+    return DEFAULT_OPTIONS;
+}
 
 
+function loadCustomBlocks(data) {
     loadShapesBlocks();
-    loadTSkinBlocks(gestures, taps);
-    loadSpeechBlocks(speechs,file_manager);
-    loadKeyboardBlocks(funcKeys, modKeys);
-    loadBraccioBlocks(wristOptions, gripperOptions);
-    loadZionBlocks(zion);
-    loadRos2Blocks(ros2);
-    loadIronBoyBlocks(ironboy);
-    loadGinosAIBlocks(ginos, file_manager);
+    loadTSkinBlocks(data.tskin);
+    loadSpeechBlocks(data.tskin);
+    loadKeyboardBlocks(data.keyboard);
+    loadBraccioBlocks(data.braccio);
+    loadZionBlocks(data.zion);
+    loadRos2Blocks(data.ros2);
+    loadIronBoyBlocks(data.ironboy);
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
-    loadChordsBlocks(chords_ml, chords_llm, file_manager);
+    loadChordsBlocks(data.chords_ml, data.chords_llm, data.file_manager);
 
 
 
@@ -245,7 +239,7 @@ function loadDictionaryBlocks() {
     Blockly.common.defineBlocks(blocksDefinitions);
 }
 
-function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
+function loadTSkinBlocks(tskin) {
     Blockly.Blocks['tskin_gesture_list'] = {
         init: function () {
             this.jsonInit({
@@ -255,7 +249,7 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
                     {
                         "type": "field_dropdown",
                         "name": "gesture",
-                        "options": gestures
+                        "options": get_options_safe(tskin?.gestures)
                     }
                 ],
                 "output": "Boolean",
@@ -265,6 +259,27 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
             });
         }
     };
+
+    Blockly.Blocks['tskin_touch_list'] = {
+        init: function () {
+            this.jsonInit({
+                "type": "tskin_touch_list",
+                "message0": "%1",
+                "args0": [
+                    {
+                        "type": "field_dropdown",
+                        "name": "touch",
+                        "options": get_options_safe(tskin?.taps)
+                    }
+                ],
+                "output": "Boolean",
+                "colour": "#EB6152",
+                "tooltip": "Get Tactigon Skin touchpad gesture",
+                "helpUrl": ""
+            });
+        }
+    };
+
 
     Blockly.Blocks['tskin_take_angle'] = {
         init: function () {
@@ -331,41 +346,18 @@ function loadTSkinBlocks(gestures, taps, speechs, speech_api) {
             });
         }
     };
-
-    Blockly.Blocks['tskin_touch_list'] = {
-        init: function () {
-            this.jsonInit({
-                "type": "tskin_touch_list",
-                "message0": "%1",
-                "args0": [
-                    {
-                        "type": "field_dropdown",
-                        "name": "touch",
-                        "options": taps
-                    }
-                ],
-                "output": "Boolean",
-                "colour": "#EB6152",
-                "tooltip": "Get Tactigon Skin touchpad gesture",
-                "helpUrl": ""
-            });
-        }
-    };
 }
 
-
-function loadSpeechBlocks(speechs, file_manager) {
+function loadSpeechBlocks(tskin) {
     let args = [];
     let message = "Voice command:";
-    let optionMapping;
-    let recordingBasePath;
 
-    if (Array.isArray(speechs)) {
-        for (let i = 0; i < speechs.length; i++) {
+    if (Array.isArray(tskin?.speech)) {
+        for (let i = 0; i < tskin.speech.length; i++) {
             message += " %" + (i + 1);
 
             if (i == 0) {
-                const initialOptions = speechs[i]?._init_;
+                const initialOptions = tskin.speech[i]?._init_;
 
                 args.push({
                     "type": "field_dropdown",
@@ -375,10 +367,10 @@ function loadSpeechBlocks(speechs, file_manager) {
                         : [["---", ""]]
                 });
             } else {
-                optionMapping = {};
+                let optionMapping = {};
 
-                Object.keys(speechs[i] || {}).forEach(element => {
-                    const values = speechs[i][element];
+                Object.keys(tskin.speech[i] || {}).forEach(element => {
+                    const values = tskin.speech[i][element];
 
                     if (Array.isArray(values)) {
                         optionMapping[element] = values.map(k => [k, k]);
@@ -400,23 +392,7 @@ function loadSpeechBlocks(speechs, file_manager) {
                 });
             }
         }
-    } else {
-        console.warn("speechs is not an array:", speechs);
-    }
-
-    const files = Array.isArray(file_manager) ? file_manager : [];
-
-    console.log(
-        "Recording folder:",
-        files.map(el => el.directory?.name).filter(Boolean)
-    );
-
-    const recFolder = files.find(
-        el => el.directory?.name === "Recordings"
-    );
-
-    recordingBasePath =
-        recFolder?.directory?.base_path ?? "./Recordings";
+    } 
 
     Blockly.Blocks['tskin_listen'] = {
         init: function () {
@@ -480,7 +456,7 @@ function loadSpeechBlocks(speechs, file_manager) {
     // };
 }
 
-function loadKeyboardBlocks(funcKeys, modKeys) {
+function loadKeyboardBlocks(keyboard) {
     Blockly.Blocks['keyboard_press'] = {
         init: function () {
             this.jsonInit({
@@ -511,7 +487,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     {
                         "type": "field_dropdown",
                         "name": "function_key",
-                        "options": funcKeys
+                        "options": get_options_safe(keyboard?.func_keys)
                     }
                 ],
                 "output": "KeyboardShortcut",
@@ -531,12 +507,12 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     {
                         "type": "field_dropdown",
                         "name": "mod_key",
-                        "options": modKeys
+                        "options": get_options_safe(keyboard?.mod_keys)
                     },
                     {
                         "type": "field_dropdown",
                         "name": "function_key",
-                        "options": funcKeys
+                        "options": get_options_safe(keyboard?.func_keys)
                     }
                 ],
                 "output": "KeyboardShortcut",
@@ -556,17 +532,17 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     {
                         "type": "field_dropdown",
                         "name": "mod_key_1",
-                        "options": modKeys
+                        "options": get_options_safe(keyboard?.mod_keys)
                     },
                     {
                         "type": "field_dropdown",
                         "name": "mod_key_2",
-                        "options": modKeys
+                        "options": get_options_safe(keyboard?.mod_keys)
                     },
                     {
                         "type": "field_dropdown",
                         "name": "function_key",
-                        "options": funcKeys
+                        "options": get_options_safe(keyboard?.func_keys)
                     }
                 ],
                 "output": "KeyboardShortcut",
@@ -615,7 +591,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     {
                         "type": "field_dropdown",
                         "name": "mod_key",
-                        "options": modKeys
+                        "options": get_options_safe(keyboard?.mod_keys)
                     },
                     {
                         "type": "field_input",
@@ -648,12 +624,12 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
                     {
                         "type": "field_dropdown",
                         "name": "mod_key_1",
-                        "options": modKeys
+                        "options": get_options_safe(keyboard?.mod_keys)
                     },
                     {
                         "type": "field_dropdown",
                         "name": "mod_key_2",
-                        "options": modKeys
+                        "options": get_options_safe(keyboard?.mod_keys)
                     },
                     {
                         "type": "field_input",
@@ -679,7 +655,7 @@ function loadKeyboardBlocks(funcKeys, modKeys) {
     };
 }
 
-function loadBraccioBlocks(wristOptions, gripperOptions) {
+function loadBraccioBlocks(braccio) {
     Blockly.Blocks['braccio_move'] = {
         init: function () {
             this.jsonInit({
@@ -720,7 +696,7 @@ function loadBraccioBlocks(wristOptions, gripperOptions) {
                     {
                         "type": "field_dropdown",
                         "name": "wrist",
-                        "options": wristOptions
+                        "options": get_options_safe(braccio?.wrist)
                     }
                 ],
                 "previousStatement": null,
@@ -741,7 +717,7 @@ function loadBraccioBlocks(wristOptions, gripperOptions) {
                     {
                         "type": "field_dropdown",
                         "name": "gripper",
-                        "options": gripperOptions
+                        "options": get_options_safe(braccio?.gripper)
                     }
                 ],
                 "previousStatement": null,
@@ -1266,111 +1242,6 @@ function loadIronBoyBlocks(ironboy) {
     };
 }
 
-function loadGinosAIBlocks(ginos, file_manager) {
-    let directory = [];
-    let optionMapping = {};
-
-    file_manager.forEach(el => {
-        directory.push([el['directory']['name'], el['directory']['base_path']]);
-        optionMapping[el['directory']['base_path']] = [['---', '']];
-
-        optionMapping[el['directory']['base_path']].push(...el['content'].map(f => {
-            const f_path = f['path'].replace(el['directory']['base_path'] + "/", '');
-            return [f_path, f_path];
-        }));
-    });
-
-    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
-        {
-            "type": "ginos_ai_prompt",
-            "message0": "AI prompt %1",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "prompt"
-                }
-            ],
-            "output": "String",
-            "colour": "#EB6152",
-            "tooltip": "AI response from Ginos",
-            "helpUrl": ""
-        },
-        {
-            "type": "ginos_load_dataframe",
-            "message0": "Create dataframe from %1 %2",
-            "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "directory",
-                    "options": directory
-                },
-                {
-                    "type": "field_dependent_dropdown",
-                    "name": "filepath",
-                    "parentName": "directory",
-                    "optionMapping": optionMapping,
-                    "defaultOptions": [['---', '']],
-                }
-            ],
-            "output": "Boolean",
-            "colour": "#EB6152",
-            "tooltip": "Load dataframe locally",
-            "helpUrl": ""
-        },
-        {
-            "type": "ginos_ai_chat_message_role",
-            "message0": "AI role %1",
-            "args0": [
-                {
-                    "type": "field_dropdown",
-                    "name": "scope",
-                    "options": ginos.roles
-                }
-            ],
-            "output": "GinosAIChatRole",
-            "colour": "#EB6152",
-            "tooltip": "",
-            "helpUrl": ""
-        },
-        {
-            "type": "ginos_ai_chat",
-            "message0": "AI chat message %1",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "messages",
-                }
-            ],
-            "output": "String",
-            "colour": "#EB6152",
-            "tooltip": "",
-            "helpUrl": ""
-        },
-        {
-            "type": "ginos_ai_chat_message",
-            "message0": "AI chat message %1 %2",
-            "args0": [
-                {
-                    "type": "input_value",
-                    "name": "role",
-                    "check": "GinosAIChatRole"
-                },
-                {
-                    "type": "input_value",
-                    "name": "content",
-                }
-            ],
-            "output": "GinosAIChatMessage",
-            "colour": "#EB6152",
-            "tooltip": "",
-            "helpUrl": ""
-        }        
-
-    ]);
-
-    Blockly.common.defineBlocks(blocksDefinitions);
-}
-
 function loadMQTTBlocks() {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1469,7 +1340,6 @@ function loadCameraBlocks() {
 }
 
 function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
-    console.log(chords_llm, chords_ml)
     let directory = [];            
     let df_options = {};
     let rag_options = {};
@@ -2312,7 +2182,7 @@ function defineSpeechGenerators() {
         let filename = generator.valueToCode(block, 'filename', python.Order.ATOMIC);
         let seconds = generator.valueToCode(block, 'seconds', python.Order.ATOMIC);
 
-        return `record_audio(tskin,logging_queue,os.path.join("${recordingBasePath}", ${filename}), ${seconds})\n`
+        return `record_audio(tskin,logging_queue,os.path.join("${RECORDING_BASE_PATH}", ${filename}), ${seconds})\n`
     };
 
     // python.pythonGenerator.forBlock['tskin_play'] = function (block, generator) {

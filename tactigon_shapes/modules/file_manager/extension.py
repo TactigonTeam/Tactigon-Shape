@@ -36,11 +36,7 @@ from tactigon_shapes.models import BASE_PATH
 
 EXCLUDED_FILES = [".gitkeep"]
 
-class FileManager(Interface):
-    _config: FileManagerConfig | None = None
-
-    config_class = FileManagerConfig
-
+class FileManager(Interface[FileManagerConfig]):
     @property
     def running(self) -> bool:
         return self._config is not None
@@ -141,7 +137,8 @@ class FileManager(Interface):
         return contents
     
     @staticmethod
-    def add_directory(base_path: str,name: str) -> DirectoryItem:
+    def add_directory(name: str) -> DirectoryItem:
+        base_path = FileManager._config.base_path if FileManager._config else ""
         new_directory = DirectoryItem(name=name, base_path=os.path.join(base_path, name))
 
         if os.path.exists(new_directory.base_path):

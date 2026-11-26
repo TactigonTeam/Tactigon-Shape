@@ -25,7 +25,8 @@ from os import path
 from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 
-from tactigon_shapes.modules.tskin.manager import get_tskin_default_config, start_tskin, load_tskin, stop_tskin, get_tskin
+from tactigon_shapes.interfaces.interface import get_interface
+from tactigon_shapes.modules.tskin.extension import DEFAULT_SCORER_CONFIG, DEFAULT_SOCKET_CONFIG, TSkinInterface
 from tactigon_shapes.modules.tskin.models import TSkinModel, TSkinConfig, Hand, GestureConfig, SocketConfig, TSpeechObject
 
 from tactigon_shapes.modules.socketio import get_socket_app
@@ -46,6 +47,12 @@ def add():
 
 @bp.route("socket_settings", methods=["GET", "POST"])
 def socket_settings():
+    tskin_interface = get_interface(TSkinInterface)
+
+    if not tskin_interface:
+        flash("TSkin interface not available", "danger")
+        return redirect(url_for("main.settings"))
+    
     if request.method == "POST":
         host = get_from_request("host")
         port = get_from_request("port")
@@ -64,33 +71,25 @@ def socket_settings():
             ping=ping,
         )
 
-        app_config.TSKIN_SOCKET = config
-        app_config.save()
-
-        socket_app = get_socket_app()
-        if socket_app:
-            socket_app.setTSkin(None)
-
-        stop_tskin()
-
-        if app_config.TSKIN and app_config.TSKIN_SOCKET:
-            load_tskin(app_config.TSKIN, app_config.TSKIN_SOCKET)
-            tskin = start_tskin()
-
-            if socket_app and tskin:
-                socket_app.setTSkin(tskin)
+        tskin_interface.set_socket_config(config)
+        tskin_interface.restart()
 
         flash("Socket saved!", "success")
 
-    if not app_config.TSKIN_SOCKET:
+    config = tskin_interface.get_socket_config() if tskin_interface else None
+    if not config:
         config = SocketConfig("0.0.0.0")
-    else:
-        config = app_config.TSKIN_SOCKET
 
     return render_template("tskin/socket_settings.jinja", config=config)
 
 @bp.route("speech_settings", methods=["GET", "POST"])
 def speech_settings():
+    tskin_interface = get_interface(TSkinInterface)
+
+    if not tskin_interface:
+        flash("TSkin interface not available", "danger")
+        return redirect(url_for("main.settings"))
+
     if request.method == "POST":
         scorer = get_from_request("scorer")
 
@@ -98,32 +97,30 @@ def speech_settings():
             flash("Please select a valid scorer", "danger")
             return redirect(url_for("tskin.speech_settings"))
         
-        scorer_config = next((s for s in app_config.SCORERS if scorer == s.name), None)
+        scorer_config = tskin_interface.get_scorer_config(scorer) if tskin_interface else None
 
         if not scorer_config:
             flash("Scorer not found in config", "danger")
             return redirect(url_for("tskin.speech_settings"))
-        
-        with open(path.join(speechs_file_path, scorer_config.speech_file)) as speech_file:
-            app_config.TSKIN_SPEECH = TSpeechObject.FromJSON(json.load(speech_file))
-        app_config.SELECTED_SCORER = scorer
 
-        app_config.save()
-
+        tskin_interface.set_scorer_config(scorer_config)
         flash("Speech saved!", "success")
-       
-    return render_template("tskin/speech_settings.jinja", scorers=app_config.SCORERS, selected_scorer=app_config.SELECTED_SCORER)
+
+    return render_template(
+        "tskin/speech_settings.jinja", 
+        scorers=tskin_interface.get_scores(), 
+        selected_scorer=tskin_interface.get_selected_scorer()
+    )
 
 @bp.route("scan", methods=["GET"])
 def scan():
-    async def find_devices():
-        devices = await BleakScanner.discover()
-        return filter(lambda d: str(d.name).startswith("TSKIN") , devices)
+    tskin_interface = get_interface(TSkinInterface)
+    tskin_list = []
 
-    devices = asyncio.run(find_devices())
-    tskins = [{"name": d.name, "id": d.address, "address": d.address} for d in devices]
+    if tskin_interface:
+        tskin_list = tskin_interface.find_tskin_list()
 
-    return json.dumps(tskins)
+    return json.dumps(tskin_list)
 
 @bp.route("hand", methods=["POST"])
 def hand():
@@ -138,6 +135,12 @@ def hand():
 
 @bp.route("model", methods=["POST"])
 def model():
+    tskin_interface = get_interface(TSkinInterface)
+
+    if not tskin_interface:
+        flash("TSkin interface not available", "danger")
+        return redirect(url_for("main.main"))
+
     tskin_name = get_from_request("tskin_name")
     tskin_mac = get_from_request("tskin_mac")
 
@@ -150,7 +153,7 @@ def model():
         flash("Please select a hand", "danger")
         return redirect(url_for("tskin.add"))
 
-    models = list(filter(lambda m: m.hand.value==hand, app_config.MODELS))
+    models = tskin_interface.get_models(Hand(hand))
 
     if len(models) == 1:
         return redirect(url_for("tskin.save", tskin_name=tskin_name, tskin_mac=tskin_mac, hand=hand, model=models[0].name), code=307)
@@ -159,33 +162,23 @@ def model():
 
 @bp.route("/remove", methods=["GET"])
 def remove():
-    socket_app = get_socket_app()
+    tskin_interface = get_interface(TSkinInterface)
 
-    tskin = get_tskin()
+    if not tskin_interface:
+        flash("TSkin interface not available", "danger")
+        return redirect(url_for("main.main"))
 
-    if tskin is None:
-        # TODO: Handle case where TSKIN object does not exists but has somewhat valid configuration
-        flash("No Tactigon Skin configured", "warning")
-        return redirect(url_for("main.index"))
-
-    if socket_app:
-        socket_app.setTSkin(None)
-    
-    stop_tskin()
-
-    app_config.TSKIN = None
-    
-    app_config.save()
-    current_app.config.from_object(app_config)
-
-    if socket_app:
-        socket_app.init_app(current_app)
+    tskin_interface.reset_tskin_config()
 
     return redirect(url_for("main.index"))
 
 @bp.route("save", methods=["POST"])
 def save():
-    socket_app = get_socket_app()
+    tskin_interface = get_interface(TSkinInterface)
+
+    if not tskin_interface:
+        flash("TSkin interface not available", "danger")
+        return redirect(url_for("main.main"))
 
     tskin_name = get_from_request("name")
     tskin_mac = get_from_request("mac")
@@ -207,59 +200,45 @@ def save():
     hand = Hand(hand)
     model_name = "MODEL_01_" + hand.name
 
-    current_model: TSkinModel | None = None
+    tskin_interface.stop()
+    tskin_interface.set_tskin_config(tskin_mac, hand, tskin_name, model_name)
 
-    for model in app_config.MODELS:
-        if model.name == model_name:
-            current_model = model
-            break
+    if not tskin_interface.get_selected_scorer():
+        tskin_interface.set_scorer_config(DEFAULT_SCORER_CONFIG)
 
-    if current_model is None:
-        flash("Error MODEL", "danger")
-        return {"error": "model error"}, 500
-        # return redirect(url_for("tskin.add"))
-    
-    tskin_config, socket_config, tspeech_object = get_tskin_default_config(tskin_mac, hand, tskin_name, current_model)
+    if not tskin_interface.get_socket_config():
+        tskin_interface.set_socket_config(DEFAULT_SOCKET_CONFIG)
 
-    if socket_app:
-        socket_app.setTSkin(None)
+    tskin_config = tskin_interface.get_tskin_config()
+    if tskin_config is None:
+        flash("TSkin configuration not found", "danger")
+        return {"error": "TSkin configuration not found"}, 500
 
-    stop_tskin()
-    app_config.TSKIN = tskin_config
-    app_config.TSKIN_SOCKET = socket_config
-    app_config.TSKIN_SPEECH = tspeech_object
-    app_config.save()
-    current_app.config.from_object(app_config)
-
-    load_tskin(tskin_config, socket_config)
-    tskin = start_tskin()
-
-    if socket_app and tskin:
-        socket_app.setTSkin(tskin)
+    tskin_interface.start()
 
     return json.dumps(tskin_config.toJSON()), 200
 
 @bp.route("play", methods=["POST"])
 def play(base_path = ""):
-    tskin = get_tskin()
+    # tskin = get_tskin()
 
-    if not tskin:
-        return "Error: TSkin not present"
+    # if not tskin:
+    #     return "Error: TSkin not present"
     
-    data = request.get_json(force=True)
+    # data = request.get_json(force=True)
 
-    if not data:
-        return "Error: No JSON in request"
+    # if not data:
+    #     return "Error: No JSON in request"
     
-    audio_file = data.get("audio_file")
+    # audio_file = data.get("audio_file")
 
-    if not audio_file:
-        return "Error: No audio_file in JSON"
+    # if not audio_file:
+    #     return "Error: No audio_file in JSON"
     
-    base_path = data.get("base_path")
+    # base_path = data.get("base_path")
 
-    if base_path:
-        audio_file = path.join(base_path, audio_file)
+    # if base_path:
+    #     audio_file = path.join(base_path, audio_file)
 
     # tskin.play(audio_file)
     # TODO: implement play

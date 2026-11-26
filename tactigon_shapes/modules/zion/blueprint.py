@@ -20,7 +20,8 @@
 
 from flask import Blueprint, redirect, render_template, flash, url_for
 
-from tactigon_shapes.modules.zion.manager import get_zion_interface
+from tactigon_shapes.interfaces.interface import get_interface
+from tactigon_shapes.modules.zion.extension import ZionInterface
 from tactigon_shapes.modules.zion.models import ZionConfig
 
 from tactigon_shapes.config import app_config
@@ -34,23 +35,20 @@ def manage():
 
 @bp.route("/")
 def index(edit: bool = False):
-    app = get_zion_interface()
+    app = get_interface(ZionInterface)
 
     if not app:
         flash("Zion interface not running", category="danger")
         return redirect(url_for("main.index"))
     
-    if app.config and app.config.is_valid():
-        config = app.config
-    else:
-        config = ZionConfig.Default()
-        edit = True
+    config = app.get_config_or_default()
+    edit = not app.configured
 
     return render_template("zion/index.jinja", configured=app.configured, config=config, edit=edit, devices=app.devices)
 
 @bp.route("/edit")
 def edit():
-    app = get_zion_interface()
+    app = get_interface(ZionInterface)
 
     if not app:
         flash("Zion interface not running", category="danger")
@@ -60,7 +58,7 @@ def edit():
 
 @bp.route("/save", methods=["POST"])
 def save():
-    app = get_zion_interface()
+    app = get_interface(ZionInterface)
 
     if not app:
         flash("Zion interface not running", category="danger")
@@ -90,7 +88,7 @@ def save():
 
 @bp.route("/remove")
 def remove():
-    app = get_zion_interface()
+    app = get_interface(ZionInterface)
 
     if not app:
         flash("Zion interface not running", category="danger")
@@ -103,7 +101,7 @@ def remove():
 
 @bp.route("/devices/refresh")
 def refresh_devices():
-    app = get_zion_interface()
+    app = get_interface(ZionInterface)
 
     if not app:
         flash("Zion interface not running", category="danger")

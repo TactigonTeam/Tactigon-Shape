@@ -155,7 +155,7 @@ class ChordsMLModelInfo(BaseModel):
            state=ChordsMLModelStateEnum(json.get("state", "NOT_TRAINED")),
        )
 
-class ChordsMLConfig(BaseModel):
+class ChordsMLConfig(BaseModel, InterfaceConfig):
     url: str = "http://localhost:8000"
 
     @classmethod

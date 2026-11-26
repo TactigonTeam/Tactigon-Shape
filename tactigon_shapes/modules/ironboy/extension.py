@@ -24,11 +24,8 @@ from tactigon_ironboy import IronBoy, IronBoyCommand
 from tactigon_shapes.modules.ironboy.models import IronBoyConfigWrapper
 from tactigon_shapes.interfaces.interface import Interface
 
-class IronBoyInterface(Interface):
-    _config: IronBoyConfigWrapper | None
+class IronBoyInterface(Interface[IronBoyConfigWrapper]):
     _thread: IronBoy | None = None
-
-    config_class = IronBoyConfigWrapper
 
     @property
     def can_run(self) -> bool:

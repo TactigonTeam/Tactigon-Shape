@@ -29,10 +29,7 @@ from tactigon_shapes.modules.zion.models import AlarmStatus, ZionConfig, Device,
 
 APPLICATION_JSON = 'application/json'
 
-class ZionInterface(Interface):
-    _config: ZionConfig | None = None
-
-    config_class = ZionConfig
+class ZionInterface(Interface[ZionConfig]):
     devices: list[Device] = []
 
     @property
@@ -51,6 +48,11 @@ class ZionInterface(Interface):
     def token(self, token: str):
         if self._config:
             self._config.token = token
+
+    def get_config_or_default(self) -> ZionConfig:
+        if self._config and self._config.is_valid():
+            return self._config
+        return ZionConfig.Default()
 
     def post_load_config(self):
         if self._config:

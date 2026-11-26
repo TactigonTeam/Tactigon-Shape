@@ -519,6 +519,10 @@ class ShapesExtension(Extension):
         return {
             "modKeys": self.hotkey_list,
             "funckeys": self.function_list,
+            "keyboard": {
+                "mod_keys": self.hotkey_list,
+                "func_keys": self.function_list,
+            },
             "tskin": self._tskin_interface.get_shape_blocks() if self._tskin_interface else None,
             "zion": self._zion_interface.get_shape_blocks() if self._zion_interface else None,
             "braccio": self._braccio_interface.get_shape_blocks() if self._braccio_interface else None,
@@ -601,7 +605,7 @@ class ShapesExtension(Extension):
         return (True, "")
     
     def stop(self):
-        ExtensionApp.stop(self)
+        Extension.stop(self)
         # resettare il nome qui spegne lo shape, la shapeapp è gia spenta dal before_request
         self.current_id = None
         self.in_flight_log = None

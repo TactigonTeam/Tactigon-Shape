@@ -13,7 +13,8 @@
 
 from flask import Flask, Blueprint, flash, redirect, url_for, render_template, request
 
-from tactigon_shapes.modules.ros2.manager import get_ros2_interface
+from tactigon_shapes.interfaces.interface import get_interface
+from tactigon_shapes.modules.ros2.extension import Ros2Interface
 from tactigon_shapes.modules.ros2.models import Ros2Command
 
 from tactigon_shapes.utils.request_utils import get_from_request
@@ -22,7 +23,7 @@ bp = Blueprint("ros2", __name__, url_prefix="/ros2", template_folder="templates"
 
 @bp.route("/")
 def index():
-    app = get_ros2_interface()
+    app = get_interface(Ros2Interface)
 
     if not app:
         flash("Ros 2 interface not running", category="danger")
@@ -32,7 +33,7 @@ def index():
 
 @bp.route("/add", methods=["POST"])
 def add():
-    app = get_ros2_interface()
+    app = get_interface(Ros2Interface)
 
     if not app:
         flash("Ros 2 interface not running", category="danger")
@@ -62,14 +63,12 @@ def add():
         flash("An error occurred saving the configurations!", category="danger")
         return redirect(url_for("ros2.index"))
     
-    app.save_config()
-
     flash("Node saved correclty!", category="success")
     return redirect(url_for("ros2.index"))
 
 @bp.route("/<string:identifier>/delete")
 def delete(identifier: str):
-    app = get_ros2_interface()
+    app = get_interface(Ros2Interface)
 
     if not app:
         flash("Ros 2 interface not running", category="danger")
@@ -80,8 +79,6 @@ def delete(identifier: str):
     if not app.remove(package_name, node_name):
         flash("An error occurred deleting the configurations!", category="danger")
         return redirect(url_for("ros2.index"))
-
-    app.save_config()
 
     flash("Node deleted correclty!", category="success")
     return redirect(url_for("ros2.index"))

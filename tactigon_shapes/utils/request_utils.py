@@ -23,7 +23,8 @@ from functools import wraps
 from flask import request, flash
 from typing import Any
 
-from tactigon_shapes.modules.shapes.manager import get_shapes_app
+from tactigon_shapes.interfaces.extension import get_extension
+from tactigon_shapes.modules.shapes.extension import ShapesExtension
 
 
 def get_from_request(name: str) -> str | None:
@@ -47,7 +48,7 @@ def check_empty_inputs(local_variables: Any) -> bool:
 def stop_shape(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        _shapes = get_shapes_app()
+        _shapes = get_extension(ShapesExtension)
         if _shapes and _shapes.is_running:
             _shapes.stop()
             flash("Running Shape has been stopped to access the configuration.", category="warning")
@@ -56,7 +57,7 @@ def stop_shape(func):
 
 # chiamata per tutto un blueprint
 def stop_running_shape():
-    _shapes = get_shapes_app()
+    _shapes = get_extension(ShapesExtension)
     if _shapes and (_shapes.is_running or _shapes.current_id):
         _shapes.stop()
         flash("Running Shape has been stopped to access the configuration.", category="warning")

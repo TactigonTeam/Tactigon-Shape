@@ -42,15 +42,12 @@ class SocketApp(SocketIO):
     _last_connection_status: bool | None
 
     def __init__(self, app: Flask | None = None, **kwargs):
-        SocketIO.__init__(self, app, **kwargs)
-
         self.socket_thread = None
         self._stop_event = Event()
         self._last_connection_status = None
         self._logger = logging.getLogger(SocketApp.__name__)
 
-        if app:
-            self.init_app(app)
+        SocketIO.__init__(self, app, **kwargs)
 
     def init_app(self, app: Flask, *args, **kwargs):
         SocketIO.init_app(self, app, *args, **kwargs)

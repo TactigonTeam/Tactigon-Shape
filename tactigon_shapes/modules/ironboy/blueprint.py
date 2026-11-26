@@ -24,8 +24,9 @@ import asyncio
 from bleak import BleakScanner
 from flask import Blueprint, render_template, redirect, url_for, flash
 
-from tactigon_shapes.modules.ironboy.extension import IronBoyConfig, IronBoyInterface
-from tactigon_shapes.modules.ironboy.manager import get_ironboy_interface
+from tactigon_shapes.interfaces.interface import get_interface
+from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
+from tactigon_shapes.modules.ironboy.models import IronBoyConfigWrapper
 
 from tactigon_shapes.utils.extensions import stop_apps
 from tactigon_shapes.utils.request_utils import get_from_request
@@ -38,7 +39,7 @@ def manage():
 
 @bp.route("/")
 def index():
-    app = get_ironboy_interface()
+    app = get_interface(IronBoyInterface)
 
     if not app:
         flash("Iron Boy interface not running", category="danger")
@@ -48,7 +49,7 @@ def index():
 
 @bp.route("/scan")
 def scan():
-    app = get_ironboy_interface()
+    app = get_interface(IronBoyInterface)
 
     if not app:
         flash("Iron Boy interface not running", category="danger")
@@ -64,7 +65,7 @@ def scan():
 
 @bp.route("/save", methods=["POST"])
 def save():
-    app = get_ironboy_interface()
+    app = get_interface(IronBoyInterface)
 
     if not app:
         flash("Iron Boy interface not running", category="danger")
@@ -81,7 +82,7 @@ def save():
         flash("Cannot save ironboy configurations. Address missing", category="danger")
         return redirect(url_for("ironboy.index"))
     
-    new_config = IronBoyConfig(name, address)
+    new_config = IronBoyConfigWrapper(name, address)
     app.save_config(new_config)
 
     flash("Iron Boy configured succesfully", category="success")
@@ -89,7 +90,7 @@ def save():
 
 @bp.route("/remove")
 def remove():
-    app = get_ironboy_interface()
+    app = get_interface(IronBoyInterface)
 
     if not app:
         flash("Iron Boy interface not running", category="danger")
@@ -102,7 +103,7 @@ def remove():
 
 @bp.route("/start")
 def start():
-    app = get_ironboy_interface()
+    app = get_interface(IronBoyInterface)
 
     if not app:
         flash("Iron Boy interface not running", category="danger")
@@ -118,7 +119,7 @@ def start():
 
 @bp.route("/stop")
 def stop():
-    app = get_ironboy_interface()
+    app = get_interface(IronBoyInterface)
 
     if not app:
         flash("Iron Boy interface not running", category="danger")

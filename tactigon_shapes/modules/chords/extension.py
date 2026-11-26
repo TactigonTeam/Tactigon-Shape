@@ -32,8 +32,7 @@ from tactigon_shapes.modules.file_manager.extension import FileManager
 
 APPLICATION_JSON = 'application/json'
 
-class ChordLLMInterface(Interface):
-    _config: ChordLLMConfig
+class ChordLLMInterface(Interface[ChordLLMConfig]):
     prompts: list[ChordLLMPromptSchema] = []
     chat: ChordLLMChat | None = None
     access_token: str | None = None
@@ -57,6 +56,8 @@ class ChordLLMInterface(Interface):
 
     @property
     def base_url(self) -> str:
+        if not self._config:
+            raise ValueError("Configuration is not set")
         return self._get_base_url(self._config.url)
 
     def post_load_config(self):
@@ -146,7 +147,7 @@ class ChordLLMInterface(Interface):
 
         for attempt in range(2):
             with self._stream(url, payload) as response:
-                if response.status_code == 401 and attempt == 0:
+                if response.status_code == 401 and attempt == 0 and self._config:
                     self._logger.info("Stream got 401, trying to re-login")
                     if not self.login(self.base_url, self._config.username, self._config.password):
                         return
@@ -257,7 +258,7 @@ class ChordLLMInterface(Interface):
 
             self._logger.info(f"POST: {url}, payload: {payload}. Response {res.status_code}")
 
-            if res.status_code == 401:
+            if res.status_code == 401 and self._config:
                 if not self.login(self.base_url, self._config.username, self._config.password):
                     return None
                 
@@ -289,7 +290,7 @@ class ChordLLMInterface(Interface):
                 verify=False
             )
 
-            if res.status_code == 401:
+            if res.status_code == 401 and self._config:
                 if not self.login(self.base_url, self._config.username, self._config.password):
                     return None
                 
@@ -319,55 +320,56 @@ class ChordLLMInterface(Interface):
     def _get_base_url(self, url: str) -> str:
         return url.rstrip("/")
 
-class ChordMLInterface:
-    config: ChordsMLConfig
+class ChordMLInterface(Interface[ChordsMLConfig]):
 
-    def __init__(self, config_file_path: str | None = None, app: Flask | None = None):
-        self._logger = logging.getLogger(ChordMLInterface.__name__)
-        self._config_file_path = config_file_path
+    models: list[ChordsMLModelInfo] | None = None
 
-        if config_file_path:
-            self._config = self.load_config(config_file_path)
-        else:
-            self._config = self.default_config()
+    # def __init__(self, config_file_path: str | None = None, app: Flask | None = None):
+    #     self._logger = logging.getLogger(ChordMLInterface.__name__)
+    #     self._config_file_path = config_file_path
+
+    #     if config_file_path:
+    #         self._config = self.load_config(config_file_path)
+    #     else:
+    #         self._config = self.default_config()
     
-        if app:
-            self.init_app(app)
+    #     if app:
+    #         self.init_app(app)
 
-    @staticmethod
-    def config_file(config_file_path: str) -> str:
-        return os.path.join(config_file_path, "ml_config.json")
+    # @staticmethod
+    # def config_file(config_file_path: str) -> str:
+    #     return os.path.join(config_file_path, "ml_config.json")
 
-    @staticmethod
-    def load_config(config_file_path: str):
-        if os.path.exists(ChordMLInterface.config_file(config_file_path)):
-            with open(ChordMLInterface.config_file(config_file_path), "r") as f:
-                config_data = json.load(f)
-                return ChordsMLConfig.FromJSON(config_data)
-        else:
-            return ChordMLInterface.default_config()
+    # @staticmethod
+    # def load_config(config_file_path: str):
+    #     if os.path.exists(ChordMLInterface.config_file(config_file_path)):
+    #         with open(ChordMLInterface.config_file(config_file_path), "r") as f:
+    #             config_data = json.load(f)
+    #             return ChordsMLConfig.FromJSON(config_data)
+    #     else:
+    #         return ChordMLInterface.default_config()
 
-    @staticmethod
-    def default_config() -> ChordsMLConfig:
-        return ChordsMLConfig()
+    # @staticmethod
+    # def default_config() -> ChordsMLConfig:
+    #     return ChordsMLConfig()
+
+    @property
+    def running(self) -> bool:
+        return True
 
     @property
     def dataframe_extensions(self) -> list[str]:
         return [f".{e.value}" for e in ChordsMLDFFileExtension]
 
     @property
-    def base_url(self) -> str:
+    def base_url(self) -> str | None:
+        if not self._config:
+            raise ValueError("Configuration is not set")
         return self._config.url.rstrip("/")
 
-    def save_config(self):
-        if self._config_file_path:
-            with open(self.config_file(self._config_file_path), "w") as f:
-                json.dump(self._config.model_dump_json(), f)
-
-    def init_app(self, app: Flask):
-        app.extensions[ChordMLInterface.__name__] = self
-
-        self.get_models_info()
+    def post_load_config(self):
+        if self._config:
+            self.get_models_info()
     
     def get_shape_blocks(self):
         return {
@@ -385,7 +387,7 @@ class ChordMLInterface:
             self.models = [ChordsMLModelInfo.FromJSON(m) for m in res.json().get("models_infos", [])]
             self._logger.info(f"Loaded {len(self.models)} models from Chords")
         else:
-            self.models = []
+            self.models = None
     
     def get_model_state(self, model_id: str) -> ChordsMLModelStateEnum | None:   
         res = self._do_get(f"/models/{model_id}/status")
