@@ -113,7 +113,8 @@ class ChordLLMConfig(BaseModel, InterfaceConfig):
             "username": self.username,
             "password": self.password,
         }
-
+    
+    @property
     def is_valid(self) -> bool:
         return self.username != "" and self.password != "" and self.url != ""
 
@@ -161,5 +162,9 @@ class ChordsMLConfig(BaseModel, InterfaceConfig):
     @classmethod
     def FromJSON(cls, data: dict):
         return cls(
-            url=data.get("url", "http://localhost:8000"),
+            url=data.get("url", ""),
         )
+
+    @property
+    def is_valid(self) -> bool:
+        return self.url != ""

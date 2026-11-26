@@ -5,5 +5,5 @@ echo "======================================"
 echo "  TACTIGON SHAPES — START             "
 echo "======================================"
 
-xhost +local:docker
+cat .xprofile >> ~/.xprofile
 docker compose up --build

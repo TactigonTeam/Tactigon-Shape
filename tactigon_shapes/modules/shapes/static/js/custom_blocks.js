@@ -38,13 +38,13 @@ function loadCustomBlocks(data) {
     loadZionBlocks(data.zion);
     loadRos2Blocks(data.ros2);
     loadIronBoyBlocks(data.ironboy);
+    loadOllamaBlocks(data.ollama);
     loadMQTTBlocks();
     loadDictionaryBlocks();
     loadCameraBlocks();
     loadChordsBlocks(data.chords_ml, data.chords_llm, data.file_manager);
 
-
-
+    
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
             "type": "tactigon_shape_function",
@@ -1242,6 +1242,76 @@ function loadIronBoyBlocks(ironboy) {
     };
 }
 
+function loadOllamaBlocks(ollama) {
+    const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
+        {
+            "type": "ollama_prompt",
+            "message0": "AI prompt %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "prompt"
+                }
+            ],
+            "output": "String",
+            "colour": "#EB6152",
+            "tooltip": "AI response from Ollama",
+            "helpUrl": ""
+        },
+        {
+            "type": "ollama_chat_message_role",
+            "message0": "AI role %1",
+            "args0": [
+                {
+                    "type": "field_dropdown",
+                    "name": "scope",
+                    "options": ollama.roles
+                }
+            ],
+            "output": "OllamaChatRole",
+            "colour": "#EB6152",
+            "tooltip": "",
+            "helpUrl": ""
+        },
+        {
+            "type": "ollama_chat",
+            "message0": "AI chat message %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "messages",
+                }
+            ],
+            "output": "String",
+            "colour": "#EB6152",
+            "tooltip": "",
+            "helpUrl": ""
+        },
+        {
+            "type": "ollama_chat_message",
+            "message0": "AI chat message %1 %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "role",
+                    "check": "OllamaChatRole"
+                },
+                {
+                    "type": "input_value",
+                    "name": "content",
+                }
+            ],
+            "output": "OllamaChatMessage",
+            "colour": "#EB6152",
+            "tooltip": "",
+            "helpUrl": ""
+        }        
+
+    ]);
+
+    Blockly.common.defineBlocks(blocksDefinitions);
+}
+
 function loadMQTTBlocks() {
     const blocksDefinitions = Blockly.common.createBlockDefinitionsFromJsonArray([
         {
@@ -1539,9 +1609,24 @@ function loadChordsBlocks(chords_ml, chords_llm, file_manager) {
                     "check": "String"
                 }
             ],
-            "output": "String",
+            "output": ["ChordLLMStream"],
             "colour": "#8f6329",
             "tooltip": "Invia il testo digitato a chords e restituisce la risposta.",
+            "helpUrl": ""
+        },
+        {
+            "type": "chords_llm_parse_json",
+            "message0": "Parse response %1 into JSON",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "llm_output",
+                    "check": "ChordLLMStream"
+                }
+            ],
+            "output": "Dict",
+            "colour": "#8f6329",
+            "tooltip": "Parse the answer into a JSON object",
             "helpUrl": ""
         },
         {
@@ -1621,11 +1706,11 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.ros2.models import RosMessageTypes, String, Bool, Float64, Int64
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
-from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
+from tactigon_shapes.modules.ollama.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
@@ -1826,22 +1911,16 @@ def iron_boy_command(ironboy: IronBoyInterface | None, logging_queue: LoggingQue
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""):
-    if not ginos:
+def ollama_prompt(ollama: OllamaInterface | None, prompt: str, context: str = ""):
+    if not ollama:
         return
 
     prompt_object = LLMPromptRequest(
-        model=ginos.model,
+        model=ollama.model,
         prompt=prompt,
     )
 
-    return ginos.prompt(prompt_object)
-
-def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
-    if not ginos:
-        return False
-
-    return ginos.add_file_to_context(file_path)
+    return ollama.prompt(prompt_object)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -1849,7 +1928,7 @@ def ros2_run(ros2: Ros2Interface | None, command: str):
 
     ros2.run(command)
 
-def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: RosMessageTypes):
     if not ros2:
         return
     
@@ -1963,6 +2042,12 @@ def chords_llm_stream(chords_llm: ChordLLMInterface | None, user_input: str):
 
     return chords_llm.stream(user_input)
 
+def chords_llm_parse_json(chords_llm: ChordLLMInterface | None, llm_output):
+    if not chords_llm:
+        return None
+
+    return chords_llm.parse_json(llm_output)
+
 def chords_llm_upload(chords_llm: ChordLLMInterface | None, file_path: str) -> bool:
     if not chords_llm:
         return False
@@ -2024,7 +2109,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ollama: OllamaInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
@@ -2056,7 +2141,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ollama: OllamaInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
@@ -2088,7 +2173,7 @@ function defineCustomGenerators() {
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'zion: ZionInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ros2: Ros2Interface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'ironboy: IronBoyInterface | None,\n' +
-            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ginos: GinosInterface | None,\n' +
+            Blockly.Python.INDENT + Blockly.Python.INDENT + 'ollama: OllamaInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'mqtt: MQTTClient | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_llm: ChordLLMInterface | None,\n' +
             Blockly.Python.INDENT + Blockly.Python.INDENT + 'chords_ml: ChordMLInterface | None,\n' +
@@ -2110,7 +2195,7 @@ function defineCustomGenerators() {
     defineZionGenerators();
     defineRos2Generators();
     defineIronBoyGenerators();
-    defineGinosAIGenerators();
+    defineOllamaAIGenerators();
     defineMQTTGenerators();
     defineCameraGenerators();
     defineChordsGenerators();
@@ -2439,25 +2524,25 @@ function defineRos2Generators() {
 
     python.pythonGenerator.forBlock['ros2_message_String'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.String(data=${data})`;
+        const command = `String(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Bool'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.Bool(data=${data})`;
+        const command = `Bool(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Int64'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.Int64(data=${data})`;
+        const command = `Int64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
     python.pythonGenerator.forBlock['ros2_message_Float64'] = function (block, generator) {
         const data = generator.valueToCode(block, 'data', python.Order.ATOMIC);
-        const command = `ros2_models.Float64(data=${data})`;
+        const command = `Float64(data=${data})`;
         return [command, Blockly.Python.ORDER_ATOMIC];
     };
 
@@ -2491,42 +2576,36 @@ function defineIronBoyGenerators() {
     };
 }
 
-function defineGinosAIGenerators() {
-    python.pythonGenerator.forBlock["ginos_ai_prompt"] = function (block, generator) {
+function defineOllamaAIGenerators() {
+    python.pythonGenerator.forBlock["ollama_prompt"] = function (block, generator) {
         var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
         // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-        // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
-        var code = `ginos_ai_prompt(ginos, ${prompt})`;
+        // var code = `ollama_prompt(ollama, ${prompt}, ${context})`;
+        var code = `ollama_prompt(ollama, ${prompt})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 
-    python.pythonGenerator.forBlock["ginos_load_dataframe"] = function (block, generator) {
-        const dir = block.getFieldValue('directory');
-        const fpath = block.getFieldValue('filepath');
-        return [`ginos_load_dataframe(ginos, "${dir}", "${fpath}")`, python.Order.ATOMIC];
-    };
-
-    // python.pythonGenerator.forBlock["ginos_ai_chat"] = function(block, generator) {
+    // python.pythonGenerator.forBlock["ollama_chat"] = function(block, generator) {
     //     // var prompt = generator.valueToCode(block, 'prompt', python.Order.ATOMIC);
     //     // var context = generator.valueToCode(block, 'context', python.Order.ATOMIC);
-    //     // var code = `ginos_ai_prompt(ginos, ${prompt}, ${context})`;
+    //     // var code = `ollama_prompt(ollama, ${prompt}, ${context})`;
     //     var code = ``;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // };
 
-    // python.pythonGenerator.forBlock["ginos_ai_chat_message"] = function(block, generator) {
+    // python.pythonGenerator.forBlock["ollama_chat_message"] = function(block, generator) {
     //     var code = ``;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // };
 
-    // python.pythonGenerator.forBlock["ginos_ai_chat_message_role"] = function(block, generator) {
+    // python.pythonGenerator.forBlock["ollama_chat_message_role"] = function(block, generator) {
     //     var code = ``;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // };
 
-    // python.pythonGenerator.forBlock['ginos_summarize_text'] = function (block, generator) {
+    // python.pythonGenerator.forBlock['ollama_summarize_text'] = function (block, generator) {
     //     const text = generator.valueToCode(block, 'text', python.Order.ATOMIC);
-    //     var code = `summarize_text(ginos,${text},logging_queue)`;
+    //     var code = `summarize_text(ollama,${text},logging_queue)`;
     //     return [code, Blockly.Python.ORDER_ATOMIC];
     // }
 }
@@ -2636,6 +2715,13 @@ function defineChordsGenerators() {
         const userInput = generator.valueToCode(block, 'user_input', python.Order.ATOMIC);
 
         const code = `chords_llm_stream(chords_llm, ${userInput})`;
+        return [code, Blockly.Python.ORDER_ATOMIC];
+    };
+
+    python.pythonGenerator.forBlock['chords_llm_parse_json'] = function(block, generator) {
+        const llmOutput = generator.valueToCode(block, 'llm_output', python.Order.ATOMIC) || 'None';
+
+        const code = `chords_llm_parse_json(chords_llm, ${llmOutput})`;
         return [code, Blockly.Python.ORDER_ATOMIC];
     };
 

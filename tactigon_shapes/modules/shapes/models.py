@@ -25,7 +25,7 @@ from datetime import datetime
 
 from typing import Any
 
-from tactigon_shapes.modules.ginos.models import GinosConfig
+from tactigon_shapes.modules.ollama.models import OllamaConfig
 from tactigon_shapes.modules.mqtt.models import MQTTConfig
 from tactigon_shapes.modules.ros2.models import Ros2ShapeConfig
 
@@ -58,8 +58,9 @@ class ShapeConfig:
     readonly: bool = False
     app_file: str = "program.py"
     prompt: str = ""
+    knowledge_base: str = ""
     autostart: bool = False
-    ginos_config: GinosConfig | None = None
+    ollama_config: OllamaConfig | None = None
     ros2_config: Ros2ShapeConfig | None = None
     mqtt_config: MQTTConfig | None = None
 
@@ -73,14 +74,14 @@ class ShapeConfig:
             description=None,
             readonly=False,
             autostart=False,
-            ginos_config=None,
+            ollama_config=None,
             ros2_config=None,
             mqtt_config=None
         )
 
     @classmethod
     def FromJSON(cls, json):
-        ginos_config = json.get("ginos_config", None)
+        ollama_config = json.get("ollama_config", None)
         mqtt_config = json.get("mqtt_config", None)
         ros2_config = json.get("ros2_config", None)
         
@@ -91,8 +92,10 @@ class ShapeConfig:
             modified_on=datetime.fromisoformat(json["modified_on"]),
             description=json["description"],
             readonly=json["readonly"],
+            prompt=json.get("prompt", ""),
+            knowledge_base=json.get("knowledge_base", ""),
             autostart=json.get("autostart", False), 
-            ginos_config=GinosConfig.FromJSON(ginos_config) if ginos_config else None,
+            ollama_config=OllamaConfig.FromJSON(ollama_config) if ollama_config else None,
             ros2_config=Ros2ShapeConfig.FromJSON(ros2_config) if ros2_config else None,
             mqtt_config=MQTTConfig.FromJSON(mqtt_config) if mqtt_config else None,
         )
@@ -107,7 +110,8 @@ class ShapeConfig:
             readonly=self.readonly,
             autostart=self.autostart,
             prompt=self.prompt,
-            ginos_config=self.ginos_config.toJSON() if self.ginos_config else None,
+            knowledge_base=self.knowledge_base,
+            ollama_config=self.ollama_config.toJSON() if self.ollama_config else None,
             ros2_config=self.ros2_config.toJSON() if self.ros2_config else None,
             mqtt_config=self.mqtt_config.toJSON() if self.mqtt_config else None
         )

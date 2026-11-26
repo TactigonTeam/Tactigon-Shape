@@ -99,14 +99,14 @@ def add():
         flash(f"Name '{program_name}' already exist!", category="danger")
         return redirect(url_for("shapes.index"))
     
-    ginos_url = get_from_request("ginos_url")
-    ginos_model = get_from_request("ginos_model")
-    ginos_config = None
+    ollama_url = get_from_request("ollama_url")
+    ollama_model = get_from_request("ollama_model")
+    ollama_config = None
 
-    if (ginos_url and ginos_url != "") and (ginos_model and ginos_model != ""):
-        ginos_config = GinosConfig(
-            url=ginos_url,
-            model=ginos_model,
+    if (ollama_url and ollama_url != "") and (ollama_model and ollama_model != ""):
+        ollama_config = OllamaConfig(
+            url=ollama_url,
+            model=ollama_model,
         )
     
     mqtt_url = get_from_request("mqtt_url")
@@ -122,7 +122,7 @@ def add():
         try:
             mqtt_port = int(mqtt_port)
         except:
-            flash(f"Invalid Ginos MQTT port config!", category="danger")
+            flash(f"Invalid MQTT port config!", category="danger")
             return redirect(url_for("shapes.index"))
 
         mqtt_config = MQTTConfig(
@@ -133,6 +133,7 @@ def add():
         )
 
     chords_llm_prompt = get_from_request("chord_llm_prompt")
+    chords_llm_knowledge_base = get_from_request("chord_llm_knowledge_base")
 
     new_config = ShapeConfig(
         id=uuid4(),
@@ -140,9 +141,10 @@ def add():
         description=_program_description,
         created_on=datetime.now(),
         modified_on=datetime.now(),
-        ginos_config=ginos_config,
+        ollama_config=ollama_config,
         mqtt_config=mqtt_config,
-        prompt=chords_llm_prompt or ""
+        prompt=chords_llm_prompt or "",
+        knowledge_base=chords_llm_knowledge_base or ""
     )
 
     _shapes.add(new_config)
@@ -213,17 +215,17 @@ def save_config(program_id: str):
         flash(f"Shape not found!", category="danger")
         return redirect(url_for("shapes.index"))
 
-    ginos_url = get_from_request("ginos_url")
-    ginos_model = get_from_request("ginos_model")
+    ollama_url = get_from_request("ollama_url")
+    ollama_model = get_from_request("ollama_model")
 
-    if (ginos_url and ginos_url != "") and (ginos_model and ginos_model != ""):
-        ginos_config = GinosConfig(
-            url=ginos_url,
-            model=ginos_model,
+    if (ollama_url and ollama_url != "") and (ollama_model and ollama_model != ""):
+        ollama_config = OllamaConfig(
+            url=ollama_url,
+            model=ollama_model,
         )
     else:
-        ginos_config = None
-        # flash(f"Invalid Ginos AI config!", category="danger")
+        ollama_config = None
+        # flash(f"Invalid Ollama config!", category="danger")
         # return redirect(url_for("shapes.index"))
     
     mqtt_url = get_from_request("mqtt_url")
@@ -238,7 +240,7 @@ def save_config(program_id: str):
         try:
             mqtt_port = int(mqtt_port)
         except:
-            flash(f"Invalid Ginos MQTT port config!", category="danger")
+            flash(f"Invalid MQTT port config!", category="danger")
             return redirect(url_for("shapes.index"))
 
         if not config.mqtt_config:
@@ -258,17 +260,19 @@ def save_config(program_id: str):
     else:
         mqtt_config = None
     # else:
-    #     flash(f"Invalid Ginos MQTT config!", category="danger")
+    #     flash(f"Invalid MQTT config!", category="danger")
     #     return redirect(url_for("shapes.index"))
 
     chords_llm_prompt = get_from_request("chord_llm_prompt")
+    chords_llm_knowledge_base = get_from_request("chord_llm_knowledge_base")
 
     config.name = program_name
     config.description = program_description
     config.modified_on = datetime.now()
-    config.ginos_config = ginos_config
+    config.ollama_config = ollama_config
     config.mqtt_config = mqtt_config
     config.prompt = chords_llm_prompt or ""
+    config.knowledge_base = chords_llm_knowledge_base or ""
 
     _shapes.save_config(config=config)
 
@@ -317,7 +321,7 @@ def clone_config(program_id: str):
         description=program_description,
         readonly=False,
         app_file=original_config.app_file,
-        ginos_config=original_config.ginos_config,
+        ollama_config=original_config.ollama_config,
         mqtt_config=original_config.mqtt_config,
         ros2_config=original_config.ros2_config,
     )
@@ -367,9 +371,9 @@ def save_program(program_id: str):
 
     if ros2_publishers or ros2_subscriptions:
         ros2_config = Ros2ShapeConfig(
-            config.name,
-            [Ros2Publisher.FromJSON(p) for p in json.loads(ros2_publishers)] if ros2_publishers else [],
-            [Ros2Subscription.FromJSON(s) for s in json.loads(ros2_subscriptions)] if ros2_subscriptions else [],
+            node_name=config.name,
+            publishers=[Ros2Publisher.FromJSON(p) for p in json.loads(ros2_publishers)] if ros2_publishers else [],
+            subscriptions=[Ros2Subscription.FromJSON(s) for s in json.loads(ros2_subscriptions)] if ros2_subscriptions else [],
         )
         config.ros2_config = ros2_config
 

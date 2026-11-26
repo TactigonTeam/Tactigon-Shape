@@ -18,6 +18,7 @@
 #********************************************************************************/
 
 from flask import Blueprint, redirect, render_template, flash, url_for
+from tactigon_shapes.modules.chords.manager import get_chord_llm_config
 
 from tactigon_shapes.interfaces.interface import get_interface
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface
@@ -38,12 +39,9 @@ def index(edit: bool = False):
     if not app:
         flash("Chords interface not running", category="danger")
         return redirect(url_for("main.index"))
-    
-    if app.config and app.config.is_valid():
-        config = app.config
-    else:
-        config = ChordLLMConfig.Default()
-        edit = True
+
+    config = get_chord_llm_config()
+    edit = not config.is_valid
         
     return render_template("chord_llm/index.jinja", configured=app.configured, config=config, edit=edit, prompts=app.prompts)
 

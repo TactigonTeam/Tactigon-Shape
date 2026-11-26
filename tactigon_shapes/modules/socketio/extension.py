@@ -28,6 +28,7 @@ from tactigon_shapes.modules.tskin.extension import TSkinInterface
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface
 from tactigon_shapes.modules.braccio.extension import BraccioInterface
 from tactigon_shapes.modules.shapes.extension import ShapesExtension
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
 from tactigon_shapes.modules.tskin.models import TSkin
 
 class SocketApp(SocketIO):

@@ -14,11 +14,11 @@ from tactigon_shapes.modules.shapes.extension import ShapesPostAction, LoggingQu
 from tactigon_shapes.modules.braccio.extension import BraccioInterface, CommandStatus, Wrist, Gripper
 from tactigon_shapes.modules.zion.extension import ZionInterface, Scope, AlarmSearchStatus, AlarmSeverity
 from tactigon_shapes.modules.ros2.extension import Ros2Interface
-from tactigon_shapes.modules.ros2 import models as ros2_models
+from tactigon_shapes.modules.ros2.models import RosMessageTypes, String, Bool, Float64, Int64
 from tactigon_shapes.modules.tskin.models import TSkin, Gesture, Touch, OneFingerGesture, TwoFingerGesture, TSpeechObject, TSpeech, HotWord
 from tactigon_shapes.modules.ironboy.extension import IronBoyInterface, IronBoyCommand
-from tactigon_shapes.modules.ginos.extension import GinosInterface
-from tactigon_shapes.modules.ginos.models import LLMPromptRequest
+from tactigon_shapes.modules.ollama.extension import OllamaInterface
+from tactigon_shapes.modules.ollama.models import LLMPromptRequest
 from tactigon_shapes.modules.mqtt.extension import MQTTClient
 from tactigon_shapes.modules.chords.extension import ChordLLMInterface, ChordMLInterface
 from tactigon_shapes.modules.chords.models import ChordLLMAgentStateEnum, ChordsMLModelStateEnum
@@ -219,22 +219,16 @@ def iron_boy_command(ironboy: IronBoyInterface | None, logging_queue: LoggingQue
     else:
         debug(logging_queue, "ironboy not configured")
 
-def ginos_ai_prompt(ginos: GinosInterface | None, prompt: str, context: str = ""):
-    if not ginos:
+def ollama_prompt(ollama: OllamaInterface | None, prompt: str, context: str = ""):
+    if not ollama:
         return
 
     prompt_object = LLMPromptRequest(
-        model=ginos.model,
+        model=ollama.model,
         prompt=prompt,
     )
 
-    return ginos.prompt(prompt_object)
-
-def ginos_load_dataframe(ginos: GinosInterface | None, directory: str, file_path: str) -> bool:
-    if not ginos:
-        return False
-
-    return ginos.add_file_to_context(file_path)
+    return ollama.prompt(prompt_object)
 
 def ros2_run(ros2: Ros2Interface | None, command: str):
     if not ros2:
@@ -242,7 +236,7 @@ def ros2_run(ros2: Ros2Interface | None, command: str):
 
     ros2.run(command)
 
-def ros2_publish(ros2: Ros2Interface | None, topic: str, message: ros2_models.RosMessageTypes):
+def ros2_publish(ros2: Ros2Interface | None, topic: str, message: RosMessageTypes):
     if not ros2:
         return
     
@@ -396,7 +390,7 @@ def tactigon_shape_setup(
         zion: ZionInterface | None,
         ros2: Ros2Interface | None,
         ironboy: IronBoyInterface | None,
-        ginos: GinosInterface | None,
+        ollama: OllamaInterface | None,
         mqtt: MQTTClient | None,
         chords_llm: ChordLLMInterface | None,
         chords_ml: ChordMLInterface | None,
@@ -410,7 +404,7 @@ def tactigon_shape_function(
         zion: ZionInterface | None,
         ros2: Ros2Interface | None,
         ironboy: IronBoyInterface | None,
-        ginos: GinosInterface | None,
+        ollama: OllamaInterface | None,
         mqtt: MQTTClient | None,
         chords_llm: ChordLLMInterface | None,
         chords_ml: ChordMLInterface | None,
@@ -418,8 +412,6 @@ def tactigon_shape_function(
 
     gesture = tskin.gesture if tskin else None
     touch = tskin.touch if tskin else None
-    if check_touch(touch, "SINGLE_TAP"):
-        debug(logging_queue, 'Tactigon')
 
     return True
 
@@ -430,7 +422,7 @@ def tactigon_shape_close(
         zion: ZionInterface | None,
         ros2: Ros2Interface | None,
         ironboy: IronBoyInterface | None,
-        ginos: GinosInterface | None,
+        ollama: OllamaInterface | None,
         mqtt: MQTTClient | None,
         chords_llm: ChordLLMInterface | None,
         chords_ml: ChordMLInterface | None,

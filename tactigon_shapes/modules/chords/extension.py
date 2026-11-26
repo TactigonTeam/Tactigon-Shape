@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import json
 import httpx
 import requests
@@ -19,6 +20,7 @@ from tactigon_shapes.modules.chords.models import (
     ChordLLMChat, 
     ChordLLMChatStream, 
     ChordLLMFileExtensionEnum,
+    ChordLLMKnowledgeBaseSchema,
     ChordLLMPromptSchema,
 
     ChordsMLConfig,
@@ -72,11 +74,12 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
         return {
             "agent_states": [(state.name, state.value) for state in ChordLLMAgentStateEnum],
             "valid_extensions": [ext.value for ext in ChordLLMFileExtensionEnum],
-            "prompts": [(p.name, p.id) for p in self.prompts]
+            "prompts": [(p.name, p.id) for p in self.prompts],
+            "knowledge_bases": [(kb.name, kb.id) for kb in self.knowledge_bases]
         }
 
-    def init(self, prompt: str | None):
-        self.chat = self.new_chat(prompt)
+    def init(self, prompt: str | None, kb: str | None):
+        self.chat = self.new_chat(prompt, kb)
 
     def deinit(self):
         self.chat = None
@@ -121,11 +124,12 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
 
         self._logger.warning(f"Could not log out. Error: {self._get_error(resp) if resp else "No response"}")
         
-    def new_chat(self, prompt: str | None = None) -> ChordLLMChat | None:
+    def new_chat(self, prompt: str | None = None, kb: str | None = None) -> ChordLLMChat | None:
         res = self._do_post(
             "/api/chat/",
             payload={
-                "prompt": prompt
+                "prompt": prompt,
+                "kb": kb
             }
         )
 
@@ -160,6 +164,32 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
                     yield line
             return
 
+    def parse_json(self, content: Generator[str, Any, None]) -> dict:
+        try:
+            answer = ""
+            for chunk in content:
+                answer += chunk
+            answer = self._extract_json(self._strip_thought(answer)) if answer else "{}"
+            self._logger.info(f"Parsing JSON from: {answer}")
+            return json.loads(answer)
+        except (json.JSONDecodeError, TypeError) as e:
+            self._logger.error(f"Failed to parse JSON: {e}")
+            return {"error": f"Failed to parse JSON {answer}", "exception": str(e)}
+
+    @staticmethod
+    def _strip_thought(text: str) -> str:
+        return re.sub(r"<thought>.*?</thought>", "", text, flags=re.DOTALL).strip()
+
+    @staticmethod
+    def _extract_json(text: str) -> str:
+        """Removes markdown code fences and returns the outermost JSON object/array."""
+        text = re.sub(r"```(?:json)?", "", text, flags=re.IGNORECASE).strip()
+        starts = [i for i in (text.find("{"), text.find("[")) if i != -1]
+        ends = [i for i in (text.rfind("}"), text.rfind("]")) if i != -1]
+        if starts and ends and min(starts) < max(ends):
+            return text[min(starts):max(ends) + 1]
+        return text
+
     def upload(self, file_path: str) -> bool:
         if FileManager.get_file_extension(file_path) not in self.rag_extensions:
             self._logger.error("File type not supported.")
@@ -193,7 +223,7 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
         return ChordLLMChatStatus(**self._get_data(res)) if res else None
 
     def get_prompts(self):
-        res = self._do_get("/api/prompt")
+        res = self._do_get("/api/prompt/")
 
         prompts = []
         if res:
@@ -202,6 +232,17 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
         self._logger.info(f"Loaded {len(prompts)} prompts")
 
         return prompts
+
+    def get_knowledge_bases(self):
+        res = self._do_get("/api/knowledge_base/")
+
+        knowledge_bases = []
+        if res:
+            knowledge_bases = [ChordLLMKnowledgeBaseSchema.model_validate(kb) for kb in self._get_data(res).get("knowledge_bases", [])]
+
+        self._logger.info(f"Loaded {len(knowledge_bases)} knowledge bases")
+
+        return knowledge_bases
 
     @staticmethod
     def _get_data(res: requests.Response) -> dict:
@@ -314,7 +355,8 @@ class ChordLLMInterface(Interface[ChordLLMConfig]):
             follow_redirects=True,
             headers={
                 "Authorization": f"Bearer {self.access_token}"
-            }
+            },
+            timeout=httpx.Timeout(30.0)
         )
 
     def _get_base_url(self, url: str) -> str:
